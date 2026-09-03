@@ -210,6 +210,49 @@ body{background:var(--c-bg);color:var(--c-txt);font-family:var(--fn);font-size:1
 .fg select:focus,.fg input:focus{border-color:var(--c-blue);box-shadow:0 0 0 3px rgba(27,94,166,.08)}
 .fg-actions{display:flex;gap:6px;padding-top:18px}
 
+/* ─── MULTI-SELECT (checkboxes) ─────────────────────────────── */
+.msel{position:relative}
+.msel-btn{
+  width:100%;display:flex;align-items:center;justify-content:space-between;gap:6px;
+  background:var(--c-surface2);border:1px solid var(--c-border);
+  color:var(--c-txt);font-family:var(--fn);font-size:12px;
+  padding:6px 10px;border-radius:var(--r2);outline:none;cursor:pointer;
+}
+.msel-btn:hover{border-color:var(--c-border2)}
+.msel-btn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
+.msel-btn svg{flex-shrink:0;transition:transform .15s;opacity:.6}
+.msel.open .msel-btn svg{transform:rotate(180deg)}
+.msel-panel{
+  display:none;position:fixed;z-index:1000;
+  background:var(--c-surface);border:1px solid var(--c-border2);
+  border-radius:var(--r);box-shadow:var(--sh2);
+  width:260px;max-width:92vw;padding:8px;
+}
+.msel.open .msel-panel{display:flex;flex-direction:column;gap:6px}
+.msel-search{
+  background:var(--c-surface2);border:1px solid var(--c-border);
+  color:var(--c-txt);font-family:var(--fn);font-size:12px;
+  padding:6px 9px;border-radius:var(--r2);outline:none;width:100%;flex-shrink:0;
+}
+.msel-search:focus{border-color:var(--c-blue)}
+.msel-actions{display:flex;gap:6px;flex-shrink:0}
+.msel-actions button{
+  flex:1;background:var(--c-surface2);border:1px solid var(--c-border);
+  color:var(--c-txt2);font-family:var(--fn);font-size:10px;font-weight:600;
+  padding:5px 6px;border-radius:var(--r2);cursor:pointer;
+}
+.msel-actions button:hover{background:var(--c-blue-l);color:var(--c-blue);border-color:var(--c-blue-m)}
+.msel-list{overflow-y:auto;max-height:240px;display:flex;flex-direction:column;padding-right:2px}
+.msel-opt{
+  display:flex;align-items:center;gap:8px;padding:6px 6px;border-radius:var(--r2);
+  font-size:12px;color:var(--c-txt2);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.msel-opt:hover{background:var(--c-surface2)}
+.msel-opt input{flex-shrink:0;cursor:pointer;accent-color:var(--c-blue)}
+.msel-empty{font-size:11px;color:var(--c-txt3);padding:10px 6px;text-align:center}
+.msel-backdrop{position:fixed;inset:0;z-index:999;display:none}
+.msel.open .msel-backdrop{display:block}
+
 /* ─── TABLA ──────────────────────────────────────────────────── */
 .tcard{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);margin-bottom:20px}
 .tcard-head{
@@ -314,6 +357,58 @@ tbody td:nth-child(1){color:var(--c-txt3);font-family:var(--mono);font-size:10px
   .main{margin-left:52px}
   .charts-2,.charts-3{grid-template-columns:1fr}
 }
+
+/* ─── MÓVIL ──────────────────────────────────────────────────── */
+@media(max-width:640px){
+  html,body{overflow:auto;height:auto}
+  body{display:block}
+  .sidebar{
+    width:220px;left:-220px;transition:left .2s ease;box-shadow:var(--sh2);
+  }
+  .sidebar.open{left:0}
+  .sb-brand-name,.sb-brand-sub,.sb-section-label,.sb-item span,.sb-badge,.sb-ts{display:block}
+  .sb-item span{display:inline}
+  .sb-badge{display:inline-block}
+  .main{margin-left:0}
+  .sb-scrim{display:none;position:fixed;inset:0;background:rgba(26,35,50,.4);z-index:99}
+  .sb-scrim.show{display:block}
+  .mm-toggle{
+    display:flex;align-items:center;justify-content:center;
+    width:32px;height:32px;border-radius:var(--r2);border:1px solid var(--c-border);
+    background:var(--c-surface);cursor:pointer;flex-shrink:0;margin-right:10px;
+  }
+  .mm-toggle svg{width:16px;height:16px}
+
+  .topbar{padding:0 12px;height:52px}
+  .topbar-title{font-size:14px}
+  .topbar-sub{display:none}
+  .topbar-actions{gap:6px}
+  .tbtn{padding:6px 9px;font-size:0}
+  .tbtn svg{width:14px;height:14px;margin:0}
+
+  .content{padding:14px 12px}
+  .metrics-row{grid-template-columns:repeat(2,1fr);gap:8px}
+  .metric{padding:12px 12px}
+  .metric-value{font-size:20px}
+  .charts-row{gap:10px}
+  .chart-card{padding:12px}
+
+  .filter-bar{padding:12px}
+  .filter-row{flex-direction:column;align-items:stretch;gap:10px}
+  .fg{min-width:0;width:100%}
+  .fg-actions{padding-top:2px}
+
+  .tcard-head{flex-direction:column;align-items:stretch;gap:8px}
+  .tsearch{width:100%}
+  .tscroll{max-height:60vh}
+  table{min-width:640px}
+
+  .sec-title{font-size:11px}
+}
+@media(min-width:641px){
+  .mm-toggle{display:none}
+  .sb-scrim{display:none!important}
+}
 </style>
 </head>
 <body>
@@ -326,7 +421,8 @@ tbody td:nth-child(1){color:var(--c-txt3);font-family:var(--mono);font-size:10px
 </div>
 
 <!-- SIDEBAR -->
-<aside class="sidebar">
+<div class="sb-scrim" id="sb-scrim" onclick="toggleSidebar(false)"></div>
+<aside class="sidebar" id="sidebar">
   <div class="sb-brand">
     <div class="sb-brand-mark">
       <!-- Logo SVG SIPROSA-like -->
@@ -377,9 +473,14 @@ tbody td:nth-child(1){color:var(--c-txt3);font-family:var(--mono);font-size:10px
 
   <!-- TOPBAR -->
   <div class="topbar">
-    <div>
-      <div class="topbar-title" id="page-title">Órdenes de Salida</div>
-      <div class="topbar-sub" id="page-sub">Registro de movimientos del personal · SIPROSA</div>
+    <div style="display:flex;align-items:center;min-width:0">
+      <button class="mm-toggle" onclick="toggleSidebar()" aria-label="Menú">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2 4h12M2 8h12M2 12h12"/></svg>
+      </button>
+      <div style="min-width:0">
+        <div class="topbar-title" id="page-title">Órdenes de Salida</div>
+        <div class="topbar-sub" id="page-sub">Registro de movimientos del personal · SIPROSA</div>
+      </div>
     </div>
     <div class="topbar-actions">
       <button class="tbtn" onclick="exportExcel()">
@@ -452,7 +553,23 @@ tbody td:nth-child(1){color:var(--c-txt3);font-family:var(--mono);font-size:10px
             </select>
           </div>
           <div class="fg"><label>Sector</label><select id="os-f-sector"></select></div>
-          <div class="fg"><label>Agente</label><select id="os-f-agente"></select></div>
+          <div class="fg"><label>Agente <span style="font-weight:400;opacity:.7">(múltiple)</span></label>
+            <div class="msel" id="msel-os-f-agente">
+              <div class="msel-backdrop" onclick="mselClose('os-f-agente')"></div>
+              <button type="button" class="msel-btn" onclick="mselToggle('os-f-agente')">
+                <span id="os-f-agente-label">Todos</span>
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3.5l3 3 3-3"/></svg>
+              </button>
+              <div class="msel-panel" id="panel-os-f-agente">
+                <input class="msel-search" placeholder="Buscar agente..." oninput="mselFilterOptions('os-f-agente',this.value)">
+                <div class="msel-actions">
+                  <button type="button" onclick="mselSelectAll('os-f-agente')">Seleccionar todos</button>
+                  <button type="button" onclick="mselClear('os-f-agente')">Limpiar</button>
+                </div>
+                <div class="msel-list" id="list-os-f-agente"></div>
+              </div>
+            </div>
+          </div>
           <div class="fg"><label>Destino</label><select id="os-f-destino"></select></div>
           <div class="fg"><label>Desde</label><input type="date" id="os-f-desde"></div>
           <div class="fg"><label>Hasta</label><input type="date" id="os-f-hasta"></div>
@@ -657,23 +774,76 @@ let charts={};
 let inconsistencias=[];
 
 // ─── BOOT ────────────────────────────────────────────────────
+const CACHE_KEY='dmth_cache_v1';
 window.addEventListener('DOMContentLoaded', loadAll);
 
-async function loadAll(){
+function renderAll(){
+  filteredOS=[...rawOS]; filteredPE=[...rawPE];
+  renderOS();
+  renderPE();
+  // La detección de inconsistencias es lo más pesado: se corre después
+  // del primer pintado para que el dashboard aparezca rápido igual.
+  setTimeout(()=>{ processInconsistencias(); renderIN(); },0);
+}
+
+function loadCache(){
+  try{
+    const raw=localStorage.getItem(CACHE_KEY);
+    if(!raw) return null;
+    return JSON.parse(raw);
+  }catch(e){ return null; }
+}
+function saveCache(csvOS,csvPE){
+  try{
+    localStorage.setItem(CACHE_KEY,JSON.stringify({csvOS,csvPE,ts:Date.now()}));
+  }catch(e){ /* localStorage lleno o no disponible: sin problema */ }
+}
+
+async function loadAll(force){
+  const cache=force?null:loadCache();
+
+  if(cache){
+    // Pintamos instantáneamente con la última copia guardada en este navegador
+    // mientras se actualiza en segundo plano — así no hay que esperar la red.
+    rawOS = parseCSV(cache.csvOS).filter(r=>r[OS.id]&&r[OS.id].startsWith('OS'));
+    rawPE = cache.csvPE ? parseCSV(cache.csvPE).filter(r=>r[0]&&r[0].trim()!=='') : [];
+    renderAll();
+    hideOverlay();
+    const cacheDate=new Date(cache.ts);
+    document.getElementById('sb-ts').textContent='Caché '+cacheDate.toLocaleString('es-AR',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'});
+    toast('Mostrando datos guardados, actualizando...','info');
+    refreshInBackground();
+    return;
+  }
+
   showOverlay('Conectando con Sheets...');
   try{
-    await Promise.all([loadOS(), loadPE()]);
-    processInconsistencias();
-    renderOS();
-    renderPE();
-    renderIN();
+    const [csvOS,csvPE]=await Promise.all([fetchCSVSafe(CSV_OS,'Cargando órdenes de salida...'),fetchCSVSafe(CSV_PE,'Cargando nómina de personal...')]);
+    rawOS = parseCSV(csvOS).filter(r=>r[OS.id]&&r[OS.id].startsWith('OS'));
+    rawPE = csvPE ? parseCSV(csvPE).filter(r=>r[0]&&r[0].trim()!=='') : [];
+    renderAll();
     hideOverlay();
     document.getElementById('sb-ts').textContent = 'Act. '+new Date().toLocaleString('es-AR',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'});
     toast('Datos cargados correctamente','ok');
+    if(csvPE) saveCache(csvOS,csvPE);
   }catch(e){
     showOverlay('Error al cargar: '+e.message,'Verificá que las URLs de CSV sean públicas');
     console.error(e);
     setTimeout(hideOverlay,4000);
+  }
+}
+
+async function refreshInBackground(){
+  try{
+    const [csvOS,csvPE]=await Promise.all([fetchCSV(CSV_OS),fetchCSVSafeText(CSV_PE)]);
+    rawOS = parseCSV(csvOS).filter(r=>r[OS.id]&&r[OS.id].startsWith('OS'));
+    rawPE = csvPE ? parseCSV(csvPE).filter(r=>r[0]&&r[0].trim()!=='') : [];
+    renderAll();
+    document.getElementById('sb-ts').textContent = 'Act. '+new Date().toLocaleString('es-AR',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'});
+    toast('Datos actualizados','ok');
+    if(csvPE) saveCache(csvOS,csvPE);
+  }catch(e){
+    console.warn('No se pudo actualizar en segundo plano:',e);
   }
 }
 
@@ -701,6 +871,13 @@ async function fetchCSV(url){
   const r = await fetch(url);
   if(!r.ok) throw new Error(`HTTP ${r.status}`);
   return r.text();
+}
+async function fetchCSVSafe(url,subMsg){
+  setOverlaySub(subMsg);
+  try{ return await fetchCSV(url); }catch(e){ console.warn('No se pudo cargar',url,e); return url===CSV_PE?'':Promise.reject(e); }
+}
+async function fetchCSVSafeText(url){
+  try{ return await fetchCSV(url); }catch(e){ return ''; }
 }
 
 function parseCSV(text){
@@ -735,6 +912,16 @@ function switchTab(id,btn){
   const t=TABS[id]||['',''];
   document.getElementById('page-title').textContent=t[0];
   document.getElementById('page-sub').textContent=t[1];
+  if(window.innerWidth<=640) toggleSidebar(false);
+}
+
+// ─── MENÚ MÓVIL ────────────────────────────────────────────────
+function toggleSidebar(force){
+  const sb=document.getElementById('sidebar');
+  const scrim=document.getElementById('sb-scrim');
+  const open=force!==undefined?force:!sb.classList.contains('open');
+  sb.classList.toggle('open',open);
+  scrim.classList.toggle('show',open);
 }
 
 // ─── RENDER OS ───────────────────────────────────────────────
@@ -802,7 +989,7 @@ function renderOS(){
   const secs=new Set(rawOS.map(r=>normStr(r[OS.sector])).filter(Boolean));
   fillSelect('os-f-sector',secs);
   const ags=new Set(rawOS.map(r=>normStr(r[OS.nombre])).filter(Boolean));
-  fillSelect('os-f-agente',ags);
+  mselBuild('os-f-agente',ags);
   const dsts=new Set(rawOS.map(r=>normStr(r[OS.destino])).filter(d=>d&&d!=='-'));
   fillSelect('os-f-destino',dsts);
 
@@ -836,7 +1023,7 @@ function buildOSTable(rows){
 function applyOSFilter(){
   const fT=document.getElementById('os-f-tipo').value;
   const fS=document.getElementById('os-f-sector').value;
-  const fAg=document.getElementById('os-f-agente')?.value||'all';
+  const selAg=mselGetSelected('os-f-agente'); // null = todos, Set = selección exacta
   const fDst=document.getElementById('os-f-destino')?.value||'all';
   const fD=document.getElementById('os-f-desde').value;
   const fH=document.getElementById('os-f-hasta').value;
@@ -851,7 +1038,7 @@ function applyOSFilter(){
     const qStr=(r[OS.nombre]+r[OS.destino]+r[OS.obs]).toLowerCase();
     const okT=fT==='all'||m.toUpperCase().includes(fT.toUpperCase());
     const okS=fS==='all'||s===fS;
-    const okAg=fAg==='all'||ag===fAg;
+    const okAg=selAg===null||selAg.has(ag);
     const okDst=fDst==='all'||dst===fDst;
     const okD=!fD||!d||d>=new Date(fD);
     const okH=!fH||!d||d<=new Date(fH+'T23:59:59');
@@ -864,9 +1051,10 @@ function applyOSFilter(){
 }
 
 function clearOSFilter(){
-  ['os-f-tipo','os-f-sector','os-f-agente','os-f-destino','os-f-desde','os-f-hasta','os-f-q'].forEach(id=>{
+  ['os-f-tipo','os-f-sector','os-f-destino','os-f-desde','os-f-hasta','os-f-q'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.value=el.tagName==='SELECT'?'all':'';
   });
+  mselSelectAll('os-f-agente');
   const chk=document.getElementById('os-f-sinhasta');if(chk)chk.checked=false;
   filteredOS=[...rawOS];
   renderOS();
@@ -1094,18 +1282,27 @@ function processInconsistencias(){
     }
   });
 
-  // 6. Duplicados (mismo agente, mismo destino, misma fecha ±5min)
-  for(let i=0;i<rawOS.length;i++){
-    for(let j=i+1;j<rawOS.length;j++){
-      const a=rawOS[i],b=rawOS[j];
-      if(normDNI(a[OS.dni])!==normDNI(b[OS.dni])||!normDNI(a[OS.dni])) continue;
-      const da=parseDate(a[OS.ts]),db=parseDate(b[OS.ts]);
-      if(!da||!db) continue;
-      if(Math.abs(da-db)<10*60*1000&&normStr(a[OS.destino])===normStr(b[OS.destino])){
-        inconsistencias.push({id:a[OS.id]+'/'+b[OS.id],nombre:normStr(a[OS.nombre]),tipo:'warn',titulo:'Posible registro duplicado',desc:`Las órdenes ${a[OS.id]} y ${b[OS.id]} del mismo agente a "${a[OS.destino]}" fueron registradas con menos de 10 minutos de diferencia.`,campo:'Timestamp'});
+  // 6. Duplicados (mismo agente, mismo destino, misma fecha ±10min)
+  // Agrupamos primero por DNI para no comparar cada fila contra todas las demás (O(n²) → O(n·k))
+  const byDni={};
+  rawOS.forEach(r=>{
+    const d=normDNI(r[OS.dni]);
+    if(!d) return;
+    (byDni[d]=byDni[d]||[]).push(r);
+  });
+  Object.values(byDni).forEach(group=>{
+    if(group.length<2) return;
+    for(let i=0;i<group.length;i++){
+      for(let j=i+1;j<group.length;j++){
+        const a=group[i],b=group[j];
+        const da=parseDate(a[OS.ts]),db=parseDate(b[OS.ts]);
+        if(!da||!db) continue;
+        if(Math.abs(da-db)<10*60*1000&&normStr(a[OS.destino])===normStr(b[OS.destino])){
+          inconsistencias.push({id:a[OS.id]+'/'+b[OS.id],nombre:normStr(a[OS.nombre]),tipo:'warn',titulo:'Posible registro duplicado',desc:`Las órdenes ${a[OS.id]} y ${b[OS.id]} del mismo agente a "${a[OS.destino]}" fueron registradas con menos de 10 minutos de diferencia.`,campo:'Timestamp'});
+        }
       }
     }
-  }
+  });
 
   // 7. Errores tipográficos en sector (normalización)
   const typos={'ORDUCCIÓN':'PRODUCCIÓN','PRIODUCCIÓN':'PRODUCCIÓN','PRODUUCCIÓN':'PRODUCCIÓN','ADMINISTERACION':'ADMINISTRACIÓN'};
@@ -1127,7 +1324,7 @@ function processInconsistencias(){
   });
   Object.entries(agSec).forEach(([dni,secs])=>{
     if(secs.size>2){
-      const nombre=rawOS.find(r=>normDNI(r[OS.dni])===dni)?.[OS.nombre]||'';
+      const nombre=(byDni[dni]&&byDni[dni][0])?byDni[dni][0][OS.nombre]:'';
       inconsistencias.push({id:'AG-'+dni,nombre,tipo:'warn',titulo:`Agente ${nombre} con ${secs.size} sectores distintos`,desc:`El agente con DNI ${dni} aparece en ${secs.size} sectores diferentes en las órdenes: ${[...secs].join(', ')}. Indica falta de normalización.`,campo:'Sector'});
     }
   });
@@ -1351,7 +1548,7 @@ async function refreshAll(){
   btn.classList.add('spinning');
   showOverlay('Actualizando datos...');
   rawOS=[];rawPE=[];filteredOS=[];filteredPE=[];inconsistencias=[];
-  await loadAll();
+  await loadAll(true); // force=true: ignora la caché y va directo a la red
   btn.classList.remove('spinning');
 }
 
@@ -1366,6 +1563,100 @@ function normDNI(s){return(s||'').replace(/[\.\s-]/g,'').trim().toUpperCase();}
 function parseDate(s){if(!s)return null;try{const[d,t]=(s||'').split(' ');if(!d)return null;const[day,mon,yr]=d.split('/');return new Date(`${yr}-${mon.padStart(2,'0')}-${day.padStart(2,'0')}T${t||'00:00:00'}`);}catch(e){return null;}}
 function fmtDate(s){const d=parseDate(s);if(!d)return xe(s);return d.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'});}
 function fillSelect(id,set){const el=document.getElementById(id);if(!el)return;const cur=el.value;el.innerHTML='<option value="all">Todos</option>';[...set].sort().forEach(v=>el.innerHTML+=`<option value="${xe(v)}">${xe(v)}</option>`);if(cur&&[...el.options].some(o=>o.value===cur))el.value=cur;}
+
+// ─── MULTI-SELECT (checkboxes, con búsqueda) ──────────────────
+// mode: 'all' (sin filtro, todo tildado) | 'custom' (selected define exactamente qué está tildado)
+const mselData={}; // id -> {all:[...], selected:Set, mode:'all'|'custom', search:''}
+function mselBuild(id,set){
+  const all=[...set].sort();
+  const prev=mselData[id];
+  let selected=new Set(), mode='all';
+  if(prev&&prev.mode==='custom'){
+    selected=new Set([...prev.selected].filter(v=>all.includes(v)));
+    mode='custom';
+  }
+  mselData[id]={all,selected,mode,search:''};
+  mselRenderList(id);
+  mselUpdateLabel(id);
+}
+function mselRenderList(id){
+  const st=mselData[id];if(!st)return;
+  const list=document.getElementById('list-'+id);if(!list)return;
+  const q=st.search.toLowerCase();
+  const opts=st.all.filter(v=>!q||v.toLowerCase().includes(q));
+  if(!opts.length){list.innerHTML='<div class="msel-empty">Sin resultados</div>';return;}
+  list.innerHTML=opts.map(v=>{
+    const checked=st.mode==='all'||st.selected.has(v);
+    return `<label class="msel-opt"><input type="checkbox" data-v="${xe(v)}" ${checked?'checked':''} onchange="mselOptToggle('${id}',this)">${xe(v)}</label>`;
+  }).join('');
+}
+function mselOptToggle(id,input){
+  const st=mselData[id];if(!st)return;
+  const v=input.dataset.v;
+  if(st.mode==='all'){
+    st.mode='custom';
+    st.selected=new Set(st.all.filter(x=>x!==v));
+  }else if(input.checked){
+    st.selected.add(v);
+    if(st.selected.size===st.all.length){st.mode='all';st.selected=new Set();}
+  }else{
+    st.selected.delete(v);
+  }
+  mselUpdateLabel(id);
+}
+function mselUpdateLabel(id){
+  const st=mselData[id];if(!st)return;
+  const lbl=document.getElementById(id+'-label');if(!lbl)return;
+  if(st.mode==='all') lbl.textContent='Todos';
+  else if(st.selected.size===0) lbl.textContent='Ninguno';
+  else if(st.selected.size===1) lbl.textContent=[...st.selected][0];
+  else lbl.textContent=`${st.selected.size} seleccionados`;
+}
+function mselFilterOptions(id,q){const st=mselData[id];if(!st)return;st.search=q;mselRenderList(id);}
+function mselSelectAll(id){const st=mselData[id];if(!st)return;st.mode='all';st.selected=new Set();mselRenderList(id);mselUpdateLabel(id);}
+function mselClear(id){const st=mselData[id];if(!st)return;st.mode='custom';st.selected=new Set();mselRenderList(id);mselUpdateLabel(id);}
+// Devuelve null si no hay filtro (todos), o un Set (posiblemente vacío) con la selección exacta
+function mselGetSelected(id){
+  const st=mselData[id];if(!st)return null;
+  if(st.mode==='all')return null;
+  return st.selected;
+}
+let mselOpenId=null;
+function mselToggle(id){
+  if(mselOpenId===id){mselClose(id);return;}
+  if(mselOpenId) mselClose(mselOpenId);
+  const wrap=document.getElementById('msel-'+id);
+  const btn=wrap.querySelector('.msel-btn');
+  const panel=document.getElementById('panel-'+id);
+  wrap.classList.add('open');
+  mselOpenId=id;
+  // posicionar dentro del viewport
+  requestAnimationFrame(()=>{
+    const r=btn.getBoundingClientRect();
+    const isMobile=window.innerWidth<640;
+    if(isMobile){
+      panel.style.left='4vw';panel.style.width='92vw';panel.style.maxWidth='92vw';
+      panel.style.top='auto';panel.style.bottom='16px';panel.style.maxHeight='70vh';
+    }else{
+      const pw=260;
+      let left=Math.min(r.left,window.innerWidth-pw-12);
+      left=Math.max(8,left);
+      let top=r.bottom+4;
+      const maxH=Math.min(320,window.innerHeight-top-12);
+      if(maxH<160){top=Math.max(8,r.top-4-320);panel.style.maxHeight='320px';}
+      else panel.style.maxHeight=maxH+'px';
+      panel.style.left=left+'px';panel.style.top=top+'px';panel.style.width=pw+'px';
+    }
+    const searchEl=panel.querySelector('.msel-search');if(searchEl)searchEl.focus();
+  });
+}
+function mselClose(id){
+  const wrap=document.getElementById('msel-'+id);if(!wrap)return;
+  wrap.classList.remove('open');
+  if(mselOpenId===id) mselOpenId=null;
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&mselOpenId)mselClose(mselOpenId);});
+window.addEventListener('resize',()=>{if(mselOpenId)mselClose(mselOpenId);});
 
 function showOverlay(txt,sub){
   const el=document.getElementById('overlay');el.style.opacity='1';el.style.display='flex';
