@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DMTH · Panel de Gestión Operativa</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%231B5EA6'/><path d='M8 22V14l8-6 8 6v8' stroke='%23fff' stroke-width='2' stroke-linejoin='round' fill='none'/><rect x='13' y='16' width='6' height='6' rx='1' fill='%23fff' opacity='.8'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -451,9 +452,16 @@ tbody td:nth-child(1){color:var(--c-txt3);font-family:var(--mono);font-size:10px
             </select>
           </div>
           <div class="fg"><label>Sector</label><select id="os-f-sector"></select></div>
+          <div class="fg"><label>Agente</label><select id="os-f-agente"></select></div>
+          <div class="fg"><label>Destino</label><select id="os-f-destino"></select></div>
           <div class="fg"><label>Desde</label><input type="date" id="os-f-desde"></div>
           <div class="fg"><label>Hasta</label><input type="date" id="os-f-hasta"></div>
           <div class="fg"><label>Buscar</label><input type="text" id="os-f-q" placeholder="Agente, destino..."></div>
+          <div class="fg" style="flex:0 0 auto;min-width:auto">
+            <label style="display:flex;align-items:center;gap:6px;padding-top:6px;cursor:pointer;white-space:nowrap">
+              <input type="checkbox" id="os-f-sinhasta" style="cursor:pointer">Solo sin hora retorno
+            </label>
+          </div>
           <div class="fg">
             <div class="fg-actions">
               <button class="tbtn tbtn-blue" style="flex:1" onclick="applyOSFilter()">
@@ -522,7 +530,9 @@ tbody td:nth-child(1){color:var(--c-txt3);font-family:var(--mono);font-size:10px
         <div class="filter-label">Filtros</div>
         <div class="filter-row">
           <div class="fg"><label>Sector</label><select id="pe-f-sector"></select></div>
-          <div class="fg"><label>Buscar</label><input type="text" id="pe-f-q" placeholder="Nombre, DNI..."></div>
+          <div class="fg"><label>Servicio</label><select id="pe-f-servicio"></select></div>
+          <div class="fg"><label>Condición</label><select id="pe-f-condicion"></select></div>
+          <div class="fg"><label>Buscar</label><input type="text" id="pe-f-q" placeholder="Apellido, Nombre, DNI..."></div>
           <div class="fg">
             <div class="fg-actions">
               <button class="tbtn tbtn-blue" style="flex:1" onclick="applyPEFilter()">
@@ -548,7 +558,7 @@ tbody td:nth-child(1){color:var(--c-txt3);font-family:var(--mono);font-size:10px
           <table>
             <thead><tr>
               <th>#</th>
-              <th onclick="peSortTable(1)">Nombre y Apellido ↕</th>
+              <th onclick="peSortTable(1)">Apellido y Nombre ↕</th>
               <th onclick="peSortTable(2)">DNI ↕</th>
               <th onclick="peSortTable(3)">Sector ↕</th>
               <th>Órdenes</th>
@@ -608,6 +618,33 @@ const CSV_PE = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTXY_a8ZOFS7FMbM
 
 // Columnas CSV Órdenes de Salida (0-based)
 const OS = { ts:0, email:1, nombre:2, dni:3, sector:4, motivo:5, destino:6, desde:7, hasta:8, obs:9, doc:10, id:11, resumen:12 };
+
+// Columnas CSV Personal DMTH (0-based) — según encabezados reales de la planilla
+const PE = {
+  id:0,            // ID_PERSONAL_DNI
+  dni:1,           // DNI
+  apellido:2,      // APELLIDO
+  nombre:3,        // NOMBRE
+  condicion:4,     // CONDICION_2025_PLANTA
+  situacion:5,     // SITUACION_HORARIO_2026
+  organismo:6,     // ORGANISMO
+  servicio:7,      // SERVICIO
+  sector:8,        // SECTOR
+  funcion:9,       // FUNCION_2026
+  nivel:10,        // NIVEL
+  libre:11,        // LIBRE
+  domicilio:12,    // DOMICILIO
+  email:13,        // CORREO_ELECTRONICO
+  telefono:14,     // TELEFONO
+  telefamiliar:15, // TELEFONO CONTACTO DE UN FAMILIAR
+  horario:16,      // HORARIO
+  obs:17           // OBSERVACIONES
+};
+function peFullName(r){
+  const ap=normStr(r[PE.apellido]), no=normStr(r[PE.nombre]);
+  if(ap&&no) return `${ap}, ${no}`;
+  return ap||no||'—';
+}
 
 // Paleta
 const BLUE='#1B5EA6', GREEN='#2A7D4F', AMBER='#C8870A', RED='#C0392B', PURPLE='#7B61FF';
@@ -761,9 +798,13 @@ function renderOS(){
   const topDst=Object.entries(dstCnt).sort((a,b)=>b[1]-a[1]).slice(0,8);
   renderTopList('os-top-destinos',topDst,GREEN);
 
-  // Filtro sectores
+  // Filtros dinámicos
   const secs=new Set(rawOS.map(r=>normStr(r[OS.sector])).filter(Boolean));
   fillSelect('os-f-sector',secs);
+  const ags=new Set(rawOS.map(r=>normStr(r[OS.nombre])).filter(Boolean));
+  fillSelect('os-f-agente',ags);
+  const dsts=new Set(rawOS.map(r=>normStr(r[OS.destino])).filter(d=>d&&d!=='-'));
+  fillSelect('os-f-destino',dsts);
 
   // Tabla
   osRows=[...rows];
@@ -795,29 +836,38 @@ function buildOSTable(rows){
 function applyOSFilter(){
   const fT=document.getElementById('os-f-tipo').value;
   const fS=document.getElementById('os-f-sector').value;
+  const fAg=document.getElementById('os-f-agente')?.value||'all';
+  const fDst=document.getElementById('os-f-destino')?.value||'all';
   const fD=document.getElementById('os-f-desde').value;
   const fH=document.getElementById('os-f-hasta').value;
   const fQ=document.getElementById('os-f-q').value.toLowerCase();
+  const fSinHasta=document.getElementById('os-f-sinhasta')?.checked;
   filteredOS=rawOS.filter(r=>{
     const m=normMotivo(r[OS.motivo]);
     const s=normStr(r[OS.sector]);
+    const ag=normStr(r[OS.nombre]);
+    const dst=normStr(r[OS.destino]);
     const d=parseDate(r[OS.ts]);
     const qStr=(r[OS.nombre]+r[OS.destino]+r[OS.obs]).toLowerCase();
     const okT=fT==='all'||m.toUpperCase().includes(fT.toUpperCase());
     const okS=fS==='all'||s===fS;
+    const okAg=fAg==='all'||ag===fAg;
+    const okDst=fDst==='all'||dst===fDst;
     const okD=!fD||!d||d>=new Date(fD);
     const okH=!fH||!d||d<=new Date(fH+'T23:59:59');
     const okQ=!fQ||qStr.includes(fQ);
-    return okT&&okS&&okD&&okH&&okQ;
+    const okSinHasta=!fSinHasta||!r[OS.hasta]||r[OS.hasta].trim()==='';
+    return okT&&okS&&okAg&&okDst&&okD&&okH&&okQ&&okSinHasta;
   });
   renderOS();
   toast(`${filteredOS.length} registros encontrados`,'info');
 }
 
 function clearOSFilter(){
-  ['os-f-tipo','os-f-sector','os-f-desde','os-f-hasta','os-f-q'].forEach(id=>{
+  ['os-f-tipo','os-f-sector','os-f-agente','os-f-destino','os-f-desde','os-f-hasta','os-f-q'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.value=el.tagName==='SELECT'?'all':'';
   });
+  const chk=document.getElementById('os-f-sinhasta');if(chk)chk.checked=false;
   filteredOS=[...rawOS];
   renderOS();
 }
@@ -839,13 +889,41 @@ function osSortTable(col){
 // ─── RENDER PE ───────────────────────────────────────────────
 function renderPE(){
   if(!rawPE.length){
-    // Construir personal desde OS
+    // Fallback: construir personal deducido desde Órdenes de Salida
     buildPEFromOS();
     return;
   }
-  // Si hay datos reales
-  filteredPE=[...rawPE];
-  buildPETableReal();
+
+  const rows=filteredPE;
+
+  // Cruce con Órdenes de Salida por DNI
+  const osDniSet=new Set(rawOS.map(r=>normDNI(r[OS.dni])).filter(Boolean));
+
+  const total=rows.length;
+  const sectores=new Set(rows.map(r=>normStr(r[PE.sector])).filter(Boolean));
+  const conMov=rows.filter(r=>osDniSet.has(normDNI(r[PE.dni]))).length;
+  const sinDatos=rows.filter(r=>!normDNI(r[PE.dni])||!normStr(r[PE.apellido])&&!normStr(r[PE.nombre])).length;
+
+  st('pe-m1',total);
+  st('pe-m2',sectores.size);
+  st('pe-m3',conMov);
+  st('pe-m4',sinDatos);
+  st('nav-pe-badge',total);
+
+  // Gráficos por sector
+  const secCnt={};
+  rows.forEach(r=>{const s=normStr(r[PE.sector]);if(s)secCnt[s]=(secCnt[s]||0)+1;});
+  const topSec=Object.entries(secCnt).sort((a,b)=>b[1]-a[1]).slice(0,12);
+  mkHBar('ch-pe-sector',Object.fromEntries(topSec),GREEN);
+  mkDonut('ch-pe-donut',Object.fromEntries(topSec.slice(0,7)),PAL);
+
+  // Filtros dinámicos
+  fillSelect('pe-f-sector',new Set(rawPE.map(r=>normStr(r[PE.sector])).filter(Boolean)));
+  fillSelect('pe-f-servicio',new Set(rawPE.map(r=>normStr(r[PE.servicio])).filter(Boolean)));
+  fillSelect('pe-f-condicion',new Set(rawPE.map(r=>normStr(r[PE.condicion])).filter(Boolean)));
+
+  peRows=[...rows];
+  buildPETableReal(peRows,osDniSet);
 }
 
 function buildPEFromOS(){
@@ -902,42 +980,72 @@ function buildPETableFromAg(agentes,osData){
   st('pe-tfoot',`${agentes.length} registros deducidos de órdenes de salida`);
 }
 
-function buildPETableReal(){
-  const rows=filteredPE;
-  // cols desconocidas — mostramos primeras 5
-  document.getElementById('pe-tbody').innerHTML=rows.slice(0,500).map((r,i)=>`
-    <tr>
+function buildPETableReal(rows,osDniSet){
+  rows=rows||peRows;
+  osDniSet=osDniSet||new Set(rawOS.map(r=>normDNI(r[OS.dni])).filter(Boolean));
+  const show=rows.slice(0,500);
+  document.getElementById('pe-tbody').innerHTML=show.map((r,i)=>{
+    const dni=normDNI(r[PE.dni]);
+    const hasDni=!!dni;
+    const cnt=hasDni?(rawOS.filter(o=>normDNI(o[OS.dni])===dni).length):0;
+    const activo=hasDni&&osDniSet.has(dni);
+    return `<tr>
       <td>${i+1}</td>
-      <td style="color:var(--c-txt);font-weight:500">${xe(r[0]||'')}</td>
-      <td style="font-family:var(--mono);font-size:11px">${xe(r[1]||'')}</td>
-      <td>${xe(r[2]||'')}</td>
-      <td>—</td>
-      <td><span class="chip chip-blue">Registrado</span></td>
-    </tr>`).join('');
-  st('pe-tbl-badge',`${rows.length} reg.`);
-  st('pe-tfoot',`${rows.length} registros`);
+      <td style="color:var(--c-txt);font-weight:500">${xe(peFullName(r))}</td>
+      <td style="font-family:var(--mono);font-size:11px">${hasDni?xe(r[PE.dni]):'<span style="color:var(--c-red)">Sin DNI</span>'}</td>
+      <td>${xe(normStr(r[PE.sector])||'—')}</td>
+      <td style="font-family:var(--mono);font-size:11px;color:var(--c-blue);font-weight:600">${cnt}</td>
+      <td><span class="chip ${activo?'chip-ok':'chip-gray'}">${activo?'Con movimientos':'Sin mov.'}</span></td>
+    </tr>`;
+  }).join('');
+  st('pe-tbl-badge',`${rows.length} agentes`);
+  st('pe-tfoot',rows.length>500?`Mostrando 500 de ${rows.length}`:`${rows.length} registros`);
 }
 
 function applyPEFilter(){
-  const fS=document.getElementById('pe-f-sector').value;
-  const fQ=document.getElementById('pe-f-q').value.toLowerCase();
-  buildPEFromOSFiltered(fS,fQ);
+  const fS=document.getElementById('pe-f-sector')?.value;
+  const fSv=document.getElementById('pe-f-servicio')?.value;
+  const fC=document.getElementById('pe-f-condicion')?.value;
+  const fQ=(document.getElementById('pe-f-q')?.value||'').toLowerCase();
+  filteredPE=rawPE.filter(r=>{
+    const okS=!fS||fS==='all'||normStr(r[PE.sector])===fS;
+    const okSv=!fSv||fSv==='all'||normStr(r[PE.servicio])===fSv;
+    const okC=!fC||fC==='all'||normStr(r[PE.condicion])===fC;
+    const qStr=(peFullName(r)+' '+(r[PE.dni]||'')+' '+(r[PE.sector]||'')+' '+(r[PE.servicio]||'')).toLowerCase();
+    const okQ=!fQ||qStr.includes(fQ);
+    return okS&&okSv&&okC&&okQ;
+  });
+  renderPE();
+  toast(`${filteredPE.length} agentes encontrados`,'info');
 }
 function clearPEFilter(){
-  ['pe-f-sector','pe-f-q'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=el.tagName==='SELECT'?'all':'';});
-  buildPEFromOS();
-}
-function buildPEFromOSFiltered(fS,fQ){
-  const agMap={};
-  rawOS.forEach(r=>{const dni=normDNI(r[OS.dni]);if(!dni)return;if(!agMap[dni])agMap[dni]={nombre:normStr(r[OS.nombre]),dni,sector:normStr(r[OS.sector]),cnt:0};agMap[dni].cnt++;});
-  let agentes=Object.values(agMap);
-  if(fS&&fS!=='all')agentes=agentes.filter(a=>a.sector===fS);
-  if(fQ)agentes=agentes.filter(a=>(a.nombre+a.dni+a.sector).toLowerCase().includes(fQ));
-  buildPETableFromAg(agentes,rawOS);
+  ['pe-f-sector','pe-f-servicio','pe-f-condicion','pe-f-q'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value=el.tagName==='SELECT'?'all':'';
+  });
+  filteredPE=[...rawPE];
+  renderPE();
 }
 let peTblTimer;
-function peTableSearch(v){clearTimeout(peTblTimer);peTblTimer=setTimeout(()=>buildPEFromOSFiltered(document.getElementById('pe-f-sector').value,v.toLowerCase()),200);}
-function peSortTable(col){}
+function peTableSearch(v){
+  clearTimeout(peTblTimer);
+  peTblTimer=setTimeout(()=>{
+    const q=v.toLowerCase();
+    const osDniSet=new Set(rawOS.map(r=>normDNI(r[OS.dni])).filter(Boolean));
+    buildPETableReal(peRows.filter(r=>(peFullName(r)+' '+(r[PE.dni]||'')+' '+(r[PE.sector]||'')).toLowerCase().includes(q)),osDniSet);
+  },200);
+}
+let peSortD={};
+function peSortTable(col){
+  peSortD[col]=-(peSortD[col]||1);
+  const d=peSortD[col];
+  const osDniSet=new Set(rawOS.map(r=>normDNI(r[OS.dni])).filter(Boolean));
+  const sorted=[...peRows].sort((a,b)=>{
+    const va=col===1?peFullName(a):col===2?(a[PE.dni]||''):col===3?normStr(a[PE.sector]):'';
+    const vb=col===1?peFullName(b):col===2?(b[PE.dni]||''):col===3?normStr(b[PE.sector]):'';
+    return d*(va>vb?1:va<vb?-1:0);
+  });
+  buildPETableReal(sorted,osDniSet);
+}
 
 // ─── INCONSISTENCIAS ─────────────────────────────────────────
 function processInconsistencias(){
@@ -1126,10 +1234,12 @@ function renderTopList(id,entries,color){
 // ─── EXPORT ──────────────────────────────────────────────────
 function exportExcel(){
   const tab=currentTab();
-  let rows=tab==='os'?osRows:tab==='pe'?filteredPE:[];
+  let rows=tab==='os'?osRows:tab==='pe'?peRows:[];
   if(!rows.length){toast('Sin datos para exportar','warn');return;}
   let csv=tab==='os'
     ? 'Código,Fecha,Agente,DNI,Sector,Motivo,Destino,Desde,Hasta,Observaciones\n'+rows.map(r=>[r[OS.id],r[OS.ts],r[OS.nombre],r[OS.dni],r[OS.sector],r[OS.motivo],r[OS.destino],r[OS.desde],r[OS.hasta],r[OS.obs]].map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(',')).join('\n')
+    : tab==='pe'
+    ? 'Apellido,Nombre,DNI,Sector,Servicio,Condición,Función,Organismo\n'+rows.map(r=>[r[PE.apellido],r[PE.nombre],r[PE.dni],r[PE.sector],r[PE.servicio],r[PE.condicion],r[PE.funcion],r[PE.organismo]].map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(',')).join('\n')
     : rows.map(r=>r.join(',')).join('\n');
   const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
   const url=URL.createObjectURL(blob);
@@ -1255,7 +1365,7 @@ function normMotivo(s){return(s||'').trim().toUpperCase();}
 function normDNI(s){return(s||'').replace(/[\.\s-]/g,'').trim().toUpperCase();}
 function parseDate(s){if(!s)return null;try{const[d,t]=(s||'').split(' ');if(!d)return null;const[day,mon,yr]=d.split('/');return new Date(`${yr}-${mon.padStart(2,'0')}-${day.padStart(2,'0')}T${t||'00:00:00'}`);}catch(e){return null;}}
 function fmtDate(s){const d=parseDate(s);if(!d)return xe(s);return d.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'});}
-function fillSelect(id,set){const el=document.getElementById(id);if(!el)return;el.innerHTML='<option value="all">Todos</option>';[...set].sort().forEach(v=>el.innerHTML+=`<option value="${xe(v)}">${xe(v)}</option>`);}
+function fillSelect(id,set){const el=document.getElementById(id);if(!el)return;const cur=el.value;el.innerHTML='<option value="all">Todos</option>';[...set].sort().forEach(v=>el.innerHTML+=`<option value="${xe(v)}">${xe(v)}</option>`);if(cur&&[...el.options].some(o=>o.value===cur))el.value=cur;}
 
 function showOverlay(txt,sub){
   const el=document.getElementById('overlay');el.style.opacity='1';el.style.display='flex';
