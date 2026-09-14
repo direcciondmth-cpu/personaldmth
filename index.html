@@ -445,10 +445,20 @@ tbody td:nth-child(1){color:var(--c-txt3);font-family:var(--mono);font-size:10px
       <span>Órdenes de Salida</span>
       <span class="sb-badge blue" id="nav-os-badge">—</span>
     </button>
+    <button class="sb-item" onclick="switchTab('ot',this)" id="nav-ot">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 2h6l3 3v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><path d="M9.5 2v3h3M5 8.5h6M5 11h4"/></svg>
+      <span>Órdenes de Trabajo</span>
+      <span class="sb-badge" style="background:var(--c-amber-l);color:var(--c-amber)" id="nav-ot-badge">—</span>
+    </button>
     <button class="sb-item" onclick="switchTab('pe',this)" id="nav-pe">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5.5" r="2.5"/><path d="M3 13.5c0-2.76 2.24-5 5-5s5 2.24 5 5"/></svg>
       <span>Personal DMTH</span>
       <span class="sb-badge green" id="nav-pe-badge">—</span>
+    </button>
+    <button class="sb-item" onclick="switchTab('rg',this)" id="nav-rg">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="5" r="2.2"/><path d="M2.2 13c0-2.3 1.7-4 3.8-4s3.8 1.7 3.8 4"/><circle cx="12" cy="6" r="1.6"/><path d="M9.6 8.3c1.6.2 2.8 1.5 2.9 3.4"/></svg>
+      <span>Reporte por Agente</span>
+      <span class="sb-badge" style="background:var(--c-blue-l);color:var(--c-blue)" id="nav-rg-badge">—</span>
     </button>
     <button class="sb-item" onclick="switchTab('in',this)" id="nav-in">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2L9.5 6h4l-3.2 2.4 1.2 4L8 10l-3.5 2.4 1.2-4L2.5 6h4z"/></svg>
@@ -619,6 +629,115 @@ tbody td:nth-child(1){color:var(--c-txt3);font-family:var(--mono);font-size:10px
       </div>
     </div><!-- /tab-os -->
 
+    <!-- ═══ TAB: ÓRDENES DE TRABAJO ═══ -->
+    <div class="tab-pane" id="tab-ot">
+
+      <!-- Métricas -->
+      <div class="sec"><div class="sec-title">Indicadores del período</div><div class="sec-line"></div></div>
+      <div class="metrics-row">
+        <div class="metric"><div class="metric-accent" style="background:var(--c-blue)"></div><div class="metric-label">Total órdenes</div><div class="metric-value" id="ot-m1">—</div><div class="metric-sub">registros cargados</div></div>
+        <div class="metric"><div class="metric-accent" style="background:var(--c-green)"></div><div class="metric-label">Agentes distintos</div><div class="metric-value" id="ot-m2">—</div><div class="metric-sub">integraron alguna cuadrilla</div></div>
+        <div class="metric"><div class="metric-accent" style="background:var(--c-amber)"></div><div class="metric-label">Cuadrilla promedio</div><div class="metric-value" id="ot-m3">—</div><div class="metric-sub">agentes por orden</div></div>
+        <div class="metric"><div class="metric-accent" style="background:#7B61FF"></div><div class="metric-label">Secciones activas</div><div class="metric-value" id="ot-m4">—</div><div class="metric-sub">áreas distintas</div></div>
+        <div class="metric"><div class="metric-accent" style="background:var(--c-red)"></div><div class="metric-label">Sin cuadrilla</div><div class="metric-value" id="ot-m5">—</div><div class="metric-sub">campo vacío</div><div class="metric-trend trend-bad" id="ot-m5t">—</div></div>
+        <div class="metric"><div class="metric-accent" style="background:var(--c-txt3)"></div><div class="metric-label">Destinos distintos</div><div class="metric-value" id="ot-m6">—</div><div class="metric-sub">lugares atendidos</div></div>
+      </div>
+
+      <!-- Gráficos -->
+      <div class="sec"><div class="sec-title">Distribución y tendencias</div><div class="sec-line"></div></div>
+      <div class="charts-row charts-3">
+        <div class="chart-card">
+          <div class="chart-head"><div><div class="chart-title">Sección</div><div class="chart-sub">Distribución de órdenes</div></div><span class="chart-tag">DONUT</span></div>
+          <div style="height:190px;display:flex;align-items:center;justify-content:center"><canvas id="ch-ot-seccion"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-head"><div><div class="chart-title">Top destinos</div><div class="chart-sub">Mayor volumen de órdenes</div></div><span class="chart-tag">BARRAS</span></div>
+          <div style="height:190px"><canvas id="ch-ot-destino"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-head"><div><div class="chart-title">Órdenes por día de semana</div><div class="chart-sub">Lunes–Viernes</div></div><span class="chart-tag">LÍNEA</span></div>
+          <div style="height:190px"><canvas id="ch-ot-dia"></canvas></div>
+        </div>
+      </div>
+
+      <div class="charts-row charts-2">
+        <div class="chart-card">
+          <div class="chart-head"><div><div class="chart-title">Top 15 agentes</div><div class="chart-sub">Mayor cantidad de órdenes — click para filtrar</div></div></div>
+          <div id="ot-top-agentes" class="top-list" style="max-height:280px;overflow-y:auto"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-head"><div><div class="chart-title">Top secciones</div><div class="chart-sub">Mayor volumen de trabajo</div></div></div>
+          <div style="height:280px"><canvas id="ch-ot-seccion-bar"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Tabla -->
+      <div class="sec"><div class="sec-title">Consolidado de órdenes de trabajo</div><div class="sec-line"></div></div>
+      <div class="filter-bar">
+        <div class="filter-label">Filtros — reporte por agente y período</div>
+        <div class="filter-row">
+          <div class="fg"><label>Sección</label><select id="ot-f-seccion"></select></div>
+          <div class="fg"><label>Agente <span style="font-weight:400;opacity:.7">(múltiple)</span></label>
+            <div class="msel" id="msel-ot-f-agente">
+              <div class="msel-backdrop" onclick="mselClose('ot-f-agente')"></div>
+              <button type="button" class="msel-btn" onclick="mselToggle('ot-f-agente')">
+                <span id="ot-f-agente-label">Todos</span>
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3.5l3 3 3-3"/></svg>
+              </button>
+              <div class="msel-panel" id="panel-ot-f-agente">
+                <input class="msel-search" placeholder="Buscar agente..." oninput="mselFilterOptions('ot-f-agente',this.value)">
+                <div class="msel-actions">
+                  <button type="button" onclick="mselSelectAll('ot-f-agente')">Seleccionar todos</button>
+                  <button type="button" onclick="mselClear('ot-f-agente')">Limpiar</button>
+                </div>
+                <div class="msel-list" id="list-ot-f-agente"></div>
+              </div>
+            </div>
+          </div>
+          <div class="fg"><label>Destino</label><select id="ot-f-destino"></select></div>
+          <div class="fg"><label>Desde</label><input type="date" id="ot-f-desde"></div>
+          <div class="fg"><label>Hasta</label><input type="date" id="ot-f-hasta"></div>
+          <div class="fg"><label>Buscar</label><input type="text" id="ot-f-q" placeholder="Destino, tarea, agente..."></div>
+          <div class="fg">
+            <div class="fg-actions">
+              <button class="tbtn tbtn-blue" style="flex:1" onclick="applyOTFilter()">
+                <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="5.5" cy="5.5" r="4"/><path d="M9 9l2.5 2.5"/></svg>Filtrar
+              </button>
+              <button class="tbtn" onclick="clearOTFilter()">✕</button>
+            </div>
+          </div>
+        </div>
+        <div id="ot-agent-report" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--c-border);font-size:12px;color:var(--c-txt2)"></div>
+      </div>
+      <div class="tcard">
+        <div class="tcard-head">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="tcard-title">Detalle de órdenes de trabajo</span>
+            <span class="t-badge" id="ot-tbl-badge">—</span>
+          </div>
+          <div class="tsearch-wrap">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="5" cy="5" r="4"/><path d="M9 9l2 2"/></svg>
+            <input class="tsearch" id="ot-tbl-q" placeholder="Buscar en tabla..." oninput="otTableSearch(this.value)">
+          </div>
+        </div>
+        <div class="tscroll">
+          <table>
+            <thead><tr>
+              <th onclick="otSortTable(0)">Código ↕</th>
+              <th onclick="otSortTable(1)">Fecha ↕</th>
+              <th onclick="otSortTable(2)">Sección ↕</th>
+              <th onclick="otSortTable(3)">Destino ↕</th>
+              <th>Tarea</th>
+              <th>Cuadrilla</th>
+              <th>Estado</th>
+            </tr></thead>
+            <tbody id="ot-tbody"></tbody>
+          </table>
+        </div>
+        <div class="tfoot"><span id="ot-tfoot">—</span><span>Click en columna para ordenar</span></div>
+      </div>
+    </div><!-- /tab-ot -->
+
     <!-- ═══ TAB: PERSONAL ═══ -->
     <div class="tab-pane" id="tab-pe">
 
@@ -688,6 +807,55 @@ tbody td:nth-child(1){color:var(--c-txt3);font-family:var(--mono);font-size:10px
       </div>
     </div><!-- /tab-pe -->
 
+    <!-- ═══ TAB: REPORTE POR AGENTE ═══ -->
+    <div class="tab-pane" id="tab-rg">
+      <div class="sec"><div class="sec-title">Reporte consolidado por agente (cruce por DNI)</div><div class="sec-line"></div></div>
+      <div class="filter-bar">
+        <div class="filter-label">Elegí uno o varios agentes — se cruzan Órdenes de Salida y Órdenes de Trabajo por DNI</div>
+        <div class="filter-row">
+          <div class="fg" style="flex:2;min-width:260px"><label>Agente(s)</label>
+            <div class="msel" id="msel-rg-f-agente">
+              <div class="msel-backdrop" onclick="mselClose('rg-f-agente')"></div>
+              <button type="button" class="msel-btn" onclick="mselToggle('rg-f-agente')">
+                <span id="rg-f-agente-label">Ninguno seleccionado</span>
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3.5l3 3 3-3"/></svg>
+              </button>
+              <div class="msel-panel" id="panel-rg-f-agente">
+                <input class="msel-search" placeholder="Buscar por nombre o DNI..." oninput="mselFilterOptions('rg-f-agente',this.value)">
+                <div class="msel-actions">
+                  <button type="button" onclick="mselSelectAll('rg-f-agente')">Seleccionar todos</button>
+                  <button type="button" onclick="mselClear('rg-f-agente')">Limpiar</button>
+                </div>
+                <div class="msel-list" id="list-rg-f-agente"></div>
+              </div>
+            </div>
+          </div>
+          <div class="fg"><label>Desde</label><input type="date" id="rg-f-desde"></div>
+          <div class="fg"><label>Hasta</label><input type="date" id="rg-f-hasta"></div>
+          <div class="fg">
+            <div class="fg-actions">
+              <button class="tbtn tbtn-blue" style="flex:1" onclick="generarReporteAgentes()">
+                <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="5.5" cy="5.5" r="4"/><path d="M9 9l2.5 2.5"/></svg>Generar reporte
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="rg-actions" style="display:none;margin-bottom:14px">
+        <button class="tbtn tbtn-green" onclick="exportRGExcel()">
+          <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="11" height="11" rx="1.5"/><path d="M4 5l2 3 2-3M1 4h11"/></svg>
+          Descargar Excel (CSV)
+        </button>
+        <button class="tbtn tbtn-blue" onclick="exportRGPDF()">
+          <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1H3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V4L8 1z"/><path d="M8 1v3h3M4.5 7h4M4.5 9h4M4.5 5h2"/></svg>
+          Ver / Imprimir PDF
+        </button>
+      </div>
+
+      <div id="rg-results"></div>
+    </div><!-- /tab-rg -->
+
     <!-- ═══ TAB: INCONSISTENCIAS ═══ -->
     <div class="tab-pane" id="tab-in">
 
@@ -732,6 +900,7 @@ tbody td:nth-child(1){color:var(--c-txt3);font-family:var(--mono);font-size:10px
 // ─── CONFIG ──────────────────────────────────────────────────
 const CSV_OS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSJh8emO0itI9wQUkPNWpWspSH1ujHNjwBxQrVl0PtS38tS2hqp5jCNOagWz9BgkqMibVS519cECmaY/pub?output=csv';
 const CSV_PE = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTXY_a8ZOFS7FMbM1PqaKydgFCXvpughSKmLQrytllHhzsLl0kVzygraceQZUq07PXYQ335Dg6ARGQQ/pub?output=csv';
+const CSV_OT = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQUqoSjcVbfuIMs0sDlbFe8FmNNMBtKjM67T4FQIu_8wvIuRl4QqVcpEgvZ2Lrhk3lrHcOc_HlMA8vO/pub?gid=646917453&single=true&output=csv';
 
 // Columnas CSV Órdenes de Salida (0-based)
 const OS = { ts:0, email:1, nombre:2, dni:3, sector:4, motivo:5, destino:6, desde:7, hasta:8, obs:9, doc:10, id:11, resumen:12 };
@@ -763,24 +932,76 @@ function peFullName(r){
   return ap||no||'—';
 }
 
+// Columnas CSV Órdenes de Trabajo (0-based) — según encabezados reales de la planilla
+const OT = {
+  id:0,           // ID
+  ts:1,           // Marca temporal
+  fecha:2,        // FECHA DE ORDEN DE TRABAJO
+  origen:3,       // ORIGEN
+  destino:4,      // DESTINO
+  movil:5,        // MOVIL
+  cuadrilla:6,    // CUADRILLA (varios agentes en un mismo campo)
+  seccion:7,      // SECCION
+  tarea:8,        // TAREA A REALIZAR
+  obs:31,         // OBSERVACIONES
+  idVinc:32,      // ID VINC UNIFICADO
+  doc:33,         // DOC AUTORIZACION
+  resumen:35,     // RESUMEN
+  estado:36       // ESTADO
+};
+// Cada orden puede tener varios agentes en CUADRILLA, con o sin DNI, en formatos
+// mixtos: "NOMBRE (Cooperativa/SIPROSA) - DNI: 12345678, NOMBRE2 - DNI: ..." o,
+// cuando falta el DNI, simplemente nombres separados por coma o por guion.
+// Nota: sin DNI la identificación es aproximada (a veces solo apellido, o
+// varios apellidos pegados con guion); se descartan valores que no son
+// nombres de persona (ej. "COMPLETA"/"COMPLETO" cuando anotan "cuadrilla completa").
+const OT_CUADRILLA_NO_NOMBRE=new Set(['COMPLETA','COMPLETO','TODOS','TODAS','TODA','NINGUNO','NINGUNA','VARIOS','CUADRILLA','PERSONAL','N/A','NA','S/D','SD','-']);
+function parseCuadrilla(raw){
+  raw=(raw||'').trim();
+  if(!raw) return [];
+  let parts=raw.split(',').map(s=>s.trim()).filter(Boolean);
+  if(parts.length===1&&!/DNI/i.test(parts[0])){
+    const guiones=parts[0].split(/\s+-\s+|-(?=[A-ZÁÉÍÓÚÑ])/i).map(s=>s.trim()).filter(Boolean);
+    if(guiones.length>1) parts=guiones;
+  }
+  return parts.map(p=>{
+    const m=p.match(/DNI:?\s*([\d.\s]+)/i);
+    const dni=m?normDNI(m[1]):'';
+    let name=p.replace(/\(.*?\)/g,'').replace(/-?\s*DNI:?\s*[\d.\s]+/i,'').replace(/[-,]\s*$/,'').trim();
+    name=name.replace(/\s+/g,' ').toUpperCase();
+    if(OT_CUADRILLA_NO_NOMBRE.has(name)) return null;
+    return name?{name,dni}:null;
+  }).filter(Boolean);
+}
+function otAgentKey(a){ return a.dni||('N:'+a.name); }
+
 // Paleta
 const BLUE='#1B5EA6', GREEN='#2A7D4F', AMBER='#C8870A', RED='#C0392B', PURPLE='#7B61FF';
 const PAL=[BLUE,GREEN,AMBER,RED,PURPLE,'#0891B2','#BE185D','#065F46'];
 
 // ─── STATE ───────────────────────────────────────────────────
-let rawOS=[], rawPE=[], filteredOS=[], filteredPE=[];
-let osRows=[], peRows=[], osSort={}, peSort={};
+let rawOS=[], rawPE=[], rawOT=[], filteredOS=[], filteredPE=[], filteredOT=[];
+let osRows=[], peRows=[], otRows=[], osSort={}, peSort={};
+let otAgentIndex=new Map(); // key (DNI o nombre) -> {name,dni,orders:[fila,...]}
 let charts={};
 let inconsistencias=[];
 
 // ─── BOOT ────────────────────────────────────────────────────
-const CACHE_KEY='dmth_cache_v1';
+const CACHE_KEY='dmth_cache_v2';
 window.addEventListener('DOMContentLoaded', loadAll);
 
+function parseOSCsv(csv){ return parseCSV(csv).filter(r=>r[OS.id]&&r[OS.id].startsWith('OS')); }
+function parsePECsv(csv){ return csv?parseCSV(csv).filter(r=>r[0]&&r[0].trim()!==''):[]; }
+function parseOTCsv(csv){
+  return csv?parseCSV(csv).filter(r=>r[OT.id]&&r[OT.id].trim().startsWith('OB')&&normStr(r[OT.origen])!=='PRUEBA'):[];
+}
+
 function renderAll(){
-  filteredOS=[...rawOS]; filteredPE=[...rawPE];
+  filteredOS=[...rawOS]; filteredPE=[...rawPE]; filteredOT=[...rawOT];
   renderOS();
   renderPE();
+  renderOT();
+  buildRGAgentOptions();
   // La detección de inconsistencias es lo más pesado: se corre después
   // del primer pintado para que el dashboard aparezca rápido igual.
   setTimeout(()=>{ processInconsistencias(); renderIN(); },0);
@@ -793,9 +1014,9 @@ function loadCache(){
     return JSON.parse(raw);
   }catch(e){ return null; }
 }
-function saveCache(csvOS,csvPE){
+function saveCache(csvOS,csvPE,csvOT){
   try{
-    localStorage.setItem(CACHE_KEY,JSON.stringify({csvOS,csvPE,ts:Date.now()}));
+    localStorage.setItem(CACHE_KEY,JSON.stringify({csvOS,csvPE,csvOT,ts:Date.now()}));
   }catch(e){ /* localStorage lleno o no disponible: sin problema */ }
 }
 
@@ -805,8 +1026,9 @@ async function loadAll(force){
   if(cache){
     // Pintamos instantáneamente con la última copia guardada en este navegador
     // mientras se actualiza en segundo plano — así no hay que esperar la red.
-    rawOS = parseCSV(cache.csvOS).filter(r=>r[OS.id]&&r[OS.id].startsWith('OS'));
-    rawPE = cache.csvPE ? parseCSV(cache.csvPE).filter(r=>r[0]&&r[0].trim()!=='') : [];
+    rawOS = parseOSCsv(cache.csvOS);
+    rawPE = parsePECsv(cache.csvPE);
+    rawOT = parseOTCsv(cache.csvOT);
     renderAll();
     hideOverlay();
     const cacheDate=new Date(cache.ts);
@@ -818,14 +1040,19 @@ async function loadAll(force){
 
   showOverlay('Conectando con Sheets...');
   try{
-    const [csvOS,csvPE]=await Promise.all([fetchCSVSafe(CSV_OS,'Cargando órdenes de salida...'),fetchCSVSafe(CSV_PE,'Cargando nómina de personal...')]);
-    rawOS = parseCSV(csvOS).filter(r=>r[OS.id]&&r[OS.id].startsWith('OS'));
-    rawPE = csvPE ? parseCSV(csvPE).filter(r=>r[0]&&r[0].trim()!=='') : [];
+    const [csvOS,csvPE,csvOT]=await Promise.all([
+      fetchCSVSafe(CSV_OS,'Cargando órdenes de salida...'),
+      fetchCSVSafe(CSV_PE,'Cargando nómina de personal...'),
+      fetchCSVSafe(CSV_OT,'Cargando órdenes de trabajo...')
+    ]);
+    rawOS = parseOSCsv(csvOS);
+    rawPE = parsePECsv(csvPE);
+    rawOT = parseOTCsv(csvOT);
     renderAll();
     hideOverlay();
     document.getElementById('sb-ts').textContent = 'Act. '+new Date().toLocaleString('es-AR',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'});
     toast('Datos cargados correctamente','ok');
-    if(csvPE) saveCache(csvOS,csvPE);
+    saveCache(csvOS,csvPE,csvOT);
   }catch(e){
     showOverlay('Error al cargar: '+e.message,'Verificá que las URLs de CSV sean públicas');
     console.error(e);
@@ -835,35 +1062,16 @@ async function loadAll(force){
 
 async function refreshInBackground(){
   try{
-    const [csvOS,csvPE]=await Promise.all([fetchCSV(CSV_OS),fetchCSVSafeText(CSV_PE)]);
-    rawOS = parseCSV(csvOS).filter(r=>r[OS.id]&&r[OS.id].startsWith('OS'));
-    rawPE = csvPE ? parseCSV(csvPE).filter(r=>r[0]&&r[0].trim()!=='') : [];
+    const [csvOS,csvPE,csvOT]=await Promise.all([fetchCSV(CSV_OS),fetchCSVSafeText(CSV_PE),fetchCSVSafeText(CSV_OT)]);
+    rawOS = parseOSCsv(csvOS);
+    rawPE = parsePECsv(csvPE);
+    rawOT = parseOTCsv(csvOT);
     renderAll();
     document.getElementById('sb-ts').textContent = 'Act. '+new Date().toLocaleString('es-AR',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'});
     toast('Datos actualizados','ok');
-    if(csvPE) saveCache(csvOS,csvPE);
+    saveCache(csvOS,csvPE,csvOT);
   }catch(e){
     console.warn('No se pudo actualizar en segundo plano:',e);
-  }
-}
-
-async function loadOS(){
-  setOverlaySub('Cargando órdenes de salida...');
-  const csv = await fetchCSV(CSV_OS);
-  rawOS = parseCSV(csv).filter(r=>r[OS.id]&&r[OS.id].startsWith('OS'));
-  filteredOS=[...rawOS];
-}
-
-async function loadPE(){
-  setOverlaySub('Cargando nómina de personal...');
-  try{
-    const csv = await fetchCSV(CSV_PE);
-    rawPE = parseCSV(csv).filter(r=>r[0]&&r[0].trim()!=='');
-    filteredPE=[...rawPE];
-  }catch(e){
-    // Si no carga personal, seguimos igual
-    rawPE=[]; filteredPE=[];
-    console.warn('Personal no disponible:',e);
   }
 }
 
@@ -874,36 +1082,43 @@ async function fetchCSV(url){
 }
 async function fetchCSVSafe(url,subMsg){
   setOverlaySub(subMsg);
-  try{ return await fetchCSV(url); }catch(e){ console.warn('No se pudo cargar',url,e); return url===CSV_PE?'':Promise.reject(e); }
+  try{ return await fetchCSV(url); }catch(e){ console.warn('No se pudo cargar',url,e); return url===CSV_OS?Promise.reject(e):''; }
 }
 async function fetchCSVSafeText(url){
   try{ return await fetchCSV(url); }catch(e){ return ''; }
 }
 
+// Parser CSV completo (no línea por línea): soporta campos entre comillas con
+// comas, comillas escapadas ("") y saltos de línea internos — algunas filas
+// de Órdenes de Trabajo traen observaciones multilínea dentro de una celda.
 function parseCSV(text){
-  const lines=text.split('\n');
   const rows=[];
-  for(let i=1;i<lines.length;i++){
-    const row=splitCSVLine(lines[i]);
-    if(row.some(c=>c.trim())) rows.push(row);
+  let row=[],cur='',inQ=false;
+  const n=text.length;
+  for(let i=0;i<n;i++){
+    const c=text[i];
+    if(inQ){
+      if(c==='"'){
+        if(text[i+1]==='"'){cur+='"';i++;}
+        else inQ=false;
+      }else cur+=c;
+    }else{
+      if(c==='"') inQ=true;
+      else if(c===','){row.push(cur.trim());cur='';}
+      else if(c==='\r'){ /* ignorar, \n cierra la fila */ }
+      else if(c==='\n'){
+        row.push(cur.trim());cur='';
+        rows.push(row);row=[];
+      }else cur+=c;
+    }
   }
-  return rows;
-}
-
-function splitCSVLine(line){
-  const res=[];let cur='';let inQ=false;
-  for(let i=0;i<line.length;i++){
-    const c=line[i];
-    if(c==='"'){inQ=!inQ}
-    else if(c===','&&!inQ){res.push(cur.trim());cur=''}
-    else cur+=c;
-  }
-  res.push(cur.trim());
-  return res;
+  if(cur!==''||row.length){row.push(cur.trim());rows.push(row);}
+  // primera fila = encabezado, se descarta; se filtran filas totalmente vacías
+  return rows.slice(1).filter(r=>r.some(c=>c.trim()));
 }
 
 // ─── TABS ────────────────────────────────────────────────────
-const TABS={os:['Órdenes de Salida','Registro de movimientos del personal · SIPROSA'],pe:['Personal DMTH','Nómina y dotación · Dirección de Mantenimiento'],in:['Inconsistencias','Alertas y datos problemáticos detectados automáticamente']};
+const TABS={os:['Órdenes de Salida','Registro de movimientos del personal · SIPROSA'],ot:['Órdenes de Trabajo','Cuadrillas, destinos y tareas · DMTH'],rg:['Reporte por Agente','Cruce de Salidas y Trabajo por DNI'],pe:['Personal DMTH','Nómina y dotación · Dirección de Mantenimiento'],in:['Inconsistencias','Alertas y datos problemáticos detectados automáticamente']};
 function switchTab(id,btn){
   document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'));
@@ -1072,6 +1287,431 @@ function osSortTable(col){
   const d=osSortD[col];
   const keys=[OS.id,OS.ts,OS.nombre,OS.sector,OS.motivo,OS.destino,OS.desde,OS.hasta];
   buildOSTable([...osRows].sort((a,b)=>{const va=a[keys[col]]||'',vb=b[keys[col]]||'';return d*(va>vb?1:va<vb?-1:0);}));
+}
+
+// ─── RENDER OT (Órdenes de Trabajo) ───────────────────────────
+function parseOTDate(r){ return parseDate(r[OT.fecha])||parseDate(r[OT.ts]); }
+function buildOTAgentIndex(rows){
+  const idx=new Map();
+  rows.forEach(r=>{
+    parseCuadrilla(r[OT.cuadrilla]).forEach(a=>{
+      const k=otAgentKey(a);
+      if(!idx.has(k)) idx.set(k,{name:a.name,dni:a.dni,orders:[]});
+      idx.get(k).orders.push(r);
+    });
+  });
+  return idx;
+}
+
+function renderOT(){
+  const rows=filteredOT;
+  const total=rows.length;
+
+  otAgentIndex=buildOTAgentIndex(rows);
+  let sumMiembros=0,conCuadrilla=0;
+  rows.forEach(r=>{const c=parseCuadrilla(r[OT.cuadrilla]);if(c.length){sumMiembros+=c.length;conCuadrilla++;}});
+  const promedio=conCuadrilla?(sumMiembros/conCuadrilla).toFixed(1):'0';
+  const secciones=new Set(rows.map(r=>normStr(r[OT.seccion])).filter(Boolean));
+  const destinos=new Set(rows.map(r=>normStr(r[OT.destino])).filter(Boolean));
+  const sinCuadrilla=total-conCuadrilla;
+
+  st('ot-m1',total);
+  st('ot-m2',otAgentIndex.size);
+  st('ot-m3',promedio);
+  st('ot-m4',secciones.size);
+  st('ot-m5',sinCuadrilla);
+  st('ot-m5t',total?pct(sinCuadrilla,total)+'%':'—');
+  st('ot-m6',destinos.size);
+  st('nav-ot-badge',total);
+
+  // Donut sección
+  const secCnt={};
+  rows.forEach(r=>{const s=normStr(r[OT.seccion]);if(s)secCnt[s]=(secCnt[s]||0)+1;});
+  const topSecDonut=Object.entries(secCnt).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  mkDonut('ch-ot-seccion',Object.fromEntries(topSecDonut),PAL);
+
+  // Barras top destinos
+  const dstCnt={};
+  rows.forEach(r=>{const d=normStr(r[OT.destino]);if(d)dstCnt[d]=(dstCnt[d]||0)+1;});
+  const topDst=Object.entries(dstCnt).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  mkHBar('ch-ot-destino',Object.fromEntries(topDst),AMBER);
+
+  // Línea por día de semana
+  const dias=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+  const diaCount=[0,0,0,0,0,0,0];
+  rows.forEach(r=>{const d=parseOTDate(r);if(d){const dow=(d.getDay()+6)%7;diaCount[dow]++;}});
+  mkLine('ch-ot-dia',dias,diaCount,BLUE);
+
+  // Top secciones (barras horizontales, segundo gráfico)
+  const topSecBar=Object.entries(secCnt).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  mkHBar('ch-ot-seccion-bar',Object.fromEntries(topSecBar),PURPLE);
+
+  // Top 15 agentes (clickeable para filtrar/armar reporte)
+  const topAg=[...otAgentIndex.values()].sort((a,b)=>b.orders.length-a.orders.length).slice(0,15);
+  renderOTTopAgentes(topAg);
+
+  // Filtros dinámicos — siempre a partir del dataset completo, no del filtrado
+  fillSelect('ot-f-seccion',new Set(rawOT.map(r=>normStr(r[OT.seccion])).filter(Boolean)));
+  fillSelect('ot-f-destino',new Set(rawOT.map(r=>normStr(r[OT.destino])).filter(Boolean)));
+  const allAgentNames=new Set();
+  rawOT.forEach(r=>parseCuadrilla(r[OT.cuadrilla]).forEach(a=>allAgentNames.add(a.name)));
+  mselBuild('ot-f-agente',allAgentNames);
+
+  otRows=[...rows];
+  buildOTTable(otRows);
+  renderOTAgentReport();
+}
+
+function renderOTTopAgentes(topAg){
+  const el=document.getElementById('ot-top-agentes');if(!el)return;
+  if(!topAg.length){el.innerHTML='<div class="msel-empty">Sin datos</div>';return;}
+  const mx=topAg[0].orders.length||1;
+  el.innerHTML=topAg.map((a,i)=>`
+    <div class="top-item" style="cursor:pointer" onclick="otFilterByAgent('${xe(a.name).replace(/'/g,"\\'")}')" title="Click para filtrar por ${xe(a.name)}">
+      <span class="top-rank">${String(i+1).padStart(2,'0')}</span>
+      <span class="top-name" title="${xe(a.name)}">${xe(a.name.length>30?a.name.slice(0,30)+'…':a.name)}</span>
+      <div class="top-bar-bg"><div class="top-bar-fl" style="width:${Math.round(a.orders.length/mx*100)}%;background:${AMBER}"></div></div>
+      <span class="top-n" style="color:${AMBER}">${a.orders.length}</span>
+    </div>`).join('');
+}
+
+function otFilterByAgent(name){
+  mselData['ot-f-agente'].mode='custom';
+  mselData['ot-f-agente'].selected=new Set([name]);
+  mselRenderList('ot-f-agente');
+  mselUpdateLabel('ot-f-agente');
+  applyOTFilter();
+  document.getElementById('ot-agent-report')?.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function buildOTTable(rows){
+  const L=500,show=rows.slice(0,L);
+  document.getElementById('ot-tbody').innerHTML=show.map(r=>{
+    const cuadrilla=parseCuadrilla(r[OT.cuadrilla]);
+    const chips=cuadrilla.length
+      ?cuadrilla.slice(0,3).map(a=>`<span class="chip chip-blue">${xe(a.name)}</span>`).join(' ')+(cuadrilla.length>3?` <span class="chip chip-gray">+${cuadrilla.length-3}</span>`:'')
+      :'<span class="chip chip-bad">Sin cuadrilla</span>';
+    const d=parseOTDate(r);
+    return `<tr>
+      <td>${xe(r[OT.id])}</td>
+      <td>${d?d.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'}):'—'}</td>
+      <td>${xe(normStr(r[OT.seccion])||'—')}</td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${xe(r[OT.destino])}">${xe(r[OT.destino]||'—')}</td>
+      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${xe(r[OT.tarea])}">${xe(r[OT.tarea]||'—')}</td>
+      <td style="max-width:260px">${chips}</td>
+      <td>${xe(r[OT.estado])||'<span class="chip chip-gray">—</span>'}</td>
+    </tr>`;
+  }).join('');
+  st('ot-tbl-badge',`${rows.length} reg.`);
+  st('ot-tfoot',rows.length>L?`Mostrando ${L} de ${rows.length}`:`${rows.length} registros`);
+}
+
+function applyOTFilter(){
+  const fSec=document.getElementById('ot-f-seccion').value;
+  const fDst=document.getElementById('ot-f-destino').value;
+  const selAg=mselGetSelected('ot-f-agente'); // null = todos
+  const fD=document.getElementById('ot-f-desde').value;
+  const fH=document.getElementById('ot-f-hasta').value;
+  const fQ=document.getElementById('ot-f-q').value.toLowerCase();
+  filteredOT=rawOT.filter(r=>{
+    const sec=normStr(r[OT.seccion]);
+    const dst=normStr(r[OT.destino]);
+    const cuadrilla=parseCuadrilla(r[OT.cuadrilla]);
+    const d=parseOTDate(r);
+    const qStr=(r[OT.destino]+' '+r[OT.tarea]+' '+r[OT.obs]+' '+r[OT.cuadrilla]).toLowerCase();
+    const okSec=fSec==='all'||sec===fSec;
+    const okDst=fDst==='all'||dst===fDst;
+    const okAg=selAg===null||cuadrilla.some(a=>selAg.has(a.name));
+    const okD=!fD||!d||d>=new Date(fD);
+    const okH=!fH||!d||d<=new Date(fH+'T23:59:59');
+    const okQ=!fQ||qStr.includes(fQ);
+    return okSec&&okDst&&okAg&&okD&&okH&&okQ;
+  });
+  renderOT();
+  toast(`${filteredOT.length} órdenes de trabajo encontradas`,'info');
+}
+
+function clearOTFilter(){
+  ['ot-f-seccion','ot-f-destino','ot-f-desde','ot-f-hasta','ot-f-q'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value=el.tagName==='SELECT'?'all':'';
+  });
+  mselSelectAll('ot-f-agente');
+  filteredOT=[...rawOT];
+  renderOT();
+}
+
+let otTblTimer;
+function otTableSearch(v){clearTimeout(otTblTimer);otTblTimer=setTimeout(()=>{
+  const q=v.toLowerCase();
+  buildOTTable(otRows.filter(r=>(r[OT.destino]+' '+r[OT.seccion]+' '+r[OT.tarea]+' '+r[OT.cuadrilla]+' '+r[OT.id]).toLowerCase().includes(q)));
+},200);}
+
+let otSortD={};
+function otSortTable(col){
+  otSortD[col]=-(otSortD[col]||1);
+  const d=otSortD[col];
+  const keys=[OT.id,OT.fecha,OT.seccion,OT.destino];
+  buildOTTable([...otRows].sort((a,b)=>{
+    let va,vb;
+    if(col===1){va=parseOTDate(a)||new Date(0);vb=parseOTDate(b)||new Date(0);return d*(va-vb);}
+    va=a[keys[col]]||'';vb=b[keys[col]]||'';
+    return d*(va>vb?1:va<vb?-1:0);
+  }));
+}
+
+// Reporte por agente: cuando hay exactamente un agente seleccionado en el
+// filtro, muestra dónde fue, cuándo fue y cuántas veces — sobre los
+// resultados ya filtrados (sección/destino/período/búsqueda incluidos).
+function renderOTAgentReport(){
+  const panel=document.getElementById('ot-agent-report');if(!panel)return;
+  const sel=mselGetSelected('ot-f-agente');
+  if(!sel||sel.size!==1){panel.style.display='none';panel.innerHTML='';return;}
+  const name=[...sel][0];
+  const ordenes=filteredOT
+    .filter(r=>parseCuadrilla(r[OT.cuadrilla]).some(a=>a.name===name))
+    .map(r=>({r,d:parseOTDate(r)}))
+    .sort((a,b)=>(b.d||0)-(a.d||0));
+  if(!ordenes.length){
+    panel.style.display='block';
+    panel.innerHTML=`<div style="color:var(--c-txt3)">Sin órdenes registradas para <b>${xe(name)}</b> con los filtros actuales.</div>`;
+    return;
+  }
+  panel.style.display='block';
+  panel.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div><b style="color:var(--c-txt)">${xe(name)}</b> — ${ordenes.length} orden(es) en el período/filtro actual</div>
+      <button class="tbtn" style="font-size:11px;padding:5px 10px" onclick="exportAgentReport('${xe(name).replace(/'/g,"\\'")}')">Exportar CSV</button>
+    </div>
+    <div style="max-height:220px;overflow-y:auto;border:1px solid var(--c-border);border-radius:var(--r2)">
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr style="background:var(--c-surface2)">
+          <th style="padding:6px 10px;text-align:left;font-size:10px">Fecha</th>
+          <th style="padding:6px 10px;text-align:left;font-size:10px">Destino</th>
+          <th style="padding:6px 10px;text-align:left;font-size:10px">Sección</th>
+          <th style="padding:6px 10px;text-align:left;font-size:10px">Tarea</th>
+        </tr></thead>
+        <tbody>
+          ${ordenes.map(({r,d})=>`<tr style="border-top:1px solid var(--c-border)">
+            <td style="padding:5px 10px;font-family:var(--mono);font-size:11px">${d?d.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'}):'—'}</td>
+            <td style="padding:5px 10px">${xe(r[OT.destino]||'—')}</td>
+            <td style="padding:5px 10px">${xe(normStr(r[OT.seccion])||'—')}</td>
+            <td style="padding:5px 10px">${xe(r[OT.tarea]||'—')}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function exportAgentReport(name){
+  const ordenes=filteredOT
+    .filter(r=>parseCuadrilla(r[OT.cuadrilla]).some(a=>a.name===name))
+    .map(r=>({r,d:parseOTDate(r)}))
+    .sort((a,b)=>(b.d||0)-(a.d||0));
+  if(!ordenes.length){toast('Sin datos para exportar','warn');return;}
+  const csv='Código,Fecha,Destino,Sección,Tarea\n'+ordenes.map(({r,d})=>[
+    r[OT.id],
+    d?d.toLocaleDateString('es-AR'):'',
+    r[OT.destino],r[OT.seccion],r[OT.tarea]
+  ].map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=`DMTH_OT_${name.replace(/\s+/g,'_')}_${new Date().toISOString().slice(0,10)}.csv`;a.click();URL.revokeObjectURL(url);
+  toast('Reporte de agente exportado','ok');
+}
+
+// ─── REPORTE POR AGENTE (cruce OS + OT por DNI) ───────────────
+let rgAgentMaster=new Map(); // DNI -> {dni,name}
+let rgLastReport=[];
+
+function buildAgentMaster(){
+  const map=new Map();
+  // Prioridad de identidad: Personal (nómina oficial) > Órdenes de Salida > cuadrillas de OT
+  rawPE.forEach(r=>{
+    const dni=normDNI(r[PE.dni]);
+    if(dni) map.set(dni,{dni,name:peFullName(r)});
+  });
+  rawOS.forEach(r=>{
+    const dni=normDNI(r[OS.dni]);
+    if(dni&&!map.has(dni)) map.set(dni,{dni,name:normStr(r[OS.nombre])});
+  });
+  rawOT.forEach(r=>{
+    parseCuadrilla(r[OT.cuadrilla]).forEach(a=>{
+      if(a.dni&&!map.has(a.dni)) map.set(a.dni,{dni:a.dni,name:a.name});
+    });
+  });
+  return map;
+}
+
+function buildRGAgentOptions(){
+  rgAgentMaster=buildAgentMaster();
+  const opts=new Set();
+  rgAgentMaster.forEach(a=>opts.add(`${a.dni} — ${a.name}`));
+  mselBuild('rg-f-agente',opts,{defaultEmpty:true});
+  st('nav-rg-badge',rgAgentMaster.size);
+}
+
+function generarReporteAgentes(){
+  const sel=mselGetSelected('rg-f-agente'); // null = "Seleccionar todos" (todo el padrón); Set = selección puntual
+  const dnis=sel===null
+    ? [...rgAgentMaster.keys()]
+    : [...sel].map(s=>s.split(' — ')[0]).filter(Boolean);
+  if(!dnis.length){ toast('Elegí al menos un agente para generar el reporte','warn'); return; }
+
+  const fD=document.getElementById('rg-f-desde').value;
+  const fH=document.getElementById('rg-f-hasta').value;
+  const inRange=d=>(!fD||!d||d>=new Date(fD))&&(!fH||!d||d<=new Date(fH+'T23:59:59'));
+
+  rgLastReport=dnis.map(dni=>{
+    const master=rgAgentMaster.get(dni);
+    const name=master?master.name:'(sin identificar en Personal/Salidas/Trabajo)';
+    const salidas=rawOS.filter(r=>normDNI(r[OS.dni])===dni)
+      .map(r=>({r,d:parseDate(r[OS.ts])})).filter(o=>inRange(o.d))
+      .sort((a,b)=>(b.d||0)-(a.d||0));
+    const trabajos=rawOT.filter(r=>parseCuadrilla(r[OT.cuadrilla]).some(a=>a.dni===dni))
+      .map(r=>({r,d:parseOTDate(r)})).filter(o=>inRange(o.d))
+      .sort((a,b)=>(b.d||0)-(a.d||0));
+    return {dni,name,salidas,trabajos};
+  });
+
+  renderRGResults(rgLastReport);
+  document.getElementById('rg-actions').style.display=rgLastReport.length?'flex':'none';
+  const sinDatos=rgLastReport.filter(b=>!b.salidas.length&&!b.trabajos.length).length;
+  toast(sinDatos?`Reporte generado — ${sinDatos} agente(s) sin datos`:'Reporte generado','ok');
+}
+
+function renderRGResults(blocks){
+  const el=document.getElementById('rg-results');if(!el)return;
+  if(!blocks.length){el.innerHTML='';return;}
+  el.innerHTML=blocks.map(b=>{
+    if(!b.salidas.length&&!b.trabajos.length){
+      return `<div class="alert-card critical" style="margin-bottom:16px">
+        <div class="alert-ico critical">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--c-red)" stroke-width="1.8"><path d="M8 2L14.5 13.5H1.5L8 2z"/><path d="M8 6.5v3M8 11h.01" stroke-linecap="round"/></svg>
+        </div>
+        <div class="alert-body">
+          <div class="alert-title">NO HAY DATOS PARA EL DNI ${xe(b.dni)} — ${xe(b.name).toUpperCase()}</div>
+          <div class="alert-desc">No se encontraron órdenes de salida ni de trabajo para este DNI en el período seleccionado.</div>
+        </div>
+      </div>`;
+    }
+    return `
+      <div class="tcard" style="margin-bottom:18px">
+        <div class="tcard-head">
+          <div style="display:flex;align-items:center;gap:10px"><span class="tcard-title">${xe(b.name)}</span><span class="t-badge">DNI ${xe(b.dni)}</span></div>
+          <div style="font-size:11px;color:var(--c-txt3)">${b.salidas.length} salida(s) · ${b.trabajos.length} orden(es) de trabajo</div>
+        </div>
+        <div style="padding:14px 18px">
+          <div style="font-size:12px;font-weight:600;color:var(--c-txt2);margin-bottom:8px">Órdenes de Salida</div>
+          ${b.salidas.length?renderRGTableOS(b.salidas):`<div style="color:var(--c-txt3);font-size:12px;margin-bottom:14px">No hay datos de Órdenes de Salida para el DNI ${xe(b.dni)} — ${xe(b.name)}.</div>`}
+          <div style="font-size:12px;font-weight:600;color:var(--c-txt2);margin:14px 0 8px">Órdenes de Trabajo</div>
+          ${b.trabajos.length?renderRGTableOT(b.trabajos):`<div style="color:var(--c-txt3);font-size:12px">No hay datos de Órdenes de Trabajo para el DNI ${xe(b.dni)} — ${xe(b.name)}.</div>`}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderRGTableOS(items){
+  return `<div style="max-height:220px;overflow:auto;border:1px solid var(--c-border);border-radius:var(--r2);margin-bottom:6px">
+    <table style="width:100%;border-collapse:collapse">
+      <thead><tr style="background:var(--c-surface2)">
+        <th style="padding:6px 10px;text-align:left;font-size:10px">Fecha</th>
+        <th style="padding:6px 10px;text-align:left;font-size:10px">Motivo</th>
+        <th style="padding:6px 10px;text-align:left;font-size:10px">Destino</th>
+        <th style="padding:6px 10px;text-align:left;font-size:10px">Desde</th>
+        <th style="padding:6px 10px;text-align:left;font-size:10px">Hasta</th>
+      </tr></thead>
+      <tbody>${items.map(({r,d})=>`<tr style="border-top:1px solid var(--c-border)">
+        <td style="padding:5px 10px;font-family:var(--mono);font-size:11px">${d?d.toLocaleDateString('es-AR'):'—'}</td>
+        <td style="padding:5px 10px">${xe(normMotivo(r[OS.motivo])||'—')}</td>
+        <td style="padding:5px 10px">${xe(r[OS.destino]||'—')}</td>
+        <td style="padding:5px 10px;font-family:var(--mono);font-size:11px">${xe(r[OS.desde]||'—')}</td>
+        <td style="padding:5px 10px;font-family:var(--mono);font-size:11px">${xe(r[OS.hasta]||'—')}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>`;
+}
+function renderRGTableOT(items){
+  return `<div style="max-height:220px;overflow:auto;border:1px solid var(--c-border);border-radius:var(--r2)">
+    <table style="width:100%;border-collapse:collapse">
+      <thead><tr style="background:var(--c-surface2)">
+        <th style="padding:6px 10px;text-align:left;font-size:10px">Fecha</th>
+        <th style="padding:6px 10px;text-align:left;font-size:10px">Sección</th>
+        <th style="padding:6px 10px;text-align:left;font-size:10px">Destino</th>
+        <th style="padding:6px 10px;text-align:left;font-size:10px">Tarea</th>
+      </tr></thead>
+      <tbody>${items.map(({r,d})=>`<tr style="border-top:1px solid var(--c-border)">
+        <td style="padding:5px 10px;font-family:var(--mono);font-size:11px">${d?d.toLocaleDateString('es-AR'):'—'}</td>
+        <td style="padding:5px 10px">${xe(normStr(r[OT.seccion])||'—')}</td>
+        <td style="padding:5px 10px">${xe(r[OT.destino]||'—')}</td>
+        <td style="padding:5px 10px">${xe(r[OT.tarea]||'—')}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>`;
+}
+
+function exportRGExcel(){
+  if(!rgLastReport.length){toast('Generá el reporte primero','warn');return;}
+  const lines=['Tipo,DNI,Nombre,Fecha,Motivo/Tarea,Destino,Desde/Hasta,Sección'];
+  rgLastReport.forEach(b=>{
+    if(!b.salidas.length&&!b.trabajos.length){
+      lines.push(['NO HAY DATOS',b.dni,b.name,'','','',''].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','));
+      return;
+    }
+    b.salidas.forEach(({r,d})=>{
+      lines.push(['Salida',b.dni,b.name,d?d.toLocaleDateString('es-AR'):'',normMotivo(r[OS.motivo]),r[OS.destino],`${r[OS.desde]||''}-${r[OS.hasta]||''}`,''].map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(','));
+    });
+    b.trabajos.forEach(({r,d})=>{
+      lines.push(['Trabajo',b.dni,b.name,d?d.toLocaleDateString('es-AR'):'',r[OT.tarea],r[OT.destino],'',normStr(r[OT.seccion])].map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(','));
+    });
+  });
+  const csv=lines.join('\n');
+  const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=`DMTH_Reporte_Agentes_${new Date().toISOString().slice(0,10)}.csv`;a.click();URL.revokeObjectURL(url);
+  toast('Reporte exportado','ok');
+}
+
+function exportRGPDF(){
+  if(!rgLastReport.length){toast('Generá el reporte primero','warn');return;}
+  const now=new Date().toLocaleString('es-AR');
+  const body=rgLastReport.map(b=>{
+    if(!b.salidas.length&&!b.trabajos.length){
+      return `<div style="border:1px solid #F4BFBA;background:#FDECEA;border-radius:6px;padding:12px;margin-bottom:14px">
+        <div style="font-weight:700;color:#C0392B;font-size:12px">NO HAY DATOS PARA EL DNI ${xe(b.dni)} — ${xe(b.name).toUpperCase()}</div>
+      </div>`;
+    }
+    const osRows=b.salidas.map(({r,d})=>`<tr><td style="padding:4px 6px">${d?d.toLocaleDateString('es-AR'):'—'}</td><td style="padding:4px 6px">${xe(normMotivo(r[OS.motivo]))}</td><td style="padding:4px 6px">${xe(r[OS.destino]||'—')}</td><td style="padding:4px 6px">${xe(r[OS.desde]||'—')}</td><td style="padding:4px 6px">${xe(r[OS.hasta]||'—')}</td></tr>`).join('');
+    const otRows=b.trabajos.map(({r,d})=>`<tr><td style="padding:4px 6px">${d?d.toLocaleDateString('es-AR'):'—'}</td><td style="padding:4px 6px">${xe(normStr(r[OT.seccion])||'—')}</td><td style="padding:4px 6px">${xe(r[OT.destino]||'—')}</td><td style="padding:4px 6px">${xe(r[OT.tarea]||'—')}</td></tr>`).join('');
+    return `
+      <div style="page-break-inside:avoid;margin-bottom:22px">
+        <div style="background:#1B5EA6;color:#fff;padding:8px 12px;border-radius:6px 6px 0 0;font-size:12px;font-weight:700">${xe(b.name)} — DNI ${xe(b.dni)}</div>
+        <div style="border:1px solid #DDE3EC;border-top:none;padding:10px 12px">
+          <div style="font-size:10px;font-weight:700;color:#4A5568;margin-bottom:4px">Órdenes de Salida (${b.salidas.length})</div>
+          ${b.salidas.length?`<table style="width:100%;border-collapse:collapse;font-size:9px;margin-bottom:10px"><thead><tr style="background:#F5F7FA"><th style="padding:4px 6px;text-align:left">Fecha</th><th style="padding:4px 6px;text-align:left">Motivo</th><th style="padding:4px 6px;text-align:left">Destino</th><th style="padding:4px 6px;text-align:left">Desde</th><th style="padding:4px 6px;text-align:left">Hasta</th></tr></thead><tbody>${osRows}</tbody></table>`:`<div style="font-size:10px;color:#8A9BB8;margin-bottom:10px">No hay datos de Órdenes de Salida para el DNI ${xe(b.dni)} — ${xe(b.name)}.</div>`}
+          <div style="font-size:10px;font-weight:700;color:#4A5568;margin-bottom:4px">Órdenes de Trabajo (${b.trabajos.length})</div>
+          ${b.trabajos.length?`<table style="width:100%;border-collapse:collapse;font-size:9px"><thead><tr style="background:#F5F7FA"><th style="padding:4px 6px;text-align:left">Fecha</th><th style="padding:4px 6px;text-align:left">Sección</th><th style="padding:4px 6px;text-align:left">Destino</th><th style="padding:4px 6px;text-align:left">Tarea</th></tr></thead><tbody>${otRows}</tbody></table>`:`<div style="font-size:10px;color:#8A9BB8">No hay datos de Órdenes de Trabajo para el DNI ${xe(b.dni)} — ${xe(b.name)}.</div>`}
+        </div>
+      </div>`;
+  }).join('');
+
+  const html=`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
+  <title>DMTH Reporte por Agente ${new Date().toISOString().slice(0,10)}</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}body{font-family:Helvetica,Arial,sans-serif;background:#fff;color:#1A2332;font-size:10px;padding:16px 20px 40px}
+    @media print{@page{size:A4 portrait;margin:15mm 12mm}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.no-print{display:none!important}}
+    .print-btn{position:fixed;top:12px;right:12px;background:#1B5EA6;color:#fff;border:none;padding:8px 18px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer}
+  </style></head><body>
+  <button class="print-btn no-print" onclick="window.print()">Imprimir / Guardar PDF</button>
+  <div style="background:#1B5EA6;color:#fff;padding:16px 20px;margin:-16px -20px 16px">
+    <div style="font-size:9px;opacity:.7;letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px">Sistema Provincial de Salud · SIPROSA · Tucumán · DMTH</div>
+    <div style="font-size:16px;font-weight:700">Reporte por Agente — Salidas y Órdenes de Trabajo</div>
+    <div style="font-size:10px;opacity:.75;margin-top:4px">Generado: ${now}</div>
+  </div>
+  ${body}
+  </body></html>`;
+
+  const win=window.open('','_blank','width=900,height=700');
+  if(!win){toast('Habilitá los popups para PDF','warn');return;}
+  win.document.write(html);win.document.close();
+  toast('Abrí el PDF con Ctrl+P → Guardar como PDF','info');
 }
 
 // ─── RENDER PE ───────────────────────────────────────────────
@@ -1431,12 +2071,15 @@ function renderTopList(id,entries,color){
 // ─── EXPORT ──────────────────────────────────────────────────
 function exportExcel(){
   const tab=currentTab();
-  let rows=tab==='os'?osRows:tab==='pe'?peRows:[];
+  if(tab==='rg'){exportRGExcel();return;}
+  let rows=tab==='os'?osRows:tab==='pe'?peRows:tab==='ot'?otRows:[];
   if(!rows.length){toast('Sin datos para exportar','warn');return;}
   let csv=tab==='os'
     ? 'Código,Fecha,Agente,DNI,Sector,Motivo,Destino,Desde,Hasta,Observaciones\n'+rows.map(r=>[r[OS.id],r[OS.ts],r[OS.nombre],r[OS.dni],r[OS.sector],r[OS.motivo],r[OS.destino],r[OS.desde],r[OS.hasta],r[OS.obs]].map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(',')).join('\n')
     : tab==='pe'
     ? 'Apellido,Nombre,DNI,Sector,Servicio,Condición,Función,Organismo\n'+rows.map(r=>[r[PE.apellido],r[PE.nombre],r[PE.dni],r[PE.sector],r[PE.servicio],r[PE.condicion],r[PE.funcion],r[PE.organismo]].map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(',')).join('\n')
+    : tab==='ot'
+    ? 'Código,Fecha,Sección,Destino,Tarea,Cuadrilla,Observaciones\n'+rows.map(r=>[r[OT.id],r[OT.fecha]||r[OT.ts],r[OT.seccion],r[OT.destino],r[OT.tarea],parseCuadrilla(r[OT.cuadrilla]).map(a=>a.name).join(' / '),r[OT.obs]].map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(',')).join('\n')
     : rows.map(r=>r.join(',')).join('\n');
   const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
   const url=URL.createObjectURL(blob);
@@ -1446,11 +2089,46 @@ function exportExcel(){
 
 function exportPDF(){
   const tab=currentTab();
+  if(tab==='rg'){exportRGPDF();return;}
   const now=new Date().toLocaleString('es-AR');
-  const titles={os:'Órdenes de Salida',pe:'Personal DMTH',in:'Inconsistencias'};
+  const titles={os:'Órdenes de Salida',ot:'Órdenes de Trabajo',pe:'Personal DMTH',in:'Inconsistencias'};
   let bodyContent='';
 
-  if(tab==='os'){
+  if(tab==='ot'){
+    const rows=otRows.slice(0,60);
+    bodyContent=`
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px">
+        ${[
+          {l:'Total órdenes',v:document.getElementById('ot-m1').textContent},
+          {l:'Agentes distintos',v:document.getElementById('ot-m2').textContent},
+          {l:'Cuadrilla promedio',v:document.getElementById('ot-m3').textContent},
+          {l:'Secciones activas',v:document.getElementById('ot-m4').textContent},
+          {l:'Sin cuadrilla',v:document.getElementById('ot-m5').textContent},
+          {l:'Destinos distintos',v:document.getElementById('ot-m6').textContent},
+        ].map(m=>`<div style="background:#F5F7FA;border:1px solid #DDE3EC;border-radius:6px;padding:10px 12px;border-left:3px solid #1B5EA6"><div style="font-size:9px;color:#8A9BB8;margin-bottom:3px">${m.l}</div><div style="font-size:20px;font-weight:700;color:#1A2332">${m.v}</div></div>`).join('')}
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:9px">
+        <thead><tr style="background:#1B5EA6;color:#fff">
+          <th style="padding:6px 8px;text-align:left">Código</th>
+          <th style="padding:6px 8px;text-align:left">Fecha</th>
+          <th style="padding:6px 8px;text-align:left">Sección</th>
+          <th style="padding:6px 8px;text-align:left">Destino</th>
+          <th style="padding:6px 8px;text-align:left">Tarea</th>
+          <th style="padding:6px 8px;text-align:left">Cuadrilla</th>
+        </tr></thead>
+        <tbody>
+          ${rows.map((r,i)=>{const d=parseOTDate(r);return `<tr style="background:${i%2===0?'#fff':'#F5F7FA'};border-bottom:1px solid #DDE3EC">
+            <td style="padding:5px 8px;font-family:monospace">${xe(r[OT.id])}</td>
+            <td style="padding:5px 8px">${d?d.toLocaleDateString('es-AR'):'—'}</td>
+            <td style="padding:5px 8px">${xe((r[OT.seccion]||'').substring(0,18))}</td>
+            <td style="padding:5px 8px">${xe((r[OT.destino]||'').substring(0,22))}</td>
+            <td style="padding:5px 8px">${xe((r[OT.tarea]||'').substring(0,28))}</td>
+            <td style="padding:5px 8px">${xe(parseCuadrilla(r[OT.cuadrilla]).map(a=>a.name).join(', ').substring(0,40))}</td>
+          </tr>`;}).join('')}
+        </tbody>
+      </table>
+      ${otRows.length>60?`<div style="text-align:center;margin-top:8px;font-size:9px;color:#8A9BB8">Mostrando 60 de ${otRows.length} registros — ver tabla completa en el sistema</div>`:''}`;
+  }else if(tab==='os'){
     const rows=osRows.slice(0,60);
     bodyContent=`
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px">
@@ -1547,13 +2225,13 @@ async function refreshAll(){
   const btn=document.getElementById('btn-refresh');
   btn.classList.add('spinning');
   showOverlay('Actualizando datos...');
-  rawOS=[];rawPE=[];filteredOS=[];filteredPE=[];inconsistencias=[];
+  rawOS=[];rawPE=[];rawOT=[];filteredOS=[];filteredPE=[];filteredOT=[];inconsistencias=[];
   await loadAll(true); // force=true: ignora la caché y va directo a la red
   btn.classList.remove('spinning');
 }
 
 // ─── UTILS ───────────────────────────────────────────────────
-function currentTab(){if(document.getElementById('tab-os').classList.contains('active'))return'os';if(document.getElementById('tab-pe').classList.contains('active'))return'pe';return'in';}
+function currentTab(){if(document.getElementById('tab-os').classList.contains('active'))return'os';if(document.getElementById('tab-ot').classList.contains('active'))return'ot';if(document.getElementById('tab-rg').classList.contains('active'))return'rg';if(document.getElementById('tab-pe').classList.contains('active'))return'pe';return'in';}
 function st(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
 function xe(s){if(s==null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function pct(v,t){return t?Math.round(v/t*100):0;}
@@ -1562,15 +2240,25 @@ function normMotivo(s){return(s||'').trim().toUpperCase();}
 function normDNI(s){return(s||'').replace(/[\.\s-]/g,'').trim().toUpperCase();}
 function parseDate(s){if(!s)return null;try{const[d,t]=(s||'').split(' ');if(!d)return null;const[day,mon,yr]=d.split('/');return new Date(`${yr}-${mon.padStart(2,'0')}-${day.padStart(2,'0')}T${t||'00:00:00'}`);}catch(e){return null;}}
 function fmtDate(s){const d=parseDate(s);if(!d)return xe(s);return d.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'});}
-function fillSelect(id,set){const el=document.getElementById(id);if(!el)return;const cur=el.value;el.innerHTML='<option value="all">Todos</option>';[...set].sort().forEach(v=>el.innerHTML+=`<option value="${xe(v)}">${xe(v)}</option>`);if(cur&&[...el.options].some(o=>o.value===cur))el.value=cur;}
+function fillSelect(id,set){
+  const el=document.getElementById(id);if(!el)return;
+  const cur=el.value;
+  const opts=[...set].sort();
+  // Construir todo el HTML en un solo string y asignarlo una vez: agregar
+  // con += dentro del forEach es O(n²) en el DOM (cada += re-serializa y
+  // re-parsea el select entero) y con miles de destinos/agentes se nota mucho.
+  el.innerHTML='<option value="all">Todos</option>'+opts.map(v=>`<option value="${xe(v)}">${xe(v)}</option>`).join('');
+  if(cur&&opts.includes(cur))el.value=cur;
+}
 
 // ─── MULTI-SELECT (checkboxes, con búsqueda) ──────────────────
 // mode: 'all' (sin filtro, todo tildado) | 'custom' (selected define exactamente qué está tildado)
 const mselData={}; // id -> {all:[...], selected:Set, mode:'all'|'custom', search:''}
-function mselBuild(id,set){
+function mselBuild(id,set,opts){
   const all=[...set].sort();
   const prev=mselData[id];
-  let selected=new Set(), mode='all';
+  const defaultEmpty=opts&&opts.defaultEmpty;
+  let selected=new Set(), mode=defaultEmpty?'custom':'all';
   if(prev&&prev.mode==='custom'){
     selected=new Set([...prev.selected].filter(v=>all.includes(v)));
     mode='custom';
