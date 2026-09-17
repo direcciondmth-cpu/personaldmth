@@ -424,6 +424,23 @@ tbody td:nth-child(1){color:var(--c-txt3);font-family:var(--mono);font-size:10px
 .pe-act-btn:hover{border-color:var(--c-blue-m);color:var(--c-blue);background:var(--c-blue-l)}
 .pe-act-btn.danger:hover{border-color:var(--c-red-m);color:var(--c-red);background:var(--c-red-l)}
 @media(max-width:640px){ .pe-form-grid{grid-template-columns:1fr} }
+
+.pe-bday-section{
+  margin-top:16px;padding:14px;border-radius:var(--r);
+  background:var(--dmth-teal-l);border:1px solid var(--dmth-teal-m);
+}
+.pe-bday-title{font-size:12px;font-weight:700;color:var(--dmth-navy);margin-bottom:10px}
+.pe-bday-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pe-photo-row{display:flex;align-items:center;gap:10px}
+.pe-photo-preview{
+  width:52px;height:52px;border-radius:50%;overflow:hidden;flex-shrink:0;
+  background:var(--c-surface);border:2px solid var(--dmth-teal-m);
+  display:flex;align-items:center;justify-content:center;
+}
+.pe-photo-preview img{width:100%;height:100%;object-fit:cover}
+.pe-photo-preview-ph{font-size:8px;color:var(--c-txt3);text-align:center}
+.pe-bday-hint{font-size:10px;color:var(--c-txt3);margin-top:10px;line-height:1.5}
+@media(max-width:640px){ .pe-bday-row{grid-template-columns:1fr} }
 @media(max-width:640px){
   .bd-modal-body{flex-direction:column}
 }
@@ -552,6 +569,28 @@ tbody td:nth-child(1){color:var(--c-txt3);font-family:var(--mono);font-size:10px
         No hay un Apps Script configurado (<code>PE_SCRIPT_URL</code>): los cambios no se van a guardar en la planilla real. Ver instrucciones adjuntas.
       </div>
       <div id="pe-form-fields" class="pe-form-grid"></div>
+
+      <div class="pe-bday-section">
+        <div class="pe-bday-title">🎂 Cumpleaños</div>
+        <div class="pe-bday-row">
+          <div class="pe-fg">
+            <label>Fecha de nacimiento</label>
+            <input type="date" id="pe-f-fechaNac">
+          </div>
+          <div class="pe-fg">
+            <label>Foto de perfil</label>
+            <div class="pe-photo-row">
+              <div class="pe-photo-preview">
+                <img id="pe-photo-preview-img" style="display:none">
+                <div id="pe-photo-preview-ph" class="pe-photo-preview-ph">Sin foto</div>
+              </div>
+              <label class="bd-upload-btn">Elegir foto<input type="file" accept="image/*" style="display:none" onchange="peOnPhotoSelected(this)"></label>
+            </div>
+          </div>
+        </div>
+        <div class="pe-bday-hint">La fecha y la foto se guardan en la misma fila del agente al hacer clic en "Guardar" — la foto se sube a Drive recién en ese momento.</div>
+      </div>
+
       <input type="hidden" id="pe-form-original-dni">
       <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
         <button class="tbtn tbtn-blue" onclick="peSaveForm()">
@@ -976,6 +1015,9 @@ tbody td:nth-child(1){color:var(--c-txt3);font-family:var(--mono);font-size:10px
       <div id="bd-setup-banner" style="display:none;background:var(--c-amber-l);border:1px solid var(--c-amber-m);border-radius:var(--r);padding:12px 16px;margin-bottom:14px;font-size:12px;color:#7a5a08;line-height:1.6">
         ⚠️ <strong>Guardado no configurado:</strong> la fecha de nacimiento y la foto se guardan de forma permanente en la planilla de Google Sheets (y la foto en Drive). Para habilitarlo, desplegá el Apps Script incluido y pegá su URL en <code>PE_SCRIPT_URL</code> — es el mismo script que usa la edición de Personal.
       </div>
+      <div style="background:var(--dmth-teal-l);border:1px solid var(--dmth-teal-m);border-radius:var(--r);padding:10px 14px;margin-bottom:14px;font-size:11px;color:var(--dmth-navy);line-height:1.5">
+        ℹ️ Este módulo está unificado con <strong>Personal DMTH</strong>: la fecha de nacimiento y la foto se cargan y se guardan desde el botón <strong>Editar</strong> de cada agente (el mismo formulario de alta/edición de la nómina).
+      </div>
 
       <div class="sec"><div class="sec-title">Cumpleaños de hoy</div><div class="sec-line"></div></div>
       <div id="bd-today-empty" style="display:none;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r);padding:22px;text-align:center;color:var(--c-txt3);font-size:12px;box-shadow:var(--sh);margin-bottom:20px">
@@ -1023,11 +1065,12 @@ tbody td:nth-child(1){color:var(--c-txt3);font-family:var(--mono);font-size:10px
               <th>Sector</th>
               <th>Fecha de nacimiento</th>
               <th>¿Hoy?</th>
+              <th>Acciones</th>
             </tr></thead>
             <tbody id="bd-tbody"></tbody>
           </table>
         </div>
-        <div class="tfoot"><span id="bd-tfoot">—</span><span>Las fechas y fotos se guardan en este navegador</span></div>
+        <div class="tfoot"><span id="bd-tfoot">—</span><span>Fecha y foto se cargan desde "Editar" — quedan guardadas en Google Sheets/Drive</span></div>
       </div>
     </div><!-- /tab-bd -->
 
@@ -1129,7 +1172,7 @@ const CSV_OT = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQUqoSjcVbfuIMs0
 // URL del Google Apps Script (Web App) que permite ESCRIBIR en la hoja "Personal".
 // Pegá acá la URL que te da Google al desplegar el script (ver instrucciones adjuntas).
 // Mientras esté vacío, el módulo Personal funciona solo en modo lectura.
-const PE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyxP8_vFVYiKoIUvX0969BUYLnxtaOgUDsIb9-zWY7y53IK7N2NivJxTk390N-hdfshkg/exec';
+const PE_SCRIPT_URL = '';
 
 // Mapa de campo interno -> encabezado real de columna en la hoja de Google Sheets.
 // Si renombrás una columna en la planilla, actualizá su valor acá.
@@ -2177,6 +2220,31 @@ function peRenderFormFields(values){
   }).join('');
 }
 
+// Estado del formulario de cumpleaños unificado dentro del modal de Personal.
+// La foto elegida NO se sube al toque: se guarda en memoria y recién se
+// sube a Drive cuando se hace clic en "Guardar", junto con el resto de la fila.
+let peModalPhotoFile=null;
+
+function peRenderBirthdayFields(values){
+  document.getElementById('pe-f-fechaNac').value=values.fechaNac||'';
+  peModalPhotoFile=null;
+  peUpdatePhotoPreview(values.fotoUrl||'');
+}
+function peUpdatePhotoPreview(src){
+  const img=document.getElementById('pe-photo-preview-img');
+  const ph=document.getElementById('pe-photo-preview-ph');
+  if(src){ img.src=src; img.style.display='block'; ph.style.display='none'; }
+  else{ img.style.display='none'; ph.style.display='flex'; }
+}
+function peOnPhotoSelected(input){
+  const file=input.files&&input.files[0];
+  if(!file) return;
+  peModalPhotoFile=file;
+  const reader=new FileReader();
+  reader.onload=e=>peUpdatePhotoPreview(e.target.result);
+  reader.readAsDataURL(file);
+}
+
 function peOpenModal(key){
   document.getElementById('pe-form-nourl').style.display=pePersonalEnabled()?'none':'block';
   const isEdit=!!key;
@@ -2192,9 +2260,12 @@ function peOpenModal(key){
       values[k]=idx!=null?(r[idx]||''):'';
     });
     values.id=r[PE.id]||'';
+    values.fechaNac=r[PE.fechaNac]||'';
+    values.fotoUrl=r[PE.fotoUrl]||'';
   }
   document.getElementById('pe-form-original-dni').value=isEdit?key:'';
   peRenderFormFields(values);
+  peRenderBirthdayFields(values);
   document.getElementById('pe-modal-overlay').classList.add('open');
 }
 function peCloseModal(){
@@ -2210,28 +2281,75 @@ async function peSaveForm(){
   const apellido=data[PE_FIELD_MAP.apellido], nombre=data[PE_FIELD_MAP.nombre], dni=data[PE_FIELD_MAP.dni];
   if(!apellido&&!nombre){ toast('Cargá al menos apellido o nombre','warn'); return; }
 
-  const originalKey=document.getElementById('pe-form-original-dni').value;
-  const isEdit=!!originalKey;
-
-  // ID_PERSONAL_DNI: si hay DNI lo usamos como id; si no, conservamos el id
-  // existente (agentes sin DNI, ej. cooperativa) o generamos uno nuevo.
-  const existing=isEdit?peFindRowByKey(originalKey):null;
-  data[PE_FIELD_MAP.id]=dni||(existing&&existing[PE.id])||('MANUAL_'+Date.now());
-
   if(!pePersonalEnabled()){
     toast('Configurá PE_SCRIPT_URL para guardar cambios en la planilla real','warn');
     return;
   }
 
+  const originalKey=document.getElementById('pe-form-original-dni').value;
+  const isEdit=!!originalKey;
+  const existing=isEdit?peFindRowByKey(originalKey):null;
+
+  // ID_PERSONAL_DNI: si hay DNI lo usamos como id; si no, conservamos el id
+  // existente (agentes sin DNI, ej. cooperativa) o generamos uno nuevo.
+  const idForFile=dni||(existing&&existing[PE.id])||('MANUAL_'+Date.now());
+  data[PE_FIELD_MAP.id]=idForFile;
+
+  // Fecha de nacimiento: se guarda en la MISMA fila, en el mismo guardado.
+  data[PE_FIELD_MAP.fechaNac]=document.getElementById('pe-f-fechaNac').value||'';
+
+  const btn=document.querySelector('#pe-modal-overlay .tbtn-blue');
+  const btnOriginalHtml=btn?btn.innerHTML:'';
+  if(btn){ btn.disabled=true; btn.textContent='Guardando...'; }
+
   try{
+    // Foto: si se eligió una nueva, primero se sube a Drive y recién después
+    // se guarda la fila completa (así el link queda en la misma escritura).
+    if(peModalPhotoFile){
+      toast('Subiendo foto a Drive...','info');
+      const base64=await peFileToBase64(peModalPhotoFile);
+      const res=await pePost('uploadPhoto',{dni:idForFile,imageBase64:base64,mimeType:peModalPhotoFile.type||'image/jpeg',filename:idForFile+'.jpg'});
+      data[PE_FIELD_MAP.fotoUrl]=res.url;
+    }else{
+      // Sin foto nueva: conservamos el link que ya tenía (si tenía).
+      data[PE_FIELD_MAP.fotoUrl]=(existing&&existing[PE.fotoUrl])||'';
+    }
+
     if(isEdit) await pePost('update',{dni:originalKey,data});
     else await pePost('add',{data});
-    toast(isEdit?'Agente actualizado':'Agente agregado','ok');
+    toast(isEdit?'Agente actualizado y guardado en la planilla':'Agente agregado a la planilla','ok');
     peCloseModal();
     await loadAll(true); // recargamos desde Sheets para reflejar el cambio real
   }catch(e){
     toast('Error al guardar: '+e.message,'warn');
+  }finally{
+    if(btn){ btn.disabled=false; btn.innerHTML=btnOriginalHtml; }
   }
+}
+
+// Redimensiona la imagen antes de subirla (más liviana para Drive/canvas)
+// y devuelve el base64 puro (sin el prefijo "data:...;base64,").
+function peFileToBase64(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onerror=()=>reject(new Error('No se pudo leer la imagen'));
+    reader.onload=e=>{
+      const img=new Image();
+      img.onerror=()=>reject(new Error('Archivo de imagen inválido'));
+      img.onload=()=>{
+        const size=400;
+        const canvas=document.createElement('canvas');
+        canvas.width=size;canvas.height=size;
+        const ctx=canvas.getContext('2d');
+        const side=Math.min(img.width,img.height);
+        const sx=(img.width-side)/2, sy=(img.height-side)/2;
+        ctx.drawImage(img,sx,sy,side,side,0,0,size,size);
+        resolve(canvas.toDataURL('image/jpeg',0.85).split(',')[1]);
+      };
+      img.src=e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
 async function peDeleteAgent(key){
@@ -2829,80 +2947,25 @@ function renderBDTable(){
   st('bd-tbl-badge',rows.length+' agentes');
   st('bd-tfoot',`Mostrando ${rows.length} de ${bdPersonList.length}`);
 
-  const enabled=pePersonalEnabled();
   document.getElementById('bd-tbody').innerHTML=rows.map(p=>{
     const isToday=bdDateToMMDD(p.fechaFull)===today;
     const photoHtml=p.foto?`<img class="bd-thumb" src="${xe(p.foto)}">`:`<div class="bd-thumb ph">—</div>`;
     const checked=bdSelected.has(p.key)?'checked':'';
     return `<tr>
       <td><input type="checkbox" ${checked} onchange="bdToggleSel('${xe(p.key)}',this.checked)"></td>
-      <td><div class="bd-photo-cell">
-        ${photoHtml}
-        <label class="bd-upload-btn" style="${enabled?'':'opacity:.5;pointer-events:none'}">Subir<input type="file" accept="image/*" style="display:none" onchange="bdUploadPhoto('${xe(p.key)}',this)"></label>
-      </div></td>
+      <td>${photoHtml}</td>
       <td>${xe(p.nombre)}</td>
       <td style="font-family:var(--mono);font-size:11px">${xe(p.dni)||'—'}</td>
       <td>${xe(p.sector)||'—'}</td>
-      <td><input type="date" class="bd-date-input" value="${xe(p.fechaFull)}" onchange="bdSetFecha('${xe(p.key)}',this.value)" ${enabled?'':'disabled'}></td>
+      <td>${xe(p.fechaFull)||'<span style="color:var(--c-txt3)">Sin cargar</span>'}</td>
       <td>${isToday?'<span class="chip chip-bad">Hoy 🎉</span>':'<span class="chip chip-gray">—</span>'}</td>
+      <td><button class="pe-act-btn" title="Editar (fecha, foto y datos)" onclick="peOpenModal('${xe(p.key)}')">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M8.5 1.5l3 3-7 7-3.4.5.5-3.4z"/></svg>
+      </button></td>
     </tr>`;
   }).join('');
   document.getElementById('bd-sel-all').checked=rows.length>0&&rows.every(p=>bdSelected.has(p.key));
   bdUpdateSelCount();
-}
-
-async function bdSetFecha(key,val){
-  if(!pePersonalEnabled()){
-    toast('Configurá PE_SCRIPT_URL para guardar la fecha en la planilla real','warn');
-    return;
-  }
-  try{
-    await pePost('setBirthday',{dni:key,fecha:val});
-    const r=peFindRowByKey(key);
-    if(r) r[PE.fechaNac]=val;
-    renderBD();
-    toast('Fecha guardada en la planilla','ok');
-  }catch(e){
-    toast('Error al guardar la fecha: '+e.message,'warn');
-  }
-}
-
-function bdUploadPhoto(key,input){
-  const file=input.files&&input.files[0];
-  if(!file) return;
-  if(!pePersonalEnabled()){
-    toast('Configurá PE_SCRIPT_URL para subir fotos a Drive','warn');
-    input.value='';
-    return;
-  }
-  const reader=new FileReader();
-  reader.onload=e=>{
-    const img=new Image();
-    img.onload=async()=>{
-      // Redimensionamos a un cuadrado chico antes de subir a Drive
-      const size=400;
-      const canvas=document.createElement('canvas');
-      canvas.width=size;canvas.height=size;
-      const ctx=canvas.getContext('2d');
-      const side=Math.min(img.width,img.height);
-      const sx=(img.width-side)/2, sy=(img.height-side)/2;
-      ctx.drawImage(img,sx,sy,side,side,0,0,size,size);
-      const dataUrl=canvas.toDataURL('image/jpeg',0.85);
-      const base64=dataUrl.split(',')[1];
-      toast('Subiendo foto a Drive...','info');
-      try{
-        const res=await pePost('uploadPhoto',{dni:key,imageBase64:base64,mimeType:'image/jpeg',filename:key+'.jpg'});
-        const r=peFindRowByKey(key);
-        if(r) r[PE.fotoUrl]=res.url;
-        renderBD();
-        toast('Foto guardada en Drive','ok');
-      }catch(err){
-        toast('Error al subir la foto: '+err.message,'warn');
-      }
-    };
-    img.src=e.target.result;
-  };
-  reader.readAsDataURL(file);
 }
 
 function bdToggleSel(key,checked){
