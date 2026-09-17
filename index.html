@@ -14,8 +14,8 @@
   --c-bg:       #F5F7FA;
   --c-surface:  #FFFFFF;
   --c-surface2: #F0F4F8;
-  --c-border:   #DDE3EC;
-  --c-border2:  #C8D1DF;
+  --c-border:   #C7D0DE;
+  --c-border2:  #9FACC2;
   --c-blue:     #1B5EA6;
   --c-blue-l:   #E8F0FB;
   --c-blue-m:   #BDD1F4;
@@ -29,8 +29,8 @@
   --c-red-l:    #FDECEA;
   --c-red-m:    #F4BFBA;
   --c-txt:      #1A2332;
-  --c-txt2:     #4A5568;
-  --c-txt3:     #8A9BB8;
+  --c-txt2:     #3D4A5C;
+  --c-txt3:     #5C6B85;
   --fn:         'Inter', sans-serif;
   --mono:       'JetBrains Mono', monospace;
   --r:          10px;
@@ -202,11 +202,12 @@ body{background:var(--c-bg);color:var(--c-txt);font-family:var(--fn);font-size:1
 .fg{display:flex;flex-direction:column;gap:4px;min-width:130px;flex:1}
 .fg label{font-size:10px;font-weight:600;color:var(--c-txt3)}
 .fg select,.fg input{
-  background:var(--c-surface2);border:1px solid var(--c-border);
+  background:var(--c-surface2);border:1px solid var(--c-border2);
   color:var(--c-txt);font-family:var(--fn);font-size:12px;
   padding:6px 10px;border-radius:var(--r2);outline:none;
   transition:border-color .15s;appearance:none;cursor:pointer;
 }
+.fg select::placeholder,.fg input::placeholder{color:var(--c-txt3);opacity:1}
 .fg select:focus,.fg input:focus{border-color:var(--c-blue);box-shadow:0 0 0 3px rgba(27,94,166,.08)}
 .fg-actions{display:flex;gap:6px;padding-top:18px}
 
@@ -214,7 +215,7 @@ body{background:var(--c-bg);color:var(--c-txt);font-family:var(--fn);font-size:1
 .msel{position:relative}
 .msel-btn{
   width:100%;display:flex;align-items:center;justify-content:space-between;gap:6px;
-  background:var(--c-surface2);border:1px solid var(--c-border);
+  background:var(--c-surface2);border:1px solid var(--c-border2);
   color:var(--c-txt);font-family:var(--fn);font-size:12px;
   padding:6px 10px;border-radius:var(--r2);outline:none;cursor:pointer;
 }
@@ -230,10 +231,11 @@ body{background:var(--c-bg);color:var(--c-txt);font-family:var(--fn);font-size:1
 }
 .msel.open .msel-panel{display:flex;flex-direction:column;gap:6px}
 .msel-search{
-  background:var(--c-surface2);border:1px solid var(--c-border);
+  background:var(--c-surface2);border:1px solid var(--c-border2);
   color:var(--c-txt);font-family:var(--fn);font-size:12px;
   padding:6px 9px;border-radius:var(--r2);outline:none;width:100%;flex-shrink:0;
 }
+.msel-search::placeholder{color:var(--c-txt3);opacity:1}
 .msel-search:focus{border-color:var(--c-blue)}
 .msel-actions{display:flex;gap:6px;flex-shrink:0}
 .msel-actions button{
@@ -269,10 +271,11 @@ body{background:var(--c-bg);color:var(--c-txt);font-family:var(--fn);font-size:1
 .tsearch-wrap{position:relative}
 .tsearch-wrap svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--c-txt3)}
 .tsearch{
-  background:var(--c-surface);border:1px solid var(--c-border);
+  background:var(--c-surface);border:1px solid var(--c-border2);
   color:var(--c-txt);font-family:var(--fn);font-size:12px;
   padding:6px 10px 6px 30px;border-radius:var(--r2);outline:none;width:200px;
 }
+.tsearch::placeholder{color:var(--c-txt3);opacity:1}
 .tsearch:focus{border-color:var(--c-blue)}
 .tscroll{overflow:auto;max-height:380px}
 table{width:100%;border-collapse:collapse}
@@ -369,7 +372,7 @@ tbody td:nth-child(1){color:var(--c-txt3);font-family:var(--mono);font-size:10px
 }
 .bd-upload-btn:hover{background:var(--c-blue-m)}
 .bd-date-input{
-  background:var(--c-surface2);border:1px solid var(--c-border);color:var(--c-txt);
+  background:var(--c-surface2);border:1px solid var(--c-border2);color:var(--c-txt);
   font-family:var(--fn);font-size:11px;padding:5px 8px;border-radius:var(--r2);outline:none;
 }
 .bd-date-input:focus{border-color:var(--c-blue)}
@@ -397,9 +400,9 @@ tbody td:nth-child(1){color:var(--c-txt3);font-family:var(--mono);font-size:10px
 .pe-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .pe-fg{display:flex;flex-direction:column;gap:4px}
 .pe-fg.pe-fg-wide{grid-column:1/-1}
-.pe-fg label{font-size:10px;font-weight:600;color:var(--c-txt3)}
+.pe-fg label{font-size:11px;font-weight:600;color:var(--c-txt2)}
 .pe-fg input,.pe-fg textarea{
-  background:var(--c-surface2);border:1px solid var(--c-border);color:var(--c-txt);
+  background:var(--c-surface2);border:1px solid var(--c-border2);color:var(--c-txt);
   font-family:var(--fn);font-size:12px;padding:7px 10px;border-radius:var(--r2);outline:none;resize:vertical;
 }
 .pe-fg input:focus,.pe-fg textarea:focus{border-color:var(--c-blue);box-shadow:0 0 0 3px rgba(27,94,166,.08)}
@@ -534,7 +537,7 @@ tbody td:nth-child(1){color:var(--c-txt3);font-family:var(--mono);font-size:10px
       <div class="bd-modal-title" id="pe-modal-title">Nuevo agente</div>
       <button class="bd-modal-close" onclick="peCloseModal()">✕</button>
     </div>
-    <div class="bd-modal-body" style="flex-direction:column">
+    <div class="bd-modal-body" style="flex-direction:column;flex-wrap:nowrap;overflow-y:auto">
       <div id="pe-form-nourl" style="display:none;background:var(--c-amber-l);border:1px solid var(--c-amber-m);border-radius:var(--r2);padding:10px 12px;font-size:11px;color:#7a5a08;margin-bottom:12px">
         No hay un Apps Script configurado (<code>PE_SCRIPT_URL</code>): los cambios no se van a guardar en la planilla real. Ver instrucciones adjuntas.
       </div>
@@ -1112,7 +1115,7 @@ const CSV_OT = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQUqoSjcVbfuIMs0
 // URL del Google Apps Script (Web App) que permite ESCRIBIR en la hoja "Personal".
 // Pegá acá la URL que te da Google al desplegar el script (ver instrucciones adjuntas).
 // Mientras esté vacío, el módulo Personal funciona solo en modo lectura.
-const PE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzgwqk_30zm4w2TwstXfjK_odpnd3EaKb0Do0VcQDGQxdpQ3I4YnwVHAWwR0W_Ko8Ce7g/exec';
+const PE_SCRIPT_URL = '';
 
 // Mapa de campo interno -> encabezado real de columna en la hoja de Google Sheets.
 // Si renombrás una columna en la planilla, actualizá su valor acá.
@@ -2049,6 +2052,8 @@ function buildPETableReal(rows,osDniSet){
   document.getElementById('pe-tbody').innerHTML=show.map((r,i)=>{
     const dni=normDNI(r[PE.dni]);
     const hasDni=!!dni;
+    const idVal=normStr(r[PE.id]);
+    const matchKey=dni||idVal; // clave para editar/borrar: DNI si existe, si no el ID interno de la planilla
     const cnt=hasDni?(rawOS.filter(o=>normDNI(o[OS.dni])===dni).length):0;
     const activo=hasDni&&osDniSet.has(dni);
     return `<tr>
@@ -2059,10 +2064,10 @@ function buildPETableReal(rows,osDniSet){
       <td style="font-family:var(--mono);font-size:11px;color:var(--c-blue);font-weight:600">${cnt}</td>
       <td><span class="chip ${activo?'chip-ok':'chip-gray'}">${activo?'Con movimientos':'Sin mov.'}</span></td>
       <td><div style="display:flex;gap:5px">
-        <button class="pe-act-btn" title="Editar" onclick="peOpenModal('${xe(dni)}')">
+        <button class="pe-act-btn" title="Editar" onclick="peOpenModal('${xe(matchKey)}')" ${matchKey?'':'disabled'}>
           <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M8.5 1.5l3 3-7 7-3.4.5.5-3.4z"/></svg>
         </button>
-        <button class="pe-act-btn danger" title="Eliminar" onclick="peDeleteAgent('${xe(dni)}')">
+        <button class="pe-act-btn danger" title="Eliminar" onclick="peDeleteAgent('${xe(matchKey)}')" ${matchKey?'':'disabled'}>
           <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2.5 3.5h8M5 3.5V2h3v1.5M3.5 3.5l.5 7h4l.5-7"/></svg>
         </button>
       </div></td>
@@ -2136,8 +2141,12 @@ async function pePost(action,payload){
   return json;
 }
 
-function peFindRowByDni(dni){
-  return rawPE.find(r=>normDNI(r[PE.dni])===dni)||null;
+// key puede ser un DNI real o, para agentes sin DNI cargado, el ID interno
+// de la planilla (columna ID_PERSONAL_DNI, ej. "N2026_266").
+function peFindRowByKey(key){
+  if(!key) return null;
+  const k=normStr(key);
+  return rawPE.find(r=>normDNI(r[PE.dni])===normDNI(key)||normStr(r[PE.id])===k)||null;
 }
 
 function peRenderFormFields(values){
@@ -2151,23 +2160,23 @@ function peRenderFormFields(values){
   }).join('');
 }
 
-function peOpenModal(dni){
+function peOpenModal(key){
   document.getElementById('pe-form-nourl').style.display=pePersonalEnabled()?'none':'block';
-  const isEdit=!!dni;
+  const isEdit=!!key;
   document.getElementById('pe-modal-title').textContent=isEdit?'Editar agente':'Nuevo agente';
   document.getElementById('pe-form-delete-btn').style.display=isEdit?'inline-flex':'none';
 
   let values={};
   if(isEdit){
-    const r=peFindRowByDni(dni);
+    const r=peFindRowByKey(key);
     if(!r){ toast('No se encontró el agente','warn'); return; }
-    PE_FIELD_ORDER.forEach(key=>{
-      const idx=PE[key];
-      values[key]=idx!=null?(r[idx]||''):'';
+    PE_FIELD_ORDER.forEach(k=>{
+      const idx=PE[k];
+      values[k]=idx!=null?(r[idx]||''):'';
     });
     values.id=r[PE.id]||'';
   }
-  document.getElementById('pe-form-original-dni').value=isEdit?dni:'';
+  document.getElementById('pe-form-original-dni').value=isEdit?key:'';
   peRenderFormFields(values);
   document.getElementById('pe-modal-overlay').classList.add('open');
 }
@@ -2183,11 +2192,14 @@ async function peSaveForm(){
   });
   const apellido=data[PE_FIELD_MAP.apellido], nombre=data[PE_FIELD_MAP.nombre], dni=data[PE_FIELD_MAP.dni];
   if(!apellido&&!nombre){ toast('Cargá al menos apellido o nombre','warn'); return; }
-  if(!dni){ toast('El DNI es obligatorio para poder identificar al agente','warn'); return; }
-  data[PE_FIELD_MAP.id]=dni; // ID_PERSONAL_DNI se sincroniza con el DNI
 
-  const originalDni=document.getElementById('pe-form-original-dni').value;
-  const isEdit=!!originalDni;
+  const originalKey=document.getElementById('pe-form-original-dni').value;
+  const isEdit=!!originalKey;
+
+  // ID_PERSONAL_DNI: si hay DNI lo usamos como id; si no, conservamos el id
+  // existente (agentes sin DNI, ej. cooperativa) o generamos uno nuevo.
+  const existing=isEdit?peFindRowByKey(originalKey):null;
+  data[PE_FIELD_MAP.id]=dni||(existing&&existing[PE.id])||('MANUAL_'+Date.now());
 
   if(!pePersonalEnabled()){
     toast('Configurá PE_SCRIPT_URL para guardar cambios en la planilla real','warn');
@@ -2195,7 +2207,7 @@ async function peSaveForm(){
   }
 
   try{
-    if(isEdit) await pePost('update',{dni:originalDni,data});
+    if(isEdit) await pePost('update',{dni:originalKey,data});
     else await pePost('add',{data});
     toast(isEdit?'Agente actualizado':'Agente agregado','ok');
     peCloseModal();
@@ -2205,17 +2217,17 @@ async function peSaveForm(){
   }
 }
 
-async function peDeleteAgent(dni){
-  if(!dni){ toast('Este agente no tiene DNI cargado, no se puede identificar para borrar','warn'); return; }
+async function peDeleteAgent(key){
+  if(!key){ toast('Este agente no tiene un identificador cargado (ni DNI ni ID), no se puede borrar','warn'); return; }
   if(!pePersonalEnabled()){
     toast('Configurá PE_SCRIPT_URL para borrar agentes en la planilla real','warn');
     return;
   }
-  const r=peFindRowByDni(dni);
-  const nombre=r?peFullName(r):dni;
-  if(!confirm(`¿Eliminar a ${nombre} (DNI ${dni}) de la nómina? Esta acción borra la fila en Google Sheets y no se puede deshacer.`)) return;
+  const r=peFindRowByKey(key);
+  const nombre=r?peFullName(r):key;
+  if(!confirm(`¿Eliminar a ${nombre} de la nómina? Esta acción borra la fila en Google Sheets y no se puede deshacer.`)) return;
   try{
-    await pePost('delete',{dni});
+    await pePost('delete',{dni:key});
     toast('Agente eliminado','ok');
     await loadAll(true);
   }catch(e){
@@ -2223,9 +2235,9 @@ async function peDeleteAgent(dni){
   }
 }
 function peDeleteFromModal(){
-  const dni=document.getElementById('pe-form-original-dni').value;
+  const key=document.getElementById('pe-form-original-dni').value;
   peCloseModal();
-  peDeleteAgent(dni);
+  peDeleteAgent(key);
 }
 
 // ─── INCONSISTENCIAS ─────────────────────────────────────────
