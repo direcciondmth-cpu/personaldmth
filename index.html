@@ -392,6 +392,25 @@ tbody td:nth-child(1){color:var(--c-txt3);font-family:var(--mono);font-size:10px
 #bd-canvas{width:100%;max-width:420px;height:auto;border-radius:6px;box-shadow:var(--sh)}
 .bd-modal-controls{flex:1;min-width:260px}
 .bd-modal-hint{font-size:10px;color:var(--c-txt3);margin-top:10px;line-height:1.5}
+
+/* ─── FORM PERSONAL (crear/editar/borrar) ───────────────────── */
+.pe-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pe-fg{display:flex;flex-direction:column;gap:4px}
+.pe-fg.pe-fg-wide{grid-column:1/-1}
+.pe-fg label{font-size:10px;font-weight:600;color:var(--c-txt3)}
+.pe-fg input,.pe-fg textarea{
+  background:var(--c-surface2);border:1px solid var(--c-border);color:var(--c-txt);
+  font-family:var(--fn);font-size:12px;padding:7px 10px;border-radius:var(--r2);outline:none;resize:vertical;
+}
+.pe-fg input:focus,.pe-fg textarea:focus{border-color:var(--c-blue);box-shadow:0 0 0 3px rgba(27,94,166,.08)}
+.pe-act-btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:26px;height:26px;border-radius:var(--r2);border:1px solid var(--c-border);
+  background:var(--c-surface);color:var(--c-txt2);cursor:pointer;transition:all .15s;
+}
+.pe-act-btn:hover{border-color:var(--c-blue-m);color:var(--c-blue);background:var(--c-blue-l)}
+.pe-act-btn.danger:hover{border-color:var(--c-red-m);color:var(--c-red);background:var(--c-red-l)}
+@media(max-width:640px){ .pe-form-grid{grid-template-columns:1fr} }
 @media(max-width:640px){
   .bd-modal-body{flex-direction:column}
 }
@@ -503,6 +522,34 @@ tbody td:nth-child(1){color:var(--c-txt3);font-family:var(--mono);font-size:10px
           </button>
         </div>
         <div class="bd-modal-hint">En celular, "Enviar por WhatsApp" abre el selector para compartir la imagen directo. En PC, primero descargá la imagen y adjuntala manualmente en WhatsApp Web.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR/AGREGAR AGENTE (Personal) -->
+<div class="bd-modal-overlay" id="pe-modal-overlay" onclick="if(event.target===this)peCloseModal()">
+  <div class="bd-modal" style="max-width:640px">
+    <div class="bd-modal-head">
+      <div class="bd-modal-title" id="pe-modal-title">Nuevo agente</div>
+      <button class="bd-modal-close" onclick="peCloseModal()">✕</button>
+    </div>
+    <div class="bd-modal-body" style="flex-direction:column">
+      <div id="pe-form-nourl" style="display:none;background:var(--c-amber-l);border:1px solid var(--c-amber-m);border-radius:var(--r2);padding:10px 12px;font-size:11px;color:#7a5a08;margin-bottom:12px">
+        No hay un Apps Script configurado (<code>PE_SCRIPT_URL</code>): los cambios no se van a guardar en la planilla real. Ver instrucciones adjuntas.
+      </div>
+      <div id="pe-form-fields" class="pe-form-grid"></div>
+      <input type="hidden" id="pe-form-original-dni">
+      <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
+        <button class="tbtn tbtn-blue" onclick="peSaveForm()">
+          <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6.5l3 3 6-7"/></svg>
+          Guardar
+        </button>
+        <button class="tbtn" id="pe-form-delete-btn" onclick="peDeleteFromModal()" style="display:none;border-color:var(--c-red-m);color:var(--c-red)">
+          <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2.5 3.5h8M5 3.5V2h3v1.5M3.5 3.5l.5 7h4l.5-7"/></svg>
+          Eliminar agente
+        </button>
+        <button class="tbtn" onclick="peCloseModal()">Cancelar</button>
       </div>
     </div>
   </div>
@@ -855,6 +902,9 @@ tbody td:nth-child(1){color:var(--c-txt3);font-family:var(--mono);font-size:10px
 
       <!-- Tabla personal -->
       <div class="sec"><div class="sec-title">Nómina del personal</div><div class="sec-line"></div></div>
+      <div id="pe-setup-banner" style="display:none;background:var(--c-amber-l);border:1px solid var(--c-amber-m);border-radius:var(--r);padding:12px 16px;margin-bottom:14px;font-size:12px;color:#7a5a08;line-height:1.6">
+        ⚠️ <strong>Edición no configurada:</strong> para agregar, editar o borrar agentes directamente en la planilla de Google Sheets, hay que desplegar el Google Apps Script incluido y pegar su URL en la constante <code>PE_SCRIPT_URL</code> del archivo. Mientras tanto, la nómina se muestra en modo solo lectura.
+      </div>
       <div class="filter-bar">
         <div class="filter-label">Filtros</div>
         <div class="filter-row">
@@ -878,9 +928,15 @@ tbody td:nth-child(1){color:var(--c-txt3);font-family:var(--mono);font-size:10px
             <span class="tcard-title">Nómina</span>
             <span class="t-badge" id="pe-tbl-badge">—</span>
           </div>
-          <div class="tsearch-wrap">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="5" cy="5" r="4"/><path d="M9 9l2 2"/></svg>
-            <input class="tsearch" id="pe-tbl-q" placeholder="Buscar..." oninput="peTableSearch(this.value)">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="tsearch-wrap">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="5" cy="5" r="4"/><path d="M9 9l2 2"/></svg>
+              <input class="tsearch" id="pe-tbl-q" placeholder="Buscar..." oninput="peTableSearch(this.value)">
+            </div>
+            <button class="tbtn tbtn-blue" onclick="peOpenModal(null)">
+              <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1.5" y="1.5" width="10" height="10" rx="1.5"/><path d="M4 6.5h5M6.5 4v5"/></svg>
+              Nuevo agente
+            </button>
           </div>
         </div>
         <div class="tscroll">
@@ -892,6 +948,7 @@ tbody td:nth-child(1){color:var(--c-txt3);font-family:var(--mono);font-size:10px
               <th onclick="peSortTable(3)">Sector ↕</th>
               <th>Órdenes</th>
               <th>Estado</th>
+              <th>Acciones</th>
             </tr></thead>
             <tbody id="pe-tbody"></tbody>
           </table>
@@ -1051,6 +1108,29 @@ tbody td:nth-child(1){color:var(--c-txt3);font-family:var(--mono);font-size:10px
 const CSV_OS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSJh8emO0itI9wQUkPNWpWspSH1ujHNjwBxQrVl0PtS38tS2hqp5jCNOagWz9BgkqMibVS519cECmaY/pub?output=csv';
 const CSV_PE = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTXY_a8ZOFS7FMbM1PqaKydgFCXvpughSKmLQrytllHhzsLl0kVzygraceQZUq07PXYQ335Dg6ARGQQ/pub?output=csv';
 const CSV_OT = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQUqoSjcVbfuIMs0sDlbFe8FmNNMBtKjM67T4FQIu_8wvIuRl4QqVcpEgvZ2Lrhk3lrHcOc_HlMA8vO/pub?gid=646917453&single=true&output=csv';
+
+// URL del Google Apps Script (Web App) que permite ESCRIBIR en la hoja "Personal".
+// Pegá acá la URL que te da Google al desplegar el script (ver instrucciones adjuntas).
+// Mientras esté vacío, el módulo Personal funciona solo en modo lectura.
+const PE_SCRIPT_URL = '';
+
+// Mapa de campo interno -> encabezado real de columna en la hoja de Google Sheets.
+// Si renombrás una columna en la planilla, actualizá su valor acá.
+const PE_FIELD_MAP = {
+  id:'ID_PERSONAL_DNI', dni:'DNI', apellido:'APELLIDO', nombre:'NOMBRE',
+  condicion:'CONDICION_2025_PLANTA', situacion:'SITUACION_HORARIO_2026',
+  organismo:'ORGANISMO', servicio:'SERVICIO', sector:'SECTOR', funcion:'FUNCION_2026',
+  nivel:'NIVEL', domicilio:'DOMICILIO', email:'CORREO_ELECTRONICO',
+  telefono:'TELEFONO', telefamiliar:'TELEFONO CONTACTO DE UN FAMILIAR',
+  horario:'HORARIO', obs:'OBSERVACIONES'
+};
+const PE_FIELD_LABELS = {
+  apellido:'Apellido', nombre:'Nombre', dni:'DNI', sector:'Sector', servicio:'Servicio',
+  organismo:'Organismo', condicion:'Condición (planta/contrato)', situacion:'Situación horario',
+  funcion:'Función', nivel:'Nivel', horario:'Horario', domicilio:'Domicilio',
+  telefono:'Teléfono', telefamiliar:'Teléfono contacto familiar', email:'Correo electrónico', obs:'Observaciones'
+};
+const PE_FIELD_ORDER=['apellido','nombre','dni','sector','servicio','organismo','condicion','situacion','funcion','nivel','horario','domicilio','telefono','telefamiliar','email','obs'];
 
 // Columnas CSV Órdenes de Salida (0-based)
 const OS = { ts:0, email:1, nombre:2, dni:3, sector:4, motivo:5, destino:6, desde:7, hasta:8, obs:9, doc:10, id:11, resumen:12 };
@@ -1867,6 +1947,8 @@ function exportRGPDF(){
 
 // ─── RENDER PE ───────────────────────────────────────────────
 function renderPE(){
+  const banner=document.getElementById('pe-setup-banner');
+  if(banner) banner.style.display=pePersonalEnabled()?'none':'block';
   if(!rawPE.length){
     // Fallback: construir personal deducido desde Órdenes de Salida
     buildPEFromOS();
@@ -1953,6 +2035,7 @@ function buildPETableFromAg(agentes,osData){
       <td>${xe(a.sector)}</td>
       <td style="font-family:var(--mono);font-size:11px;color:var(--c-blue);font-weight:600">${cnt}</td>
       <td><span class="chip ${cnt>0?'chip-ok':'chip-gray'}">${cnt>0?'Activo':'Sin mov.'}</span></td>
+      <td><span style="font-size:10px;color:var(--c-txt3)">Sin nómina real</span></td>
     </tr>`;
   }).join('');
   st('pe-tbl-badge',`${agentes.length} agentes`);
@@ -1975,6 +2058,14 @@ function buildPETableReal(rows,osDniSet){
       <td>${xe(normStr(r[PE.sector])||'—')}</td>
       <td style="font-family:var(--mono);font-size:11px;color:var(--c-blue);font-weight:600">${cnt}</td>
       <td><span class="chip ${activo?'chip-ok':'chip-gray'}">${activo?'Con movimientos':'Sin mov.'}</span></td>
+      <td><div style="display:flex;gap:5px">
+        <button class="pe-act-btn" title="Editar" onclick="peOpenModal('${xe(dni)}')">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M8.5 1.5l3 3-7 7-3.4.5.5-3.4z"/></svg>
+        </button>
+        <button class="pe-act-btn danger" title="Eliminar" onclick="peDeleteAgent('${xe(dni)}')">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2.5 3.5h8M5 3.5V2h3v1.5M3.5 3.5l.5 7h4l.5-7"/></svg>
+        </button>
+      </div></td>
     </tr>`;
   }).join('');
   st('pe-tbl-badge',`${rows.length} agentes`);
@@ -2024,6 +2115,117 @@ function peSortTable(col){
     return d*(va>vb?1:va<vb?-1:0);
   });
   buildPETableReal(sorted,osDniSet);
+}
+
+// ─── EDICIÓN DE PERSONAL (alta / baja / modificación en Sheets) ──
+// Requiere desplegar el Google Apps Script adjunto y configurar PE_SCRIPT_URL.
+// Identificamos cada fila por DNI; si un agente no tiene DNI cargado, se
+// intenta además hacer match por ID_PERSONAL_DNI (columna "id") como respaldo.
+function pePersonalEnabled(){ return !!PE_SCRIPT_URL; }
+
+async function pePost(action,payload){
+  if(!PE_SCRIPT_URL) throw new Error('PE_SCRIPT_URL no está configurada. Ver instrucciones para desplegar el Apps Script.');
+  const res=await fetch(PE_SCRIPT_URL,{
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({action,...payload})
+  });
+  if(!res.ok) throw new Error('HTTP '+res.status);
+  const json=await res.json();
+  if(!json.ok) throw new Error(json.error||'Error desconocido del servidor');
+  return json;
+}
+
+function peFindRowByDni(dni){
+  return rawPE.find(r=>normDNI(r[PE.dni])===dni)||null;
+}
+
+function peRenderFormFields(values){
+  const wrap=document.getElementById('pe-form-fields');
+  wrap.innerHTML=PE_FIELD_ORDER.map(key=>{
+    const label=PE_FIELD_LABELS[key];
+    const wide=key==='obs'||key==='domicilio';
+    const val=xe(values[key]||'');
+    const tag=key==='obs'?`<textarea id="pe-f-${key}" rows="2">${val}</textarea>`:`<input type="text" id="pe-f-${key}" value="${val}">`;
+    return `<div class="pe-fg${wide?' pe-fg-wide':''}"><label>${xe(label)}</label>${tag}</div>`;
+  }).join('');
+}
+
+function peOpenModal(dni){
+  document.getElementById('pe-form-nourl').style.display=pePersonalEnabled()?'none':'block';
+  const isEdit=!!dni;
+  document.getElementById('pe-modal-title').textContent=isEdit?'Editar agente':'Nuevo agente';
+  document.getElementById('pe-form-delete-btn').style.display=isEdit?'inline-flex':'none';
+
+  let values={};
+  if(isEdit){
+    const r=peFindRowByDni(dni);
+    if(!r){ toast('No se encontró el agente','warn'); return; }
+    PE_FIELD_ORDER.forEach(key=>{
+      const idx=PE[key];
+      values[key]=idx!=null?(r[idx]||''):'';
+    });
+    values.id=r[PE.id]||'';
+  }
+  document.getElementById('pe-form-original-dni').value=isEdit?dni:'';
+  peRenderFormFields(values);
+  document.getElementById('pe-modal-overlay').classList.add('open');
+}
+function peCloseModal(){
+  document.getElementById('pe-modal-overlay').classList.remove('open');
+}
+
+async function peSaveForm(){
+  const data={};
+  PE_FIELD_ORDER.forEach(key=>{
+    const el=document.getElementById('pe-f-'+key);
+    data[PE_FIELD_MAP[key]]=el?el.value.trim():'';
+  });
+  const apellido=data[PE_FIELD_MAP.apellido], nombre=data[PE_FIELD_MAP.nombre], dni=data[PE_FIELD_MAP.dni];
+  if(!apellido&&!nombre){ toast('Cargá al menos apellido o nombre','warn'); return; }
+  if(!dni){ toast('El DNI es obligatorio para poder identificar al agente','warn'); return; }
+  data[PE_FIELD_MAP.id]=dni; // ID_PERSONAL_DNI se sincroniza con el DNI
+
+  const originalDni=document.getElementById('pe-form-original-dni').value;
+  const isEdit=!!originalDni;
+
+  if(!pePersonalEnabled()){
+    toast('Configurá PE_SCRIPT_URL para guardar cambios en la planilla real','warn');
+    return;
+  }
+
+  try{
+    if(isEdit) await pePost('update',{dni:originalDni,data});
+    else await pePost('add',{data});
+    toast(isEdit?'Agente actualizado':'Agente agregado','ok');
+    peCloseModal();
+    await loadAll(true); // recargamos desde Sheets para reflejar el cambio real
+  }catch(e){
+    toast('Error al guardar: '+e.message,'warn');
+  }
+}
+
+async function peDeleteAgent(dni){
+  if(!dni){ toast('Este agente no tiene DNI cargado, no se puede identificar para borrar','warn'); return; }
+  if(!pePersonalEnabled()){
+    toast('Configurá PE_SCRIPT_URL para borrar agentes en la planilla real','warn');
+    return;
+  }
+  const r=peFindRowByDni(dni);
+  const nombre=r?peFullName(r):dni;
+  if(!confirm(`¿Eliminar a ${nombre} (DNI ${dni}) de la nómina? Esta acción borra la fila en Google Sheets y no se puede deshacer.`)) return;
+  try{
+    await pePost('delete',{dni});
+    toast('Agente eliminado','ok');
+    await loadAll(true);
+  }catch(e){
+    toast('Error al eliminar: '+e.message,'warn');
+  }
+}
+function peDeleteFromModal(){
+  const dni=document.getElementById('pe-form-original-dni').value;
+  peCloseModal();
+  peDeleteAgent(dni);
 }
 
 // ─── INCONSISTENCIAS ─────────────────────────────────────────
