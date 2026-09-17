@@ -346,6 +346,56 @@ tbody td:nth-child(1){color:var(--c-txt3);font-family:var(--mono);font-size:10px
 }
 @keyframes tin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
+/* ─── CUMPLEAÑOS ─────────────────────────────────────────────── */
+.bd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
+.bd-card{
+  background:var(--c-surface);border:1px solid var(--c-border);border-left:3px solid var(--c-red);
+  border-radius:var(--r);padding:14px;box-shadow:var(--sh);
+  display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;
+}
+.bd-card-photo{
+  width:64px;height:64px;border-radius:50%;object-fit:cover;
+  background:var(--c-blue-l);border:2px solid var(--c-blue-m);
+}
+.bd-card-photo.ph{display:flex;align-items:center;justify-content:center;color:var(--c-blue);font-weight:700;font-size:18px}
+.bd-card-name{font-size:12px;font-weight:600;color:var(--c-txt)}
+.bd-card-sector{font-size:10px;color:var(--c-txt3)}
+.bd-photo-cell{display:flex;align-items:center;gap:8px}
+.bd-thumb{width:30px;height:30px;border-radius:50%;object-fit:cover;background:var(--c-surface2);border:1px solid var(--c-border);flex-shrink:0}
+.bd-thumb.ph{display:flex;align-items:center;justify-content:center;color:var(--c-txt3);font-size:10px}
+.bd-upload-btn{
+  font-size:10px;font-weight:600;color:var(--c-blue);background:var(--c-blue-l);
+  border:1px solid var(--c-blue-m);padding:4px 8px;border-radius:99px;cursor:pointer;white-space:nowrap;
+}
+.bd-upload-btn:hover{background:var(--c-blue-m)}
+.bd-date-input{
+  background:var(--c-surface2);border:1px solid var(--c-border);color:var(--c-txt);
+  font-family:var(--fn);font-size:11px;padding:5px 8px;border-radius:var(--r2);outline:none;
+}
+.bd-date-input:focus{border-color:var(--c-blue)}
+
+.bd-modal-overlay{
+  display:none;position:fixed;inset:0;background:rgba(26,35,50,.55);z-index:2000;
+  align-items:center;justify-content:center;padding:20px;
+}
+.bd-modal-overlay.open{display:flex}
+.bd-modal{
+  background:var(--c-surface);border-radius:var(--r);box-shadow:var(--sh2);
+  width:100%;max-width:900px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;
+}
+.bd-modal-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--c-border)}
+.bd-modal-title{font-size:14px;font-weight:700;color:var(--c-txt)}
+.bd-modal-close{background:none;border:none;font-size:16px;color:var(--c-txt3);cursor:pointer;padding:4px}
+.bd-modal-close:hover{color:var(--c-txt)}
+.bd-modal-body{display:flex;gap:20px;padding:18px;overflow:auto;flex-wrap:wrap}
+.bd-modal-canvas-wrap{flex:1;min-width:280px;display:flex;align-items:center;justify-content:center;background:var(--c-surface2);border-radius:var(--r);padding:10px}
+#bd-canvas{width:100%;max-width:420px;height:auto;border-radius:6px;box-shadow:var(--sh)}
+.bd-modal-controls{flex:1;min-width:260px}
+.bd-modal-hint{font-size:10px;color:var(--c-txt3);margin-top:10px;line-height:1.5}
+@media(max-width:640px){
+  .bd-modal-body{flex-direction:column}
+}
+
 /* SECCIÓN título */
 .sec{display:flex;align-items:center;gap:10px;margin-bottom:14px}
 .sec-title{font-size:12px;font-weight:600;color:var(--c-txt2);letter-spacing:.02em}
@@ -420,6 +470,44 @@ tbody td:nth-child(1){color:var(--c-txt3);font-family:var(--mono);font-size:10px
   <div class="ov-sub" id="ov-sub">Conectando con Google Sheets</div>
 </div>
 
+<!-- MODAL PLACA CUMPLEAÑOS -->
+<div class="bd-modal-overlay" id="bd-modal-overlay" onclick="if(event.target===this)bdCloseModal()">
+  <div class="bd-modal">
+    <div class="bd-modal-head">
+      <div class="bd-modal-title">Placa de cumpleaños</div>
+      <button class="bd-modal-close" onclick="bdCloseModal()">✕</button>
+    </div>
+    <div class="bd-modal-body">
+      <div class="bd-modal-canvas-wrap">
+        <canvas id="bd-canvas" width="900" height="900"></canvas>
+      </div>
+      <div class="bd-modal-controls">
+        <div class="fg"><label>Mensaje de saludo</label>
+          <textarea id="bd-msg" rows="3" style="width:100%;resize:vertical;background:var(--c-surface2);border:1px solid var(--c-border);color:var(--c-txt);font-family:var(--fn);font-size:12px;padding:8px 10px;border-radius:var(--r2);outline:none">¡Feliz cumpleaños! Te deseamos un día espléndido de parte de todo el equipo de DMTH 🎉</textarea>
+        </div>
+        <div class="fg" style="margin-top:10px"><label>Firma / pie de placa</label>
+          <input type="text" id="bd-footer" value="Dirección de Mantenimiento Técnico Hospitalario · SIPROSA" style="width:100%">
+        </div>
+        <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+          <button class="tbtn" onclick="bdRenderCanvas()">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13.5 8A5.5 5.5 0 1 1 8 2.5a5.5 5.5 0 0 1 4 1.7"/><path d="M10 4h3.5V.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Actualizar vista
+          </button>
+          <button class="tbtn tbtn-green" onclick="bdDownloadPlaca()">
+            <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6.5 1v8M3.5 6l3 3 3-3M1.5 11.5h9"/></svg>
+            Descargar imagen
+          </button>
+          <button class="tbtn tbtn-blue" onclick="bdShareWhatsapp()">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1.5a6.5 6.5 0 0 0-5.6 9.8L1.5 14.5l3.3-.9A6.5 6.5 0 1 0 8 1.5z"/></svg>
+            Enviar por WhatsApp
+          </button>
+        </div>
+        <div class="bd-modal-hint">En celular, "Enviar por WhatsApp" abre el selector para compartir la imagen directo. En PC, primero descargá la imagen y adjuntala manualmente en WhatsApp Web.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- SIDEBAR -->
 <div class="sb-scrim" id="sb-scrim" onclick="toggleSidebar(false)"></div>
 <aside class="sidebar" id="sidebar">
@@ -454,6 +542,11 @@ tbody td:nth-child(1){color:var(--c-txt3);font-family:var(--mono);font-size:10px
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5.5" r="2.5"/><path d="M3 13.5c0-2.76 2.24-5 5-5s5 2.24 5 5"/></svg>
       <span>Personal DMTH</span>
       <span class="sb-badge green" id="nav-pe-badge">—</span>
+    </button>
+    <button class="sb-item" onclick="switchTab('bd',this)" id="nav-bd">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3.5c.9-1.2 2.6-1.2 2.9.2.3 1.3-1 2-2.9 3.3-1.9-1.3-3.2-2-2.9-3.3.3-1.4 2-1.4 2.9-.2z"/><path d="M3 14v-2.2c0-1 .8-1.8 1.8-1.8h6.4c1 0 1.8.8 1.8 1.8V14"/><path d="M3 14h10M6 10v4M10 10v4"/></svg>
+      <span>Cumpleaños</span>
+      <span class="sb-badge" style="background:var(--c-red-l);color:var(--c-red)" id="nav-bd-badge">—</span>
     </button>
     <button class="sb-item" onclick="switchTab('rg',this)" id="nav-rg">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="5" r="2.2"/><path d="M2.2 13c0-2.3 1.7-4 3.8-4s3.8 1.7 3.8 4"/><circle cx="12" cy="6" r="1.6"/><path d="M9.6 8.3c1.6.2 2.8 1.5 2.9 3.4"/></svg>
@@ -807,6 +900,63 @@ tbody td:nth-child(1){color:var(--c-txt3);font-family:var(--mono);font-size:10px
       </div>
     </div><!-- /tab-pe -->
 
+    <!-- ═══ TAB: CUMPLEAÑOS ═══ -->
+    <div class="tab-pane" id="tab-bd">
+
+      <div class="sec"><div class="sec-title">Cumpleaños de hoy</div><div class="sec-line"></div></div>
+      <div id="bd-today-empty" style="display:none;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r);padding:22px;text-align:center;color:var(--c-txt3);font-size:12px;box-shadow:var(--sh);margin-bottom:20px">
+        Nadie cumple años hoy. Cargá fechas de nacimiento en la nómina de abajo para que aparezcan acá automáticamente.
+      </div>
+      <div id="bd-today-grid" class="bd-grid" style="margin-bottom:14px"></div>
+      <div id="bd-today-actions" style="display:none;margin-bottom:22px">
+        <button class="tbtn tbtn-blue" onclick="bdOpenModalToday()">
+          <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1.5" y="1.5" width="10" height="10" rx="1.5"/><path d="M4 6.5h5M6.5 4v5"/></svg>
+          Generar placa de saludo
+        </button>
+      </div>
+
+      <div class="sec"><div class="sec-title">Nómina — fecha de nacimiento y foto</div><div class="sec-line"></div></div>
+      <div class="filter-bar">
+        <div class="filter-label">Filtros</div>
+        <div class="filter-row">
+          <div class="fg"><label>Sector</label><select id="bd-f-sector" onchange="renderBDTable()"><option value="all">Todos</option></select></div>
+          <div class="fg"><label>Buscar</label><input type="text" id="bd-f-q" placeholder="Apellido, Nombre, DNI..." oninput="renderBDTable()"></div>
+          <div class="fg" style="flex:0 0 auto;min-width:auto">
+            <label style="display:flex;align-items:center;gap:6px;padding-top:6px;cursor:pointer;white-space:nowrap">
+              <input type="checkbox" id="bd-f-solocargados" style="cursor:pointer" onchange="renderBDTable()">Solo con fecha cargada
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="tcard">
+        <div class="tcard-head">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="tcard-title">Datos de cumpleaños</span>
+            <span class="t-badge" id="bd-tbl-badge">—</span>
+          </div>
+          <button class="tbtn tbtn-blue" id="bd-gen-sel-btn" onclick="bdOpenModalSelected()" disabled>
+            <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1.5" y="1.5" width="10" height="10" rx="1.5"/><path d="M4 6.5h5M6.5 4v5"/></svg>
+            Generar placa (<span id="bd-sel-count">0</span>)
+          </button>
+        </div>
+        <div class="tscroll">
+          <table>
+            <thead><tr>
+              <th style="width:34px"><input type="checkbox" id="bd-sel-all" onchange="bdToggleAll(this.checked)"></th>
+              <th>Foto</th>
+              <th>Apellido y Nombre</th>
+              <th>DNI</th>
+              <th>Sector</th>
+              <th>Fecha de nacimiento</th>
+              <th>¿Hoy?</th>
+            </tr></thead>
+            <tbody id="bd-tbody"></tbody>
+          </table>
+        </div>
+        <div class="tfoot"><span id="bd-tfoot">—</span><span>Las fechas y fotos se guardan en este navegador</span></div>
+      </div>
+    </div><!-- /tab-bd -->
+
     <!-- ═══ TAB: REPORTE POR AGENTE ═══ -->
     <div class="tab-pane" id="tab-rg">
       <div class="sec"><div class="sec-title">Reporte consolidado por agente (cruce por DNI)</div><div class="sec-line"></div></div>
@@ -1001,6 +1151,7 @@ function renderAll(){
   renderOS();
   renderPE();
   renderOT();
+  renderBD();
   buildRGAgentOptions();
   // La detección de inconsistencias es lo más pesado: se corre después
   // del primer pintado para que el dashboard aparezca rápido igual.
@@ -1118,7 +1269,7 @@ function parseCSV(text){
 }
 
 // ─── TABS ────────────────────────────────────────────────────
-const TABS={os:['Órdenes de Salida','Registro de movimientos del personal · SIPROSA'],ot:['Órdenes de Trabajo','Cuadrillas, destinos y tareas · DMTH'],rg:['Reporte por Agente','Cruce de Salidas y Trabajo por DNI'],pe:['Personal DMTH','Nómina y dotación · Dirección de Mantenimiento'],in:['Inconsistencias','Alertas y datos problemáticos detectados automáticamente']};
+const TABS={os:['Órdenes de Salida','Registro de movimientos del personal · SIPROSA'],ot:['Órdenes de Trabajo','Cuadrillas, destinos y tareas · DMTH'],rg:['Reporte por Agente','Cruce de Salidas y Trabajo por DNI'],pe:['Personal DMTH','Nómina y dotación · Dirección de Mantenimiento'],bd:['Cumpleaños','Detección automática y placas de saludo para WhatsApp'],in:['Inconsistencias','Alertas y datos problemáticos detectados automáticamente']};
 function switchTab(id,btn){
   document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'));
@@ -2345,6 +2496,363 @@ function mselClose(id){
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&mselOpenId)mselClose(mselOpenId);});
 window.addEventListener('resize',()=>{if(mselOpenId)mselClose(mselOpenId);});
+
+// ─── CUMPLEAÑOS ──────────────────────────────────────────────
+const BD_KEY='dmth_bday_v1';
+let bdSelected=new Set();
+
+function bdLoadStore(){
+  try{ return JSON.parse(localStorage.getItem(BD_KEY)||'{}'); }catch(e){ return {}; }
+}
+function bdSaveStore(store){
+  try{ localStorage.setItem(BD_KEY,JSON.stringify(store)); }
+  catch(e){ toast('No se pudo guardar (almacenamiento lleno). Probá con fotos más chicas.','warn'); }
+}
+function bdKeyOf(p){ return p.dni||('N:'+p.nombre); }
+
+function bdGetPersonList(){
+  const out=[],seen=new Set();
+  if(rawPE.length){
+    rawPE.forEach(r=>{
+      const dni=normDNI(r[PE.dni]);
+      const nombre=peFullName(r);
+      const sector=normStr(r[PE.sector]);
+      const key=dni||('N:'+nombre);
+      if(seen.has(key)||nombre==='—') return;
+      seen.add(key);
+      out.push({dni,nombre,sector,key});
+    });
+  }else{
+    rawOS.forEach(r=>{
+      const dni=normDNI(r[OS.dni]);
+      const nombre=normStr(r[OS.nombre]);
+      const sector=normStr(r[OS.sector]);
+      if(!nombre) return;
+      const key=dni||('N:'+nombre);
+      if(seen.has(key)) return;
+      seen.add(key);
+      out.push({dni,nombre,sector,key});
+    });
+  }
+  return out.sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
+}
+
+function bdTodayStr(){
+  const d=new Date();
+  return String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function bdDateToMMDD(v){ // v = 'YYYY-MM-DD' from <input type=date>
+  if(!v) return '';
+  const parts=v.split('-');
+  if(parts.length!==3) return '';
+  return parts[1]+'-'+parts[2];
+}
+
+let bdPersonList=[];
+
+function renderBD(){
+  bdPersonList=bdGetPersonList();
+  const store=bdLoadStore();
+  const today=bdTodayStr();
+
+  const todays=bdPersonList.filter(p=>store[p.key]&&store[p.key].fechaMMDD===today);
+  st('nav-bd-badge',todays.length);
+
+  const grid=document.getElementById('bd-today-grid');
+  const empty=document.getElementById('bd-today-empty');
+  const actions=document.getElementById('bd-today-actions');
+  if(!todays.length){
+    grid.innerHTML='';
+    empty.style.display='block';
+    actions.style.display='none';
+  }else{
+    empty.style.display='none';
+    actions.style.display='block';
+    grid.innerHTML=todays.map(p=>{
+      const foto=store[p.key].foto;
+      const initials=p.nombre.split(/[, ]+/).filter(Boolean).slice(0,2).map(s=>s[0]).join('').toUpperCase();
+      const photoHtml=foto?`<img class="bd-card-photo" src="${foto}">`:`<div class="bd-card-photo ph">${xe(initials)}</div>`;
+      return `<div class="bd-card">${photoHtml}<div class="bd-card-name">${xe(p.nombre)}</div><div class="bd-card-sector">${xe(p.sector||'—')} 🎂</div></div>`;
+    }).join('');
+  }
+
+  fillSelect('bd-f-sector',new Set(bdPersonList.map(p=>p.sector).filter(Boolean)));
+  bdSelected=new Set();
+  renderBDTable();
+}
+
+function renderBDTable(){
+  const store=bdLoadStore();
+  const today=bdTodayStr();
+  const sectorF=document.getElementById('bd-f-sector')?.value||'all';
+  const q=(document.getElementById('bd-f-q')?.value||'').trim().toUpperCase();
+  const soloCargados=document.getElementById('bd-f-solocargados')?.checked;
+
+  let rows=bdPersonList.filter(p=>{
+    if(sectorF!=='all'&&p.sector!==sectorF) return false;
+    if(q&&!p.nombre.includes(q)&&!(p.dni||'').includes(q)) return false;
+    if(soloCargados&&!(store[p.key]&&store[p.key].fechaMMDD)) return false;
+    return true;
+  });
+
+  st('bd-tbl-badge',rows.length+' agentes');
+  st('bd-tfoot',`Mostrando ${rows.length} de ${bdPersonList.length}`);
+
+  document.getElementById('bd-tbody').innerHTML=rows.map(p=>{
+    const rec=store[p.key]||{};
+    const isToday=rec.fechaMMDD===today;
+    const foto=rec.foto;
+    const photoHtml=foto?`<img class="bd-thumb" src="${foto}">`:`<div class="bd-thumb ph">—</div>`;
+    const dateVal=rec.fechaFull||'';
+    const checked=bdSelected.has(p.key)?'checked':'';
+    return `<tr>
+      <td><input type="checkbox" ${checked} onchange="bdToggleSel('${xe(p.key)}',this.checked)"></td>
+      <td><div class="bd-photo-cell">
+        ${photoHtml}
+        <label class="bd-upload-btn">Subir<input type="file" accept="image/*" style="display:none" onchange="bdUploadPhoto('${xe(p.key)}',this)"></label>
+      </div></td>
+      <td>${xe(p.nombre)}</td>
+      <td style="font-family:var(--mono);font-size:11px">${xe(p.dni)||'—'}</td>
+      <td>${xe(p.sector)||'—'}</td>
+      <td><input type="date" class="bd-date-input" value="${xe(dateVal)}" onchange="bdSetFecha('${xe(p.key)}',this.value)"></td>
+      <td>${isToday?'<span class="chip chip-bad">Hoy 🎉</span>':'<span class="chip chip-gray">—</span>'}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('bd-sel-all').checked=rows.length>0&&rows.every(p=>bdSelected.has(p.key));
+  bdUpdateSelCount();
+}
+
+function bdSetFecha(key,val){
+  const store=bdLoadStore();
+  if(!store[key]) store[key]={};
+  store[key].fechaFull=val;
+  store[key].fechaMMDD=bdDateToMMDD(val);
+  bdSaveStore(store);
+  renderBD();
+  toast('Fecha guardada','ok');
+}
+
+function bdUploadPhoto(key,input){
+  const file=input.files&&input.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      // Redimensionamos a un cuadrado chico para no saturar localStorage
+      const size=260;
+      const canvas=document.createElement('canvas');
+      canvas.width=size;canvas.height=size;
+      const ctx=canvas.getContext('2d');
+      const side=Math.min(img.width,img.height);
+      const sx=(img.width-side)/2, sy=(img.height-side)/2;
+      ctx.drawImage(img,sx,sy,side,side,0,0,size,size);
+      const dataUrl=canvas.toDataURL('image/jpeg',0.85);
+      const store=bdLoadStore();
+      if(!store[key]) store[key]={};
+      store[key].foto=dataUrl;
+      bdSaveStore(store);
+      renderBD();
+      toast('Foto guardada','ok');
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function bdToggleSel(key,checked){
+  if(checked) bdSelected.add(key); else bdSelected.delete(key);
+  bdUpdateSelCount();
+}
+function bdToggleAll(checked){
+  const store=bdLoadStore();
+  const sectorF=document.getElementById('bd-f-sector')?.value||'all';
+  const q=(document.getElementById('bd-f-q')?.value||'').trim().toUpperCase();
+  const soloCargados=document.getElementById('bd-f-solocargados')?.checked;
+  bdPersonList.filter(p=>{
+    if(sectorF!=='all'&&p.sector!==sectorF) return false;
+    if(q&&!p.nombre.includes(q)&&!(p.dni||'').includes(q)) return false;
+    if(soloCargados&&!(store[p.key]&&store[p.key].fechaMMDD)) return false;
+    return true;
+  }).forEach(p=>{ if(checked) bdSelected.add(p.key); else bdSelected.delete(p.key); });
+  renderBDTable();
+}
+function bdUpdateSelCount(){
+  const n=bdSelected.size;
+  st('bd-sel-count',n);
+  document.getElementById('bd-gen-sel-btn').disabled=n===0;
+}
+
+let bdModalList=[];
+function bdOpenModalToday(){
+  const store=bdLoadStore();
+  const today=bdTodayStr();
+  bdModalList=bdPersonList.filter(p=>store[p.key]&&store[p.key].fechaMMDD===today);
+  bdOpenModal();
+}
+function bdOpenModalSelected(){
+  bdModalList=bdPersonList.filter(p=>bdSelected.has(p.key));
+  bdOpenModal();
+}
+function bdOpenModal(){
+  if(!bdModalList.length){ toast('No hay agentes seleccionados','warn'); return; }
+  document.getElementById('bd-modal-overlay').classList.add('open');
+  bdRenderCanvas();
+}
+function bdCloseModal(){
+  document.getElementById('bd-modal-overlay').classList.remove('open');
+}
+
+function bdRenderCanvas(){
+  const store=bdLoadStore();
+  const canvas=document.getElementById('bd-canvas');
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+
+  // Fondo
+  const grad=ctx.createLinearGradient(0,0,W,H);
+  grad.addColorStop(0,'#1B5EA6');
+  grad.addColorStop(1,'#0F3A6B');
+  ctx.fillStyle=grad;
+  ctx.fillRect(0,0,W,H);
+
+  // Confeti decorativo simple
+  const confettiColors=['#F5D48A','#A8D8BC','#F4BFBA','#ffffff'];
+  let seed=42;
+  const rnd=()=>{ seed=(seed*9301+49297)%233280; return seed/233280; };
+  for(let i=0;i<60;i++){
+    ctx.fillStyle=confettiColors[i%confettiColors.length];
+    ctx.globalAlpha=0.35;
+    const x=rnd()*W, y=rnd()*140;
+    ctx.beginPath();ctx.arc(x,y,rnd()*5+2,0,Math.PI*2);ctx.fill();
+  }
+  ctx.globalAlpha=1;
+
+  // Título
+  ctx.textAlign='center';
+  ctx.fillStyle='#ffffff';
+  ctx.font='700 54px Inter, sans-serif';
+  ctx.fillText('¡Feliz Cumpleaños!',W/2,110);
+  ctx.font='600 20px Inter, sans-serif';
+  ctx.fillStyle='#BDD1F4';
+  ctx.fillText('DMTH · Dirección de Mantenimiento Técnico Hospitalario',W/2,145);
+
+  // Fotos + nombres
+  const n=bdModalList.length;
+  const cols=n<=1?1:(n<=4?2:3);
+  const rows=Math.ceil(n/cols);
+  const photoSize=n<=1?260:(n<=4?190:140);
+  const cellW=(W-100)/cols;
+  const cellH=Math.min(300,(H-330)/rows);
+  const startY=210;
+
+  bdModalList.forEach((p,i)=>{
+    const col=i%cols, row=Math.floor(i/cols);
+    const cx=50+cellW*col+cellW/2;
+    const cy=startY+cellH*row+photoSize/2;
+    const rec=store[p.key]||{};
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx,cy,photoSize/2+6,0,Math.PI*2);
+    ctx.fillStyle='#ffffff';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx,cy,photoSize/2,0,Math.PI*2);
+    ctx.closePath();
+    ctx.clip();
+    if(rec.foto){
+      const img=bdImgCache(rec.foto);
+      if(img.complete&&img.naturalWidth){
+        ctx.drawImage(img,cx-photoSize/2,cy-photoSize/2,photoSize,photoSize);
+      }else{
+        img.onload=()=>bdRenderCanvas();
+        ctx.fillStyle='#E8F0FB';ctx.fillRect(cx-photoSize/2,cy-photoSize/2,photoSize,photoSize);
+      }
+    }else{
+      ctx.fillStyle='#E8F0FB';
+      ctx.fillRect(cx-photoSize/2,cy-photoSize/2,photoSize,photoSize);
+      ctx.fillStyle='#1B5EA6';
+      ctx.font='700 '+(photoSize*0.35)+'px Inter, sans-serif';
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      const initials=p.nombre.split(/[, ]+/).filter(Boolean).slice(0,2).map(s=>s[0]).join('').toUpperCase();
+      ctx.fillText(initials,cx,cy);
+      ctx.textBaseline='alphabetic';
+    }
+    ctx.restore();
+
+    ctx.fillStyle='#ffffff';
+    ctx.font='700 22px Inter, sans-serif';
+    ctx.textAlign='center';
+    const nameParts=p.nombre.split(',').map(s=>s.trim());
+    const displayName=nameParts.length===2?nameParts[1]+' '+nameParts[0]:p.nombre;
+    bdWrapText(ctx,displayName,cx,cy+photoSize/2+34,cellW-16,26);
+  });
+
+  // Mensaje
+  const msg=document.getElementById('bd-msg').value||'';
+  ctx.font='500 24px Inter, sans-serif';
+  ctx.fillStyle='#ffffff';
+  ctx.textAlign='center';
+  bdWrapText(ctx,msg,W/2,H-130,W-160,32);
+
+  // Footer
+  const footer=document.getElementById('bd-footer').value||'';
+  ctx.font='500 15px Inter, sans-serif';
+  ctx.fillStyle='#BDD1F4';
+  ctx.fillText(footer,W/2,H-32);
+}
+
+const bdImgCacheMap={};
+function bdImgCache(src){
+  if(!bdImgCacheMap[src]){
+    const img=new Image();
+    img.src=src;
+    bdImgCacheMap[src]=img;
+  }
+  return bdImgCacheMap[src];
+}
+
+function bdWrapText(ctx,text,x,y,maxWidth,lineHeight){
+  const words=text.split(' ');
+  let line='',lines=[];
+  words.forEach(w=>{
+    const test=line?line+' '+w:w;
+    if(ctx.measureText(test).width>maxWidth&&line){
+      lines.push(line);line=w;
+    }else line=test;
+  });
+  if(line) lines.push(line);
+  const totalH=lines.length*lineHeight;
+  let startY=y-totalH/2+lineHeight/2;
+  lines.forEach((l,i)=>ctx.fillText(l,x,startY+i*lineHeight));
+}
+
+function bdDownloadPlaca(){
+  const canvas=document.getElementById('bd-canvas');
+  const link=document.createElement('a');
+  link.download='placa-cumpleanos-'+bdTodayStr()+'.png';
+  link.href=canvas.toDataURL('image/png');
+  link.click();
+}
+
+async function bdShareWhatsapp(){
+  const canvas=document.getElementById('bd-canvas');
+  const msg=document.getElementById('bd-msg').value||'';
+  canvas.toBlob(async blob=>{
+    if(!blob) return;
+    const file=new File([blob],'placa-cumpleanos.png',{type:'image/png'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      try{
+        await navigator.share({files:[file],title:'Feliz cumpleaños',text:msg});
+        return;
+      }catch(e){ /* usuario canceló o falló: seguimos con el fallback */ }
+    }
+    bdDownloadPlaca();
+    window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+    toast('Se descargó la imagen: adjuntala en el chat de WhatsApp','info');
+  },'image/png');
+}
 
 function showOverlay(txt,sub){
   const el=document.getElementById('overlay');el.style.opacity='1';el.style.display='flex';
