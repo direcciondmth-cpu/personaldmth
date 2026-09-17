@@ -350,27 +350,37 @@ tbody td:nth-child(1){color:var(--c-txt3);font-family:var(--mono);font-size:10px
 @keyframes tin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
 /* ─── CUMPLEAÑOS ─────────────────────────────────────────────── */
+/* Paleta tomada del isotipo "D" de la Dirección: teal, azul marino, verde oliva */
+:root{
+  --dmth-teal:      #2E9FAE;
+  --dmth-teal-l:    #E4F4F6;
+  --dmth-teal-m:    #A9DCE3;
+  --dmth-navy:      #154C6B;
+  --dmth-olive:     #A8C23A;
+  --dmth-olive-l:   #F1F7DF;
+  --dmth-olive-m:   #D3E6A0;
+}
 .bd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
 .bd-card{
-  background:var(--c-surface);border:1px solid var(--c-border);border-left:3px solid var(--c-red);
+  background:var(--c-surface);border:1px solid var(--c-border);border-left:3px solid var(--dmth-olive);
   border-radius:var(--r);padding:14px;box-shadow:var(--sh);
   display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;
 }
 .bd-card-photo{
   width:64px;height:64px;border-radius:50%;object-fit:cover;
-  background:var(--c-blue-l);border:2px solid var(--c-blue-m);
+  background:var(--dmth-teal-l);border:2px solid var(--dmth-teal-m);
 }
-.bd-card-photo.ph{display:flex;align-items:center;justify-content:center;color:var(--c-blue);font-weight:700;font-size:18px}
+.bd-card-photo.ph{display:flex;align-items:center;justify-content:center;color:var(--dmth-navy);font-weight:700;font-size:18px}
 .bd-card-name{font-size:12px;font-weight:600;color:var(--c-txt)}
 .bd-card-sector{font-size:10px;color:var(--c-txt3)}
 .bd-photo-cell{display:flex;align-items:center;gap:8px}
 .bd-thumb{width:30px;height:30px;border-radius:50%;object-fit:cover;background:var(--c-surface2);border:1px solid var(--c-border);flex-shrink:0}
 .bd-thumb.ph{display:flex;align-items:center;justify-content:center;color:var(--c-txt3);font-size:10px}
 .bd-upload-btn{
-  font-size:10px;font-weight:600;color:var(--c-blue);background:var(--c-blue-l);
-  border:1px solid var(--c-blue-m);padding:4px 8px;border-radius:99px;cursor:pointer;white-space:nowrap;
+  font-size:10px;font-weight:600;color:var(--dmth-navy);background:var(--dmth-teal-l);
+  border:1px solid var(--dmth-teal-m);padding:4px 8px;border-radius:99px;cursor:pointer;white-space:nowrap;
 }
-.bd-upload-btn:hover{background:var(--c-blue-m)}
+.bd-upload-btn:hover{background:var(--dmth-teal-m)}
 .bd-date-input{
   background:var(--c-surface2);border:1px solid var(--c-border2);color:var(--c-txt);
   font-family:var(--fn);font-size:11px;padding:5px 8px;border-radius:var(--r2);outline:none;
@@ -505,10 +515,10 @@ tbody td:nth-child(1){color:var(--c-txt3);font-family:var(--mono);font-size:10px
       </div>
       <div class="bd-modal-controls">
         <div class="fg"><label>Mensaje de saludo</label>
-          <textarea id="bd-msg" rows="3" style="width:100%;resize:vertical;background:var(--c-surface2);border:1px solid var(--c-border);color:var(--c-txt);font-family:var(--fn);font-size:12px;padding:8px 10px;border-radius:var(--r2);outline:none">¡Feliz cumpleaños! Te deseamos un día espléndido de parte de todo el equipo de DMTH 🎉</textarea>
+          <textarea id="bd-msg" rows="3" style="width:100%;resize:vertical;background:var(--c-surface2);border:1px solid var(--c-border2);color:var(--c-txt);font-family:var(--fn);font-size:12px;padding:8px 10px;border-radius:var(--r2);outline:none">¡Te deseamos un día espléndido! 🎉</textarea>
         </div>
-        <div class="fg" style="margin-top:10px"><label>Firma / pie de placa</label>
-          <input type="text" id="bd-footer" value="Dirección de Mantenimiento Técnico Hospitalario · SIPROSA" style="width:100%">
+        <div class="fg" style="margin-top:10px"><label>Firma / pie de placa (aparece una sola vez)</label>
+          <input type="text" id="bd-footer" value="DMTH - Dirección de Mantenimiento Técnico Hospitalario - SIPROSA" style="width:100%;background:var(--c-surface2);border:1px solid var(--c-border2);color:var(--c-txt);font-family:var(--fn);font-size:12px;padding:7px 10px;border-radius:var(--r2);outline:none">
         </div>
         <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
           <button class="tbtn" onclick="bdRenderCanvas()">
@@ -963,6 +973,10 @@ tbody td:nth-child(1){color:var(--c-txt3);font-family:var(--mono);font-size:10px
     <!-- ═══ TAB: CUMPLEAÑOS ═══ -->
     <div class="tab-pane" id="tab-bd">
 
+      <div id="bd-setup-banner" style="display:none;background:var(--c-amber-l);border:1px solid var(--c-amber-m);border-radius:var(--r);padding:12px 16px;margin-bottom:14px;font-size:12px;color:#7a5a08;line-height:1.6">
+        ⚠️ <strong>Guardado no configurado:</strong> la fecha de nacimiento y la foto se guardan de forma permanente en la planilla de Google Sheets (y la foto en Drive). Para habilitarlo, desplegá el Apps Script incluido y pegá su URL en <code>PE_SCRIPT_URL</code> — es el mismo script que usa la edición de Personal.
+      </div>
+
       <div class="sec"><div class="sec-title">Cumpleaños de hoy</div><div class="sec-line"></div></div>
       <div id="bd-today-empty" style="display:none;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r);padding:22px;text-align:center;color:var(--c-txt3);font-size:12px;box-shadow:var(--sh);margin-bottom:20px">
         Nadie cumple años hoy. Cargá fechas de nacimiento en la nómina de abajo para que aparezcan acá automáticamente.
@@ -1115,7 +1129,7 @@ const CSV_OT = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQUqoSjcVbfuIMs0
 // URL del Google Apps Script (Web App) que permite ESCRIBIR en la hoja "Personal".
 // Pegá acá la URL que te da Google al desplegar el script (ver instrucciones adjuntas).
 // Mientras esté vacío, el módulo Personal funciona solo en modo lectura.
-const PE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwIgfW4POOGEtDtD_4Lm1HR1jJd-7Ua2QjnGSDqK61m_RoGGN4T2JkZzZfhHh-2PWEkhw/exec';
+const PE_SCRIPT_URL = '';
 
 // Mapa de campo interno -> encabezado real de columna en la hoja de Google Sheets.
 // Si renombrás una columna en la planilla, actualizá su valor acá.
@@ -1125,7 +1139,8 @@ const PE_FIELD_MAP = {
   organismo:'ORGANISMO', servicio:'SERVICIO', sector:'SECTOR', funcion:'FUNCION_2026',
   nivel:'NIVEL', domicilio:'DOMICILIO', email:'CORREO_ELECTRONICO',
   telefono:'TELEFONO', telefamiliar:'TELEFONO CONTACTO DE UN FAMILIAR',
-  horario:'HORARIO', obs:'OBSERVACIONES'
+  horario:'HORARIO', obs:'OBSERVACIONES',
+  fechaNac:'FECHA_NACIMIENTO', fotoUrl:'FOTO_URL'
 };
 const PE_FIELD_LABELS = {
   apellido:'Apellido', nombre:'Nombre', dni:'DNI', sector:'Sector', servicio:'Servicio',
@@ -1157,7 +1172,9 @@ const PE = {
   telefono:14,     // TELEFONO
   telefamiliar:15, // TELEFONO CONTACTO DE UN FAMILIAR
   horario:16,      // HORARIO
-  obs:17           // OBSERVACIONES
+  obs:17,          // OBSERVACIONES
+  fechaNac:18,     // FECHA_NACIMIENTO (agregada por el módulo de Cumpleaños)
+  fotoUrl:19       // FOTO_URL (link a Google Drive, agregada por el módulo de Cumpleaños)
 };
 function peFullName(r){
   const ap=normStr(r[PE.apellido]), no=normStr(r[PE.nombre]);
@@ -2712,29 +2729,30 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&mselOpenId)mselClos
 window.addEventListener('resize',()=>{if(mselOpenId)mselClose(mselOpenId);});
 
 // ─── CUMPLEAÑOS ──────────────────────────────────────────────
-const BD_KEY='dmth_bday_v1';
+// La fecha de nacimiento y la foto (subida a Drive) se guardan de forma
+// PERMANENTE en la hoja de Google Sheets de Personal (vía PE_SCRIPT_URL),
+// no en localStorage. Requiere el mismo Apps Script que la edición de
+// Personal, con las columnas FECHA_NACIMIENTO y FOTO_URL habilitadas
+// (el script las crea solas la primera vez que se usan).
 let bdSelected=new Set();
-
-function bdLoadStore(){
-  try{ return JSON.parse(localStorage.getItem(BD_KEY)||'{}'); }catch(e){ return {}; }
-}
-function bdSaveStore(store){
-  try{ localStorage.setItem(BD_KEY,JSON.stringify(store)); }
-  catch(e){ toast('No se pudo guardar (almacenamiento lleno). Probá con fotos más chicas.','warn'); }
-}
-function bdKeyOf(p){ return p.dni||('N:'+p.nombre); }
 
 function bdGetPersonList(){
   const out=[],seen=new Set();
-  if(rawPE.length){
-    rawPE.forEach(r=>{
+  const source=rawPE.length?rawPE:null;
+  if(source){
+    source.forEach(r=>{
       const dni=normDNI(r[PE.dni]);
       const nombre=peFullName(r);
       const sector=normStr(r[PE.sector]);
-      const key=dni||('N:'+nombre);
+      const idVal=normStr(r[PE.id]);
+      const key=dni||idVal||('N:'+nombre); // misma lógica de clave que el módulo Personal
       if(seen.has(key)||nombre==='—') return;
       seen.add(key);
-      out.push({dni,nombre,sector,key});
+      out.push({
+        dni,nombre,sector,key,
+        fechaFull:r[PE.fechaNac]||'',
+        foto:r[PE.fotoUrl]||''
+      });
     });
   }else{
     rawOS.forEach(r=>{
@@ -2745,7 +2763,7 @@ function bdGetPersonList(){
       const key=dni||('N:'+nombre);
       if(seen.has(key)) return;
       seen.add(key);
-      out.push({dni,nombre,sector,key});
+      out.push({dni,nombre,sector,key,fechaFull:'',foto:''});
     });
   }
   return out.sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
@@ -2766,10 +2784,11 @@ let bdPersonList=[];
 
 function renderBD(){
   bdPersonList=bdGetPersonList();
-  const store=bdLoadStore();
   const today=bdTodayStr();
+  const banner=document.getElementById('bd-setup-banner');
+  if(banner) banner.style.display=pePersonalEnabled()?'none':'block';
 
-  const todays=bdPersonList.filter(p=>store[p.key]&&store[p.key].fechaMMDD===today);
+  const todays=bdPersonList.filter(p=>bdDateToMMDD(p.fechaFull)===today);
   st('nav-bd-badge',todays.length);
 
   const grid=document.getElementById('bd-today-grid');
@@ -2783,9 +2802,8 @@ function renderBD(){
     empty.style.display='none';
     actions.style.display='block';
     grid.innerHTML=todays.map(p=>{
-      const foto=store[p.key].foto;
       const initials=p.nombre.split(/[, ]+/).filter(Boolean).slice(0,2).map(s=>s[0]).join('').toUpperCase();
-      const photoHtml=foto?`<img class="bd-card-photo" src="${foto}">`:`<div class="bd-card-photo ph">${xe(initials)}</div>`;
+      const photoHtml=p.foto?`<img class="bd-card-photo" src="${xe(p.foto)}" crossorigin="anonymous">`:`<div class="bd-card-photo ph">${xe(initials)}</div>`;
       return `<div class="bd-card">${photoHtml}<div class="bd-card-name">${xe(p.nombre)}</div><div class="bd-card-sector">${xe(p.sector||'—')} 🎂</div></div>`;
     }).join('');
   }
@@ -2796,7 +2814,6 @@ function renderBD(){
 }
 
 function renderBDTable(){
-  const store=bdLoadStore();
   const today=bdTodayStr();
   const sectorF=document.getElementById('bd-f-sector')?.value||'all';
   const q=(document.getElementById('bd-f-q')?.value||'').trim().toUpperCase();
@@ -2805,30 +2822,28 @@ function renderBDTable(){
   let rows=bdPersonList.filter(p=>{
     if(sectorF!=='all'&&p.sector!==sectorF) return false;
     if(q&&!p.nombre.includes(q)&&!(p.dni||'').includes(q)) return false;
-    if(soloCargados&&!(store[p.key]&&store[p.key].fechaMMDD)) return false;
+    if(soloCargados&&!p.fechaFull) return false;
     return true;
   });
 
   st('bd-tbl-badge',rows.length+' agentes');
   st('bd-tfoot',`Mostrando ${rows.length} de ${bdPersonList.length}`);
 
+  const enabled=pePersonalEnabled();
   document.getElementById('bd-tbody').innerHTML=rows.map(p=>{
-    const rec=store[p.key]||{};
-    const isToday=rec.fechaMMDD===today;
-    const foto=rec.foto;
-    const photoHtml=foto?`<img class="bd-thumb" src="${foto}">`:`<div class="bd-thumb ph">—</div>`;
-    const dateVal=rec.fechaFull||'';
+    const isToday=bdDateToMMDD(p.fechaFull)===today;
+    const photoHtml=p.foto?`<img class="bd-thumb" src="${xe(p.foto)}">`:`<div class="bd-thumb ph">—</div>`;
     const checked=bdSelected.has(p.key)?'checked':'';
     return `<tr>
       <td><input type="checkbox" ${checked} onchange="bdToggleSel('${xe(p.key)}',this.checked)"></td>
       <td><div class="bd-photo-cell">
         ${photoHtml}
-        <label class="bd-upload-btn">Subir<input type="file" accept="image/*" style="display:none" onchange="bdUploadPhoto('${xe(p.key)}',this)"></label>
+        <label class="bd-upload-btn" style="${enabled?'':'opacity:.5;pointer-events:none'}">Subir<input type="file" accept="image/*" style="display:none" onchange="bdUploadPhoto('${xe(p.key)}',this)"></label>
       </div></td>
       <td>${xe(p.nombre)}</td>
       <td style="font-family:var(--mono);font-size:11px">${xe(p.dni)||'—'}</td>
       <td>${xe(p.sector)||'—'}</td>
-      <td><input type="date" class="bd-date-input" value="${xe(dateVal)}" onchange="bdSetFecha('${xe(p.key)}',this.value)"></td>
+      <td><input type="date" class="bd-date-input" value="${xe(p.fechaFull)}" onchange="bdSetFecha('${xe(p.key)}',this.value)" ${enabled?'':'disabled'}></td>
       <td>${isToday?'<span class="chip chip-bad">Hoy 🎉</span>':'<span class="chip chip-gray">—</span>'}</td>
     </tr>`;
   }).join('');
@@ -2836,25 +2851,36 @@ function renderBDTable(){
   bdUpdateSelCount();
 }
 
-function bdSetFecha(key,val){
-  const store=bdLoadStore();
-  if(!store[key]) store[key]={};
-  store[key].fechaFull=val;
-  store[key].fechaMMDD=bdDateToMMDD(val);
-  bdSaveStore(store);
-  renderBD();
-  toast('Fecha guardada','ok');
+async function bdSetFecha(key,val){
+  if(!pePersonalEnabled()){
+    toast('Configurá PE_SCRIPT_URL para guardar la fecha en la planilla real','warn');
+    return;
+  }
+  try{
+    await pePost('setBirthday',{dni:key,fecha:val});
+    const r=peFindRowByKey(key);
+    if(r) r[PE.fechaNac]=val;
+    renderBD();
+    toast('Fecha guardada en la planilla','ok');
+  }catch(e){
+    toast('Error al guardar la fecha: '+e.message,'warn');
+  }
 }
 
 function bdUploadPhoto(key,input){
   const file=input.files&&input.files[0];
   if(!file) return;
+  if(!pePersonalEnabled()){
+    toast('Configurá PE_SCRIPT_URL para subir fotos a Drive','warn');
+    input.value='';
+    return;
+  }
   const reader=new FileReader();
   reader.onload=e=>{
     const img=new Image();
-    img.onload=()=>{
-      // Redimensionamos a un cuadrado chico para no saturar localStorage
-      const size=260;
+    img.onload=async()=>{
+      // Redimensionamos a un cuadrado chico antes de subir a Drive
+      const size=400;
       const canvas=document.createElement('canvas');
       canvas.width=size;canvas.height=size;
       const ctx=canvas.getContext('2d');
@@ -2862,12 +2888,17 @@ function bdUploadPhoto(key,input){
       const sx=(img.width-side)/2, sy=(img.height-side)/2;
       ctx.drawImage(img,sx,sy,side,side,0,0,size,size);
       const dataUrl=canvas.toDataURL('image/jpeg',0.85);
-      const store=bdLoadStore();
-      if(!store[key]) store[key]={};
-      store[key].foto=dataUrl;
-      bdSaveStore(store);
-      renderBD();
-      toast('Foto guardada','ok');
+      const base64=dataUrl.split(',')[1];
+      toast('Subiendo foto a Drive...','info');
+      try{
+        const res=await pePost('uploadPhoto',{dni:key,imageBase64:base64,mimeType:'image/jpeg',filename:key+'.jpg'});
+        const r=peFindRowByKey(key);
+        if(r) r[PE.fotoUrl]=res.url;
+        renderBD();
+        toast('Foto guardada en Drive','ok');
+      }catch(err){
+        toast('Error al subir la foto: '+err.message,'warn');
+      }
     };
     img.src=e.target.result;
   };
@@ -2899,9 +2930,8 @@ function bdUpdateSelCount(){
 
 let bdModalList=[];
 function bdOpenModalToday(){
-  const store=bdLoadStore();
   const today=bdTodayStr();
-  bdModalList=bdPersonList.filter(p=>store[p.key]&&store[p.key].fechaMMDD===today);
+  bdModalList=bdPersonList.filter(p=>bdDateToMMDD(p.fechaFull)===today);
   bdOpenModal();
 }
 function bdOpenModalSelected(){
@@ -2917,39 +2947,45 @@ function bdCloseModal(){
   document.getElementById('bd-modal-overlay').classList.remove('open');
 }
 
+// Paleta tomada del isotipo de la Dirección (teal, azul marino, verde oliva)
+const DMTH_TEAL='#2E9FAE', DMTH_NAVY='#154C6B', DMTH_OLIVE='#A8C23A';
+
 function bdRenderCanvas(){
-  const store=bdLoadStore();
   const canvas=document.getElementById('bd-canvas');
   const ctx=canvas.getContext('2d');
   const W=canvas.width,H=canvas.height;
 
-  // Fondo
+  // Fondo: degradé diagonal con los 3 colores del logo
   const grad=ctx.createLinearGradient(0,0,W,H);
-  grad.addColorStop(0,'#1B5EA6');
-  grad.addColorStop(1,'#0F3A6B');
+  grad.addColorStop(0,DMTH_TEAL);
+  grad.addColorStop(0.55,DMTH_NAVY);
+  grad.addColorStop(1,'#0E3650');
   ctx.fillStyle=grad;
   ctx.fillRect(0,0,W,H);
 
+  // Franja inferior verde oliva (acento del logo)
+  ctx.fillStyle=DMTH_OLIVE;
+  ctx.globalAlpha=0.85;
+  ctx.fillRect(0,H-96,W,96);
+  ctx.globalAlpha=1;
+
   // Confeti decorativo simple
-  const confettiColors=['#F5D48A','#A8D8BC','#F4BFBA','#ffffff'];
+  const confettiColors=['#FFFFFF',DMTH_OLIVE,'#BFE3E8'];
   let seed=42;
   const rnd=()=>{ seed=(seed*9301+49297)%233280; return seed/233280; };
-  for(let i=0;i<60;i++){
+  for(let i=0;i<50;i++){
     ctx.fillStyle=confettiColors[i%confettiColors.length];
-    ctx.globalAlpha=0.35;
-    const x=rnd()*W, y=rnd()*140;
+    ctx.globalAlpha=0.3;
+    const x=rnd()*W, y=rnd()*130;
     ctx.beginPath();ctx.arc(x,y,rnd()*5+2,0,Math.PI*2);ctx.fill();
   }
   ctx.globalAlpha=1;
 
-  // Título
+  // Título (única mención grande, sin repetir el nombre de la Dirección)
   ctx.textAlign='center';
   ctx.fillStyle='#ffffff';
-  ctx.font='700 54px Inter, sans-serif';
-  ctx.fillText('¡Feliz Cumpleaños!',W/2,110);
-  ctx.font='600 20px Inter, sans-serif';
-  ctx.fillStyle='#BDD1F4';
-  ctx.fillText('DMTH · Dirección de Mantenimiento Técnico Hospitalario',W/2,145);
+  ctx.font='700 56px Inter, sans-serif';
+  ctx.fillText('¡Feliz Cumpleaños!',W/2,130);
 
   // Fotos + nombres
   const n=bdModalList.length;
@@ -2957,36 +2993,37 @@ function bdRenderCanvas(){
   const rows=Math.ceil(n/cols);
   const photoSize=n<=1?260:(n<=4?190:140);
   const cellW=(W-100)/cols;
-  const cellH=Math.min(300,(H-330)/rows);
-  const startY=210;
+  const cellH=Math.min(300,(H-420)/rows);
+  const startY=200;
 
   bdModalList.forEach((p,i)=>{
     const col=i%cols, row=Math.floor(i/cols);
     const cx=50+cellW*col+cellW/2;
     const cy=startY+cellH*row+photoSize/2;
-    const rec=store[p.key]||{};
 
     ctx.save();
     ctx.beginPath();
     ctx.arc(cx,cy,photoSize/2+6,0,Math.PI*2);
-    ctx.fillStyle='#ffffff';
+    ctx.fillStyle=DMTH_OLIVE;
     ctx.fill();
     ctx.beginPath();
     ctx.arc(cx,cy,photoSize/2,0,Math.PI*2);
     ctx.closePath();
     ctx.clip();
-    if(rec.foto){
-      const img=bdImgCache(rec.foto);
+    if(p.foto){
+      const img=bdImgCache(p.foto);
       if(img.complete&&img.naturalWidth){
-        ctx.drawImage(img,cx-photoSize/2,cy-photoSize/2,photoSize,photoSize);
+        try{ ctx.drawImage(img,cx-photoSize/2,cy-photoSize/2,photoSize,photoSize); }
+        catch(e){ ctx.fillStyle='#E8F0FB';ctx.fillRect(cx-photoSize/2,cy-photoSize/2,photoSize,photoSize); }
       }else{
         img.onload=()=>bdRenderCanvas();
+        img.onerror=()=>{}; // si Drive no permite CORS, se queda con las iniciales
         ctx.fillStyle='#E8F0FB';ctx.fillRect(cx-photoSize/2,cy-photoSize/2,photoSize,photoSize);
       }
     }else{
       ctx.fillStyle='#E8F0FB';
       ctx.fillRect(cx-photoSize/2,cy-photoSize/2,photoSize,photoSize);
-      ctx.fillStyle='#1B5EA6';
+      ctx.fillStyle=DMTH_NAVY;
       ctx.font='700 '+(photoSize*0.35)+'px Inter, sans-serif';
       ctx.textAlign='center';ctx.textBaseline='middle';
       const initials=p.nombre.split(/[, ]+/).filter(Boolean).slice(0,2).map(s=>s[0]).join('').toUpperCase();
@@ -3005,22 +3042,23 @@ function bdRenderCanvas(){
 
   // Mensaje
   const msg=document.getElementById('bd-msg').value||'';
-  ctx.font='500 24px Inter, sans-serif';
+  ctx.font='500 25px Inter, sans-serif';
   ctx.fillStyle='#ffffff';
   ctx.textAlign='center';
-  bdWrapText(ctx,msg,W/2,H-130,W-160,32);
+  bdWrapText(ctx,msg,W/2,H-150,W-160,32);
 
-  // Footer
+  // Firma institucional: se muestra UNA sola vez, en la franja inferior
   const footer=document.getElementById('bd-footer').value||'';
-  ctx.font='500 15px Inter, sans-serif';
-  ctx.fillStyle='#BDD1F4';
-  ctx.fillText(footer,W/2,H-32);
+  ctx.font='700 17px Inter, sans-serif';
+  ctx.fillStyle=DMTH_NAVY;
+  ctx.fillText(footer,W/2,H-42);
 }
 
 const bdImgCacheMap={};
 function bdImgCache(src){
   if(!bdImgCacheMap[src]){
     const img=new Image();
+    img.crossOrigin='anonymous';
     img.src=src;
     bdImgCacheMap[src]=img;
   }
