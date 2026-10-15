@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Personal DMTH</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%231B5EA6'/><path d='M16 8a5 5 0 100 10 5 5 0 000-10zm-9 16c0-4 4-7 9-7s9 3 9 7' stroke='%23fff' stroke-width='2.2' fill='none' stroke-linecap='round'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F7FA;--surface:#FFF;--surface2:#F0F4F8;
+  --border:#C7D0DE;--border2:#9FACC2;
+  --blue:#1B5EA6;--blue-l:#E8F0FB;--blue-m:#BDD1F4;
+  --green:#2A7D4F;--green-l:#E6F4EC;--green-m:#A8D8BC;
+  --amber:#C8870A;--amber-l:#FEF3DC;--amber-m:#F5D48A;
+  --red:#C0392B;--red-l:#FDECEA;--red-m:#F4BFBA;
+  --txt:#1A2332;--txt2:#3D4A5C;--txt3:#5C6B85;
+  --fn:'Inter',sans-serif;--mono:'JetBrains Mono',monospace;
+  --r:10px;--r2:6px;
+  --sh:0 1px 3px rgba(26,35,50,.06),0 4px 12px rgba(26,35,50,.04);
+  --sidebar-w:220px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--txt);font-family:var(--fn);font-size:14px;display:flex}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
+a{color:inherit;text-decoration:none}
+button{cursor:pointer;font-family:var(--fn)}
+input,select,textarea{font-family:var(--fn)}
+
+/* ─── LOGIN ──────────────────────────────────────────────────────── */
+#login-screen{
+  position:fixed;inset:0;background:var(--bg);
+  display:flex;align-items:center;justify-content:center;z-index:999;
+}
+#login-screen.hidden{display:none}
+.login-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:40px 36px;width:100%;max-width:380px;
+  box-shadow:0 8px 32px rgba(26,35,50,.10);
+}
+.login-logo{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+.login-logo svg{width:40px;height:40px;flex-shrink:0}
+.login-logo-text h1{font-size:18px;font-weight:700;color:var(--blue)}
+.login-logo-text p{font-size:12px;color:var(--txt3);margin-top:2px}
+.login-field{margin-bottom:16px}
+.login-field label{display:block;font-size:12px;font-weight:600;color:var(--txt2);margin-bottom:6px}
+.login-field input{
+  width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--r2);
+  font-size:14px;color:var(--txt);background:var(--surface);
+  transition:border .15s;outline:none;
+}
+.login-field input:focus{border-color:var(--blue)}
+.login-btn{
+  width:100%;padding:11px;background:var(--blue);color:#fff;
+  border:none;border-radius:var(--r2);font-size:14px;font-weight:600;
+  margin-top:8px;transition:background .15s;
+}
+.login-btn:hover{background:#164f8f}
+.login-err{
+  background:var(--red-l);color:var(--red);border:1px solid var(--red-m);
+  border-radius:var(--r2);padding:10px 12px;font-size:13px;margin-top:12px;
+  display:none;
+}
+.login-err.show{display:block}
+
+/* ─── SIDEBAR ─────────────────────────────────────────────────────── */
+.sidebar{
+  width:var(--sidebar-w);flex-shrink:0;
+  background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;height:100vh;
+  position:fixed;left:0;top:0;z-index:100;
+}
+.sb-brand{padding:18px 16px 14px;border-bottom:1px solid var(--border)}
+.sb-brand-mark{display:flex;align-items:center;gap:10px;margin-bottom:2px}
+.sb-logo{width:30px;height:30px;flex-shrink:0}
+.sb-brand-name{font-size:14px;font-weight:700;color:var(--blue);letter-spacing:-.02em}
+.sb-brand-sub{font-size:11px;color:var(--txt3);padding-left:40px}
+.sb-nav{padding:8px 8px;flex:1;overflow-y:auto}
+.sb-label{font-size:10px;font-weight:600;color:var(--txt3);letter-spacing:.06em;padding:12px 8px 4px}
+.sb-item{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 10px;border-radius:var(--r2);margin-bottom:1px;
+  color:var(--txt2);font-size:13px;font-weight:500;
+  border:none;background:transparent;width:100%;text-align:left;
+  transition:background .12s,color .12s;
+}
+.sb-item:hover{background:var(--surface2);color:var(--txt)}
+.sb-item.active{background:var(--blue-l);color:var(--blue);font-weight:600}
+.sb-item svg{width:15px;height:15px;flex-shrink:0;opacity:.65;transition:opacity .12s}
+.sb-item.active svg,.sb-item:hover svg{opacity:1}
+.sb-badge{
+  margin-left:auto;font-size:10px;font-weight:700;font-family:var(--mono);
+  background:var(--amber-l);color:var(--amber);padding:1px 6px;border-radius:99px;
+}
+.sb-badge.blue{background:var(--blue-l);color:var(--blue)}
+.sb-bottom{padding:12px 8px;border-top:1px solid var(--border)}
+.sb-user{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--r2);margin-bottom:4px}
+.sb-user-av{
+  width:28px;height:28px;border-radius:50%;background:var(--blue-l);
+  color:var(--blue);font-size:11px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.sb-user-info{flex:1;min-width:0}
+.sb-user-name{font-size:12px;font-weight:600;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-user-rol{font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.04em}
+.sb-logout{
+  display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:var(--r2);
+  color:var(--txt3);font-size:12px;font-weight:500;border:none;background:transparent;
+  width:100%;text-align:left;transition:all .12s;
+}
+.sb-logout:hover{background:var(--red-l);color:var(--red)}
+
+/* ─── MAIN ─────────────────────────────────────────────────────────── */
+.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.topbar{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+}
+.topbar-title{font-size:15px;font-weight:700;color:var(--txt)}
+.topbar-sub{font-size:11px;color:var(--txt3);margin-top:1px}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.tbtn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 12px;border-radius:var(--r2);
+  font-size:12px;font-weight:600;border:1px solid var(--border);
+  background:var(--surface);color:var(--txt2);transition:all .12s;
+}
+.tbtn:hover{background:var(--surface2);color:var(--txt)}
+.tbtn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.tbtn.primary:hover{background:#164f8f}
+.content{flex:1;overflow-y:auto;padding:24px}
+
+/* ─── TARJETAS STAT ──────────────────────────────────────────────── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:24px}
+.stat-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:18px 20px;
+}
+.stat-label{font-size:11px;font-weight:600;color:var(--txt3);letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px}
+.stat-val{font-size:28px;font-weight:700;color:var(--txt);font-family:var(--mono);line-height:1}
+.stat-sub{font-size:11px;color:var(--txt3);margin-top:4px}
+
+/* ─── TABLA ──────────────────────────────────────────────────────── */
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.table-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.search-box{
+  flex:1;min-width:200px;display:flex;align-items:center;gap:8px;
+  background:var(--surface2);border:1px solid var(--border);border-radius:var(--r2);
+  padding:7px 10px;
+}
+.search-box input{
+  border:none;background:transparent;outline:none;font-size:13px;
+  color:var(--txt);width:100%;
+}
+.search-box svg{width:14px;height:14px;color:var(--txt3);flex-shrink:0}
+table{width:100%;border-collapse:collapse}
+thead th{
+  background:var(--surface2);padding:10px 12px;text-align:left;
+  font-size:11px;font-weight:600;color:var(--txt3);letter-spacing:.04em;
+  border-bottom:1px solid var(--border);white-space:nowrap;
+}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s;cursor:pointer}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--blue-l)}
+td{padding:10px 12px;font-size:13px;color:var(--txt2)}
+td.mono{font-family:var(--mono);font-size:12px}
+.badge{
+  display:inline-flex;align-items:center;
+  padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;
+}
+.badge.si{background:var(--green-l);color:var(--green)}
+.badge.no{background:var(--red-l);color:var(--red)}
+.badge.revisar{background:var(--amber-l);color:var(--amber)}
+.badge.superadmin{background:#EDE7F6;color:#5E35B1}
+.badge.admin{background:var(--blue-l);color:var(--blue)}
+.badge.user{background:var(--green-l);color:var(--green)}
+.badge.read{background:var(--surface2);color:var(--txt3);border:1px solid var(--border)}
+
+/* ─── PAGINACIÓN ─────────────────────────────────────────────────── */
+.pagination{display:flex;align-items:center;gap:8px;padding:12px 16px;border-top:1px solid var(--border);justify-content:space-between}
+.pag-info{font-size:12px;color:var(--txt3)}
+.pag-btns{display:flex;gap:4px}
+.pag-btn{
+  padding:5px 10px;border:1px solid var(--border);border-radius:var(--r2);
+  background:var(--surface);font-size:12px;color:var(--txt2);
+  transition:all .1s;
+}
+.pag-btn:hover:not(:disabled){background:var(--blue-l);color:var(--blue)}
+.pag-btn:disabled{opacity:.4;cursor:default}
+.pag-btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+/* ─── MODAL / DRAWER ─────────────────────────────────────────────── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:200;
+  display:flex;align-items:center;justify-content:center;padding:20px;
+}
+.modal-overlay.hidden{display:none}
+.modal{
+  background:var(--surface);border-radius:var(--r);
+  box-shadow:0 12px 48px rgba(0,0,0,.18);
+  width:100%;max-width:600px;max-height:90vh;display:flex;flex-direction:column;
+}
+.modal-hdr{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.modal-hdr h3{flex:1;font-size:15px;font-weight:700;color:var(--txt)}
+.modal-close{
+  width:28px;height:28px;border:none;background:transparent;
+  color:var(--txt3);font-size:18px;display:flex;align-items:center;justify-content:center;
+  border-radius:var(--r2);transition:all .12s;
+}
+.modal-close:hover{background:var(--surface2);color:var(--txt)}
+.modal-body{padding:20px;overflow-y:auto;flex:1}
+.modal-ftr{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+
+/* FORMULARIO */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.form-row.full{grid-template-columns:1fr}
+.form-field label{display:block;font-size:11px;font-weight:600;color:var(--txt3);letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px}
+.form-field input,.form-field select,.form-field textarea{
+  width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--r2);
+  font-size:13px;color:var(--txt);background:var(--surface);outline:none;transition:border .12s;
+}
+.form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:var(--blue)}
+.form-field textarea{resize:vertical;min-height:80px}
+.form-section{font-size:11px;font-weight:700;color:var(--blue);letter-spacing:.06em;text-transform:uppercase;margin:18px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+
+/* ─── FICHA AGENTE ────────────────────────────────────────────────── */
+.ficha-hdr{background:var(--blue);color:#fff;border-radius:var(--r) var(--r) 0 0;padding:24px}
+.ficha-nombre{font-size:22px;font-weight:700;margin-bottom:4px}
+.ficha-meta{font-size:13px;opacity:.85}
+.ficha-body{padding:20px}
+.ficha-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:20px}
+.ficha-dato{background:var(--surface2);border-radius:var(--r2);padding:10px 12px}
+.ficha-dato-label{font-size:10px;font-weight:600;color:var(--txt3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:3px}
+.ficha-dato-val{font-size:13px;font-weight:500;color:var(--txt)}
+
+/* ─── HISTORIAL ─────────────────────────────────────────────────── */
+.timeline{padding:4px 0}
+.timeline-item{display:flex;gap:12px;margin-bottom:14px}
+.timeline-dot{
+  width:28px;height:28px;border-radius:50%;flex-shrink:0;margin-top:2px;
+  display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;
+}
+.timeline-dot.alta{background:var(--green-l);color:var(--green)}
+.timeline-dot.baja{background:var(--red-l);color:var(--red)}
+.timeline-dot.cambio{background:var(--blue-l);color:var(--blue)}
+.timeline-dot.mod{background:var(--amber-l);color:var(--amber)}
+.timeline-info{flex:1}
+.timeline-tipo{font-size:12px;font-weight:600;color:var(--txt)}
+.timeline-detalle{font-size:12px;color:var(--txt3);margin-top:2px}
+.timeline-fecha{font-size:11px;color:var(--txt3);font-family:var(--mono);margin-top:2px}
+
+/* ─── TOAST ──────────────────────────────────────────────────────── */
+.toast{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);
+  padding:10px 16px;font-size:13px;color:var(--txt);
+  box-shadow:0 4px 16px rgba(0,0,0,.12);
+  display:flex;align-items:center;gap:8px;z-index:999;
+  animation:fadeIn .2s ease;
+}
+@keyframes fadeIn{from{opacity:0;transform:translate(-50%,6px)}to{opacity:1;transform:translate(-50%,0)}}
+
+/* ─── OVERLAY CARGA ─────────────────────────────────────────────── */
+#overlay{
+  position:fixed;inset:0;background:rgba(245,247,250,.85);
+  display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:12px;z-index:500;
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
+#overlay.show{opacity:1;pointer-events:all}
+.spinner{
+  width:32px;height:32px;border:3px solid var(--border);
+  border-top-color:var(--blue);border-radius:50%;
+  animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+#overlay-txt{font-size:13px;color:var(--txt3)}
+
+/* ─── EMPTY STATE ────────────────────────────────────────────────── */
+.empty{
+  text-align:center;padding:48px 20px;color:var(--txt3);
+}
+.empty svg{width:48px;height:48px;opacity:.3;margin-bottom:12px}
+.empty p{font-size:13px}
+
+/* ─── ADMIN ──────────────────────────────────────────────────────── */
+.rol-pill{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:2px 10px;border-radius:99px;font-size:11px;font-weight:600;
+}
+
+/* ─── SECTION VISIBILITY ─────────────────────────────────────────── */
+.section{display:none}
+.section.active{display:block}
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN ───────────────────────────────────────────────────────── -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="40" height="40" rx="10" fill="#1B5EA6"/>
+        <circle cx="20" cy="15" r="5" stroke="white" stroke-width="2.2" fill="none"/>
+        <path d="M11 31c0-5 4-8 9-8s9 3 9 8" stroke="white" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+      </svg>
+      <div class="login-logo-text">
+        <h1>Personal DMTH</h1>
+        <p>Sistema de gestión de personal</p>
+      </div>
+    </div>
+    <div class="login-field">
+      <label>Email o usuario</label>
+      <input type="text" id="login-email" placeholder="tu@email.com" autocomplete="username">
+    </div>
+    <div class="login-field">
+      <label>Contraseña</label>
+      <input type="password" id="login-pwd" placeholder="••••••••••••" autocomplete="current-password">
+    </div>
+    <button class="login-btn" id="login-btn" onclick="doLogin()">Ingresar</button>
+    <div class="login-err" id="login-err"></div>
+  </div>
+</div>
+
+<!-- ── OVERLAY ─────────────────────────────────────────────────────── -->
+<div id="overlay">
+  <div class="spinner"></div>
+  <div id="overlay-txt">Cargando...</div>
+</div>
+
+<!-- ── SIDEBAR ─────────────────────────────────────────────────────── -->
+<nav class="sidebar" id="sidebar">
+  <div class="sb-brand">
+    <div class="sb-brand-mark">
+      <svg class="sb-logo" viewBox="0 0 30 30" fill="none">
+        <rect width="30" height="30" rx="8" fill="#1B5EA6"/>
+        <circle cx="15" cy="11" r="4" stroke="white" stroke-width="1.8" fill="none"/>
+        <path d="M8 25c0-3.9 3.1-6 7-6s7 2.1 7 6" stroke="white" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+      </svg>
+      <span class="sb-brand-name">Personal DMTH</span>
+    </div>
+    <div class="sb-brand-sub" id="sb-org">DMTH</div>
+  </div>
+
+  <div class="sb-nav">
+    <div class="sb-label">Principal</div>
+    <button class="sb-item active" data-section="dashboard" onclick="goTo('dashboard',this)">
+      <svg viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.5"/></svg>
+      Dashboard
+    </button>
+    <button class="sb-item" data-section="personal" onclick="goTo('personal',this)">
+      <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M2 14c0-3.3 2.7-5 6-5s6 1.7 6 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Personal
+      <span class="sb-badge blue" id="badge-personal">-</span>
+    </button>
+    <button class="sb-item" data-section="ordenes-salida" onclick="goTo('ordenes-salida',this)">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M8 2v12M2 8l6-6 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Órdenes de Salida
+      <span class="sb-badge" id="badge-os">-</span>
+    </button>
+    <button class="sb-item" data-section="ordenes-trabajo" onclick="goTo('ordenes-trabajo',this)">
+      <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M5 3V2M11 3V2M2 7h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Órdenes de Trabajo
+      <span class="sb-badge" id="badge-ot">-</span>
+    </button>
+    <button class="sb-item" data-section="cumpleanos" onclick="goTo('cumpleanos',this)">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M8 2c0 0-2 2-2 4h4c0-2-2-4-2-4z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><rect x="1" y="7" width="14" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M4 7V14M8 7V14M12 7V14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Cumpleaños
+      <span class="sb-badge" id="badge-bd" style="display:none"></span>
+    </button>
+
+    <div class="sb-label" style="margin-top:4px">Reportes</div>
+    <button class="sb-item" data-section="reporte-agente" onclick="goTo('reporte-agente',this)">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M3 12V4l5-3 5 3v8" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><rect x="6" y="8" width="4" height="4" rx=".8" stroke="currentColor" stroke-width="1.3"/></svg>
+      Reporte por Agente
+    </button>
+    <button class="sb-item" data-section="logs" onclick="goTo('logs',this)" id="sb-logs" style="display:none">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h12M2 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Logs
+    </button>
+
+    <div class="sb-label" id="sb-admin-label" style="margin-top:4px;display:none">Administración</div>
+    <button class="sb-item" data-section="usuarios" onclick="goTo('usuarios',this)" id="sb-usuarios" style="display:none">
+      <svg viewBox="0 0 16 16" fill="none"><circle cx="6" cy="5" r="2.5" stroke="currentColor" stroke-width="1.5"/><path d="M1 13c0-2.8 2.2-4.5 5-4.5s5 1.7 5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M11 2v6M8 5h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Usuarios
+    </button>
+  </div>
+
+  <div class="sb-bottom">
+    <div class="sb-user">
+      <div class="sb-user-av" id="sb-av">?</div>
+      <div class="sb-user-info">
+        <div class="sb-user-name" id="sb-nombre">-</div>
+        <div class="sb-user-rol" id="sb-rol">-</div>
+      </div>
+    </div>
+    <button class="sb-logout" onclick="doLogout()">
+      <svg viewBox="0 0 16 16" fill="none" width="14" height="14"><path d="M6 2H3a1 1 0 00-1 1v10a1 1 0 001 1h3M10 11l3-3-3-3M13 8H6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Cerrar sesión
+    </button>
+  </div>
+</nav>
+
+<!-- ── MAIN ─────────────────────────────────────────────────────────── -->
+<main class="main" id="main-app" style="display:none">
+
+  <!-- TOPBAR dinámico -->
+  <header class="topbar">
+    <div>
+      <div class="topbar-title" id="tb-title">Dashboard</div>
+      <div class="topbar-sub" id="tb-sub">Personal DMTH</div>
+    </div>
+    <div class="topbar-right" id="tb-actions"></div>
+  </header>
+
+  <div class="content" id="content">
+
+    <!-- ─── DASHBOARD ──────────────────────────────────────────── -->
+    <div class="section active" id="s-dashboard">
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card"><div class="stat-label">Agentes activos</div><div class="stat-val" id="st-activos">-</div><div class="stat-sub">en nómina</div></div>
+        <div class="stat-card"><div class="stat-label">Bajas</div><div class="stat-val" id="st-bajas">-</div><div class="stat-sub">dados de baja</div></div>
+        <div class="stat-card"><div class="stat-label">Establecimientos</div><div class="stat-val" id="st-estab">-</div><div class="stat-sub">distintos</div></div>
+        <div class="stat-card"><div class="stat-label">Sectores</div><div class="stat-val" id="st-sectores">-</div><div class="stat-sub">distintos</div></div>
+        <div class="stat-card"><div class="stat-label">Órdenes Salida</div><div class="stat-val" id="st-os">-</div><div class="stat-sub">registradas</div></div>
+        <div class="stat-card"><div class="stat-label">Órdenes Trabajo</div><div class="stat-val" id="st-ot">-</div><div class="stat-sub">registradas</div></div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;color:var(--txt3);font-size:13px;line-height:1.6">
+        <strong style="color:var(--txt)">Bienvenido a Personal DMTH</strong><br>
+        Usá el menú lateral para navegar entre secciones. El sistema gestiona la nómina de personal,
+        órdenes de salida y trabajo, y registra el historial completo de cambios de cada agente.
+      </div>
+    </div>
+
+    <!-- ─── PERSONAL ───────────────────────────────────────────── -->
+    <div class="section" id="s-personal">
+      <div class="table-wrap">
+        <div class="table-header">
+          <div class="search-box">
+            <svg viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 10.5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <input type="text" id="search-personal" placeholder="Buscar por nombre, DNI, CUIL, establecimiento..." oninput="debouncePersonal()">
+          </div>
+          <select id="filtro-activo" style="padding:7px 10px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px;background:var(--surface)" onchange="loadPersonal(0)">
+            <option value="SI">Activos</option>
+            <option value="NO">Bajas</option>
+            <option value="">Todos</option>
+          </select>
+          <select id="filtro-sector" style="padding:7px 10px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px;background:var(--surface)" onchange="loadPersonal(0)">
+            <option value="">Todos los sectores</option>
+          </select>
+          <button class="tbtn primary" id="btn-nuevo-agente" onclick="abrirFormAgente()" style="display:none">+ Nuevo</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>APELLIDO Y NOMBRE</th>
+                <th>DNI</th>
+                <th>CUIL</th>
+                <th>ESTABLECIMIENTO</th>
+                <th>SECTOR</th>
+                <th>INGRESO</th>
+                <th>ESTADO</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-personal"></tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <span class="pag-info" id="pag-info-personal">-</span>
+          <div class="pag-btns">
+            <button class="pag-btn" id="pag-prev" onclick="loadPersonal(personalOffset-50)" disabled>←</button>
+            <button class="pag-btn" id="pag-next" onclick="loadPersonal(personalOffset+50)" disabled>→</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── ÓRDENES SALIDA ─────────────────────────────────────── -->
+    <div class="section" id="s-ordenes-salida">
+      <div class="table-wrap">
+        <div class="table-header">
+          <div class="search-box">
+            <svg viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 10.5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <input type="text" id="search-os" placeholder="Buscar por nombre o DNI..." oninput="debounceOS()">
+          </div>
+          <input type="date" id="os-desde" style="padding:7px 10px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px" onchange="loadOS(0)">
+          <input type="date" id="os-hasta" style="padding:7px 10px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px" onchange="loadOS(0)">
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>FECHA</th><th>APELLIDO Y NOMBRE</th><th>DNI</th><th>SECTOR</th><th>DESTINO</th><th>SALIDA</th><th>RETORNO</th><th>TIPO</th></tr></thead>
+            <tbody id="tbody-os"></tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <span class="pag-info" id="pag-info-os">-</span>
+          <div class="pag-btns">
+            <button class="pag-btn" id="pag-os-prev" onclick="loadOS(osOffset-100)" disabled>←</button>
+            <button class="pag-btn" id="pag-os-next" onclick="loadOS(osOffset+100)" disabled>→</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── ÓRDENES TRABAJO ────────────────────────────────────── -->
+    <div class="section" id="s-ordenes-trabajo">
+      <div class="table-wrap">
+        <div class="table-header">
+          <div class="search-box">
+            <svg viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 10.5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <input type="text" id="search-ot" placeholder="Buscar por nombre o DNI..." oninput="debounceOT()">
+          </div>
+          <input type="date" id="ot-desde" style="padding:7px 10px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px" onchange="loadOT(0)">
+          <input type="date" id="ot-hasta" style="padding:7px 10px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px" onchange="loadOT(0)">
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>FECHA</th><th>APELLIDO Y NOMBRE</th><th>DNI</th><th>SECTOR</th><th>CUADRILLA</th><th>TAREA</th><th>DESTINO</th><th>HS</th></tr></thead>
+            <tbody id="tbody-ot"></tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <span class="pag-info" id="pag-info-ot">-</span>
+          <div class="pag-btns">
+            <button class="pag-btn" id="pag-ot-prev" onclick="loadOT(otOffset-100)" disabled>←</button>
+            <button class="pag-btn" id="pag-ot-next" onclick="loadOT(otOffset+100)" disabled>→</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── CUMPLEAÑOS ─────────────────────────────────────────── -->
+    <div class="section" id="s-cumpleanos">
+      <div id="bd-container">
+        <p style="color:var(--txt3);font-size:13px;margin-bottom:16px">Cargando cumpleaños del día...</p>
+      </div>
+    </div>
+
+    <!-- ─── REPORTE POR AGENTE ─────────────────────────────────── -->
+    <div class="section" id="s-reporte-agente">
+      <div class="table-wrap" style="padding:20px;max-width:600px">
+        <p style="font-size:13px;color:var(--txt3);margin-bottom:16px">Buscá un agente para ver su historial completo de órdenes de salida, trabajo y movimientos de personal.</p>
+        <div class="search-box" style="margin-bottom:12px">
+          <svg viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 10.5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <input type="text" id="search-reporte" placeholder="Nombre, DNI o CUIL del agente..." oninput="debounceReporte()">
+        </div>
+        <div id="reporte-resultados"></div>
+      </div>
+    </div>
+
+    <!-- ─── LOGS ────────────────────────────────────────────────── -->
+    <div class="section" id="s-logs">
+      <div class="table-wrap">
+        <div class="table-header"><span style="font-size:13px;font-weight:600">Últimas 200 acciones del sistema</span></div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>FECHA/HORA</th><th>USUARIO</th><th>ACCIÓN</th><th>ENTIDAD</th><th>DETALLE</th></tr></thead>
+            <tbody id="tbody-logs"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── USUARIOS ────────────────────────────────────────────── -->
+    <div class="section" id="s-usuarios">
+      <div class="table-wrap">
+        <div class="table-header">
+          <span style="font-size:13px;font-weight:600;flex:1">Gestión de usuarios</span>
+          <button class="tbtn primary" onclick="abrirFormUsuario()">+ Nuevo usuario</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>NOMBRE</th><th>USUARIO</th><th>EMAIL</th><th>ROL</th><th>ESTADO</th><th>ÚLTIMO LOGIN</th><th></th></tr></thead>
+            <tbody id="tbody-usuarios"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+
+<!-- ── MODAL FICHA AGENTE ───────────────────────────────────────────── -->
+<div class="modal-overlay hidden" id="modal-agente">
+  <div class="modal" style="max-width:720px">
+    <div class="modal-hdr">
+      <h3 id="modal-agente-titulo">Ficha del agente</h3>
+      <button class="modal-close" onclick="cerrarModal('modal-agente')">×</button>
+    </div>
+    <div class="modal-body" id="modal-agente-body"></div>
+    <div class="modal-ftr">
+      <button class="tbtn" onclick="cerrarModal('modal-agente')">Cerrar</button>
+      <button class="tbtn primary" id="btn-editar-agente" onclick="editarAgente()" style="display:none">Editar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL FORM AGENTE ────────────────────────────────────────────── -->
+<div class="modal-overlay hidden" id="modal-form-agente">
+  <div class="modal" style="max-width:680px">
+    <div class="modal-hdr">
+      <h3 id="form-agente-titulo">Nuevo agente</h3>
+      <button class="modal-close" onclick="cerrarModal('modal-form-agente')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="fa-id">
+      <div class="form-section">Datos personales</div>
+      <div class="form-row">
+        <div class="form-field"><label>Apellido *</label><input id="fa-apellido" placeholder="GARCIA"></div>
+        <div class="form-field"><label>Nombre *</label><input id="fa-nombre" placeholder="JUAN CARLOS"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label>DNI *</label><input id="fa-dni" placeholder="30123456"></div>
+        <div class="form-field"><label>CUIL *</label><input id="fa-cuil" placeholder="20301234567"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label>Teléfono</label><input id="fa-telefono" placeholder="3815001234"></div>
+        <div class="form-field"><label>Email</label><input id="fa-email" type="email" placeholder="agente@dmth.gob.ar"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label>Fecha de nacimiento</label><input id="fa-fecha-nac" type="date"></div>
+        <div class="form-field"><label>Fecha de ingreso</label><input id="fa-fecha-ing" type="date"></div>
+      </div>
+      <div class="form-section">Datos laborales</div>
+      <div class="form-row">
+        <div class="form-field"><label>Establecimiento</label><input id="fa-establecimiento" list="list-establecimientos" placeholder="Ej: TALLER CENTRAL"></div>
+        <div class="form-field"><label>Sector</label><input id="fa-sector" list="list-sectores" placeholder="Ej: ELECTRICIDAD"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label>Tarea / Puesto</label><input id="fa-tarea" placeholder="Ej: ELECTRICISTA"></div>
+        <div class="form-field"><label>Categoría</label><input id="fa-categoria" placeholder="Ej: 14"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label>Tipo contratación</label>
+          <select id="fa-contratacion">
+            <option value="">-</option>
+            <option>PLANTA PERMANENTE</option>
+            <option>CONTRATADO</option>
+            <option>PASANTE</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Estado</label>
+          <select id="fa-activo">
+            <option value="SI">Activo</option>
+            <option value="NO">Baja</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row full" id="fa-baja-row" style="display:none">
+        <div class="form-field"><label>Motivo de baja</label><input id="fa-motivo-baja" placeholder="Ej: Renuncia voluntaria"></div>
+      </div>
+      <div class="form-section">Observaciones</div>
+      <div class="form-row full">
+        <div class="form-field"><label></label><textarea id="fa-obs" placeholder="Notas adicionales..."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-ftr">
+      <button class="tbtn" onclick="cerrarModal('modal-form-agente')">Cancelar</button>
+      <button class="tbtn primary" onclick="guardarAgente()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL FORM USUARIO ───────────────────────────────────────────── -->
+<div class="modal-overlay hidden" id="modal-form-usuario">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-hdr">
+      <h3 id="form-usuario-titulo">Nuevo usuario</h3>
+      <button class="modal-close" onclick="cerrarModal('modal-form-usuario')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="fu-id">
+      <div class="form-row">
+        <div class="form-field"><label>Nombre completo *</label><input id="fu-nombre" placeholder="Juan García"></div>
+        <div class="form-field"><label>Usuario *</label><input id="fu-usuario" placeholder="jgarcia"></div>
+      </div>
+      <div class="form-row full">
+        <div class="form-field"><label>Email *</label><input id="fu-email" type="email" placeholder="jgarcia@dmth.gob.ar"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label>Rol *</label>
+          <select id="fu-rol">
+            <option value="read">READ — Solo lectura</option>
+            <option value="user">USER — Carga órdenes</option>
+            <option value="admin">ADMIN — CRUD completo</option>
+            <option value="superadmin">SUPERADMIN — Todo</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Estado</label>
+          <select id="fu-activo"><option value="SI">Activo</option><option value="NO">Inactivo</option></select>
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="form-field"><label id="fu-pwd-label">Contraseña * (mín. 12 chars)</label><input id="fu-pwd" type="password" placeholder="Mínimo 12 caracteres"></div>
+      </div>
+    </div>
+    <div class="modal-ftr">
+      <button class="tbtn" onclick="cerrarModal('modal-form-usuario')">Cancelar</button>
+      <button class="tbtn primary" onclick="guardarUsuario()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- datalists para autocomplete -->
+<datalist id="list-establecimientos"></datalist>
+<datalist id="list-sectores"></datalist>
+
+<script>
+'use strict';
+// ── CONFIG ─────────────────────────────────────────────────────────
+const API = '/api';
+let TOKEN = localStorage.getItem('dmth_token') || '';
+let ME = null;
+
+// ── UTILS ──────────────────────────────────────────────────────────
+const xe = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const fmt = d => d ? d.slice(0,10) : '-';
+const fmtTS = ts => ts ? new Date(ts).toLocaleString('es-AR',{dateStyle:'short',timeStyle:'short'}) : '-';
+
+function overlay(show, txt='Cargando...') {
+  document.getElementById('overlay').classList.toggle('show', show);
+  document.getElementById('overlay-txt').textContent = txt;
+}
+
+function toast(msg, type='info') {
+  const colors = { ok:'var(--green)', warn:'var(--amber)', info:'var(--blue)', err:'var(--red)' };
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `<span style="width:7px;height:7px;border-radius:50%;background:${colors[type]||colors.info};flex-shrink:0;display:inline-block"></span><span>${xe(msg)}</span>`;
+  document.body.appendChild(el);
+  setTimeout(() => { el.style.opacity='0'; el.style.transition='opacity .25s'; setTimeout(()=>el.remove(),280); }, 2800);
+}
+
+async function api(action, body={}) {
+  const r = await fetch(API, {
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':`Bearer ${TOKEN}`},
+    body: JSON.stringify({action,...body})
+  });
+  return r.json();
+}
+
+function cerrarModal(id) { document.getElementById(id).classList.add('hidden'); }
+function abrirModal(id) { document.getElementById(id).classList.remove('hidden'); }
+
+// ── AUTH ───────────────────────────────────────────────────────────
+async function init() {
+  if (!TOKEN) { showLogin(); return; }
+  const r = await api('verifyToken');
+  if (!r.ok) { TOKEN=''; localStorage.removeItem('dmth_token'); showLogin(); return; }
+  ME = r.usuario;
+  setupUI();
+  loadStats();
+  loadListasMaestras();
+}
+
+function showLogin() {
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('main-app').style.display = 'none';
+}
+
+function setupUI() {
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('main-app').style.display = 'flex';
+
+  // sidebar usuario
+  document.getElementById('sb-nombre').textContent = ME.nombre || ME.usuario;
+  document.getElementById('sb-rol').textContent = ME.rol;
+  document.getElementById('sb-av').textContent = (ME.nombre||ME.usuario).slice(0,2).toUpperCase();
+
+  // mostrar opciones según rol
+  const isAdmin = ['admin','superadmin'].includes(ME.rol);
+  const isSuperAdmin = ME.rol === 'superadmin';
+  if (isAdmin) document.getElementById('btn-nuevo-agente').style.display = '';
+  if (isSuperAdmin) {
+    document.getElementById('sb-usuarios').style.display = '';
+    document.getElementById('sb-logs').style.display = '';
+    document.getElementById('sb-admin-label').style.display = '';
+  }
+}
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pwd = document.getElementById('login-pwd').value;
+  const errEl = document.getElementById('login-err');
+  errEl.classList.remove('show');
+  if (!email || !pwd) { errEl.textContent='Completá email y contraseña'; errEl.classList.add('show'); return; }
+
+  const btn = document.getElementById('login-btn');
+  btn.disabled = true; btn.textContent = 'Ingresando...';
+
+  const r = await fetch(API,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action:'login',email,password:pwd})
+  }).then(r=>r.json()).catch(()=>({ok:false,error:'Error de conexión'}));
+
+  btn.disabled=false; btn.textContent='Ingresar';
+
+  if (!r.ok) { errEl.textContent=r.error||'Error'; errEl.classList.add('show'); return; }
+
+  TOKEN = r.token;
+  ME = r.usuario;
+  localStorage.setItem('dmth_token', TOKEN);
+  setupUI();
+  loadStats();
+  loadListasMaestras();
+}
+
+// Enter en login
+document.getElementById('login-pwd').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+document.getElementById('login-email').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('login-pwd').focus(); });
+
+function doLogout() {
+  TOKEN = ''; ME = null;
+  localStorage.removeItem('dmth_token');
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s-dashboard').classList.add('active');
+  showLogin();
+}
+
+// ── NAVEGACIÓN ─────────────────────────────────────────────────────
+const TITLES = {
+  dashboard: ['Dashboard','Personal DMTH'],
+  personal: ['Personal','Nómina de agentes'],
+  'ordenes-salida': ['Órdenes de Salida','Registro de movimientos'],
+  'ordenes-trabajo': ['Órdenes de Trabajo','Registro de tareas'],
+  cumpleanos: ['Cumpleaños','Detección automática'],
+  'reporte-agente': ['Reporte por Agente','Cruce por DNI'],
+  logs: ['Logs','Auditoría del sistema'],
+  usuarios: ['Usuarios','Gestión de accesos'],
+};
+
+function goTo(section, btn) {
+  document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById(`s-${section}`)?.classList.add('active');
+
+  const t = TITLES[section]||[section,''];
+  document.getElementById('tb-title').textContent = t[0];
+  document.getElementById('tb-sub').textContent = t[1];
+
+  // Lazy load de secciones
+  if(section==='personal' && !personalLoaded) { personalLoaded=true; loadPersonal(0); }
+  if(section==='ordenes-salida' && !osLoaded) { osLoaded=true; loadOS(0); }
+  if(section==='ordenes-trabajo' && !otLoaded) { otLoaded=true; loadOT(0); }
+  if(section==='cumpleanos') loadCumpleanos();
+  if(section==='logs') loadLogs();
+  if(section==='usuarios') loadUsuarios();
+  if(section==='reporte-agente') {}
+}
+
+// ── STATS ──────────────────────────────────────────────────────────
+async function loadStats() {
+  const r = await api('getStats');
+  if (!r.ok) return;
+  const s = r.stats;
+  document.getElementById('st-activos').textContent = s.agentes.activos ?? '-';
+  document.getElementById('st-bajas').textContent = s.agentes.bajas ?? '-';
+  document.getElementById('st-estab').textContent = s.agentes.establecimientos ?? '-';
+  document.getElementById('st-sectores').textContent = s.agentes.sectores ?? '-';
+  document.getElementById('st-os').textContent = s.ordenes_salida.total ?? '-';
+  document.getElementById('st-ot').textContent = s.ordenes_trabajo.total ?? '-';
+  document.getElementById('badge-personal').textContent = s.agentes.activos ?? '-';
+  document.getElementById('badge-os').textContent = s.ordenes_salida.total ?? '-';
+  document.getElementById('badge-ot').textContent = s.ordenes_trabajo.total ?? '-';
+}
+
+// ── LISTAS MAESTRAS ─────────────────────────────────────────────────
+async function loadListasMaestras() {
+  const r = await api('getListasMaestras');
+  if (!r.ok) return;
+  const dl1 = document.getElementById('list-establecimientos');
+  const dl2 = document.getElementById('list-sectores');
+  const sel = document.getElementById('filtro-sector');
+  dl1.innerHTML = r.establecimientos.map(e=>`<option value="${xe(e)}">`).join('');
+  dl2.innerHTML = r.sectores.map(s=>`<option value="${xe(s)}">`).join('');
+  sel.innerHTML = `<option value="">Todos los sectores</option>` + r.sectores.map(s=>`<option value="${xe(s)}">${xe(s)}</option>`).join('');
+}
+
+// ── PERSONAL ───────────────────────────────────────────────────────
+let personalOffset = 0, personalLoaded = false, personalDebounce;
+
+function debouncePersonal() {
+  clearTimeout(personalDebounce);
+  personalDebounce = setTimeout(() => loadPersonal(0), 350);
+}
+
+async function loadPersonal(offset) {
+  personalOffset = Math.max(0, offset);
+  const q = document.getElementById('search-personal').value.trim();
+  const activo = document.getElementById('filtro-activo').value;
+  const sector = document.getElementById('filtro-sector').value;
+
+  overlay(true,'Cargando personal...');
+  const r = await api('buscarAgentes',{q,activo,sector,limit:50,offset:personalOffset});
+  overlay(false);
+  if(!r.ok) { toast(r.error,'err'); return; }
+
+  const tbody = document.getElementById('tbody-personal');
+  if(!r.agentes.length) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty"><p>Sin resultados</p></div></td></tr>`;
+    document.getElementById('pag-info-personal').textContent = '0 agentes';
+    document.getElementById('pag-prev').disabled = true;
+    document.getElementById('pag-next').disabled = true;
+    return;
+  }
+
+  tbody.innerHTML = r.agentes.map(a=>`
+    <tr onclick="verAgente('${xe(a.id_agente)}')">
+      <td><strong>${xe(a.apellido_nombre||`${a.apellido} ${a.nombre}`)}</strong></td>
+      <td class="mono">${xe(a.dni)}</td>
+      <td class="mono">${xe(a.cuil)}</td>
+      <td>${xe(a.establecimiento)}</td>
+      <td>${xe(a.sector)}</td>
+      <td class="mono">${fmt(a.fecha_ingreso)}</td>
+      <td><span class="badge ${(a.activo||'SI').toLowerCase()}">${xe(a.activo)}</span></td>
+    </tr>`).join('');
+
+  document.getElementById('pag-info-personal').textContent = `Mostrando ${personalOffset+1}–${personalOffset+r.agentes.length}`;
+  document.getElementById('pag-prev').disabled = personalOffset === 0;
+  document.getElementById('pag-next').disabled = r.agentes.length < 50;
+}
+
+// ── VER / EDITAR AGENTE ────────────────────────────────────────────
+let agenteActual = null;
+
+async function verAgente(id) {
+  overlay(true,'Cargando ficha...');
+  const r = await api('getAgente',{id_agente:id});
+  overlay(false);
+  if(!r.ok) { toast(r.error,'err'); return; }
+
+  agenteActual = r.agente;
+  const a = r.agente;
+  const hist = r.historial || [];
+  const isAdmin = ['admin','superadmin'].includes(ME?.rol);
+
+  document.getElementById('modal-agente-titulo').textContent = a.apellido_nombre||`${a.apellido} ${a.nombre}`;
+  document.getElementById('btn-editar-agente').style.display = isAdmin ? '' : 'none';
+
+  const histHTML = hist.length ? hist.map(h=>{
+    const dot = h.tipo_cambio==='ALTA'?'alta':h.tipo_cambio==='BAJA'?'baja':h.tipo_cambio.includes('CAMBIO')?'cambio':'mod';
+    return `<div class="timeline-item">
+      <div class="timeline-dot ${dot}">${h.tipo_cambio.slice(0,2)}</div>
+      <div class="timeline-info">
+        <div class="timeline-tipo">${xe(h.tipo_cambio)}${h.campo_modificado?` — ${xe(h.campo_modificado)}`:''}</div>
+        ${h.valor_anterior||h.valor_nuevo?`<div class="timeline-detalle">${xe(h.valor_anterior)} → ${xe(h.valor_nuevo)}</div>`:''}
+        ${h.observaciones?`<div class="timeline-detalle">${xe(h.observaciones)}</div>`:''}
+        <div class="timeline-fecha">${fmtTS(h.fecha)} · ${xe(h.usuario)}</div>
+      </div>
+    </div>`;
+  }).join('') : '<p style="color:var(--txt3);font-size:13px">Sin historial registrado.</p>';
+
+  document.getElementById('modal-agente-body').innerHTML = `
+    <div class="ficha-hdr">
+      <div class="ficha-nombre">${xe(a.apellido_nombre||`${a.apellido} ${a.nombre}`)}</div>
+      <div class="ficha-meta">DNI: ${xe(a.dni)} · CUIL: ${xe(a.cuil)} · <span class="badge ${(a.activo||'SI').toLowerCase()}" style="font-size:12px">${xe(a.activo)}</span></div>
+    </div>
+    <div class="ficha-body">
+      <div class="ficha-grid">
+        <div class="ficha-dato"><div class="ficha-dato-label">Establecimiento</div><div class="ficha-dato-val">${xe(a.establecimiento)||'-'}</div></div>
+        <div class="ficha-dato"><div class="ficha-dato-label">Sector</div><div class="ficha-dato-val">${xe(a.sector)||'-'}</div></div>
+        <div class="ficha-dato"><div class="ficha-dato-label">Tarea / Puesto</div><div class="ficha-dato-val">${xe(a.tarea_puesto)||'-'}</div></div>
+        <div class="ficha-dato"><div class="ficha-dato-label">Categoría</div><div class="ficha-dato-val">${xe(a.categoria)||'-'}</div></div>
+        <div class="ficha-dato"><div class="ficha-dato-label">Fecha de ingreso</div><div class="ficha-dato-val">${xe(a.fecha_ingreso)||'-'}</div></div>
+        <div class="ficha-dato"><div class="ficha-dato-label">Contratación</div><div class="ficha-dato-val">${xe(a.tipo_contratacion)||'-'}</div></div>
+        <div class="ficha-dato"><div class="ficha-dato-label">Teléfono</div><div class="ficha-dato-val">${xe(a.telefono)||'-'}</div></div>
+        <div class="ficha-dato"><div class="ficha-dato-label">Email</div><div class="ficha-dato-val">${xe(a.email)||'-'}</div></div>
+        <div class="ficha-dato"><div class="ficha-dato-label">Fecha nacimiento</div><div class="ficha-dato-val">${xe(a.fecha_nacimiento)||'-'}</div></div>
+        <div class="ficha-dato"><div class="ficha-dato-label">Localidad</div><div class="ficha-dato-val">${xe(a.localidad)||'-'}</div></div>
+        ${a.fecha_baja?`<div class="ficha-dato"><div class="ficha-dato-label">Fecha baja</div><div class="ficha-dato-val">${xe(a.fecha_baja)}</div></div>`:''}
+        ${a.motivo_baja?`<div class="ficha-dato"><div class="ficha-dato-label">Motivo baja</div><div class="ficha-dato-val">${xe(a.motivo_baja)}</div></div>`:''}
+      </div>
+      ${a.observaciones?`<div style="background:var(--amber-l);border-radius:var(--r2);padding:10px 12px;font-size:13px;color:var(--txt2);margin-bottom:20px"><strong>Obs:</strong> ${xe(a.observaciones)}</div>`:''}
+      <div style="font-size:12px;font-weight:700;color:var(--blue);letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--border)">Historial de cambios</div>
+      <div class="timeline">${histHTML}</div>
+    </div>`;
+
+  abrirModal('modal-agente');
+}
+
+function editarAgente() {
+  if(!agenteActual) return;
+  cerrarModal('modal-agente');
+  abrirFormAgente(agenteActual);
+}
+
+function abrirFormAgente(a=null) {
+  const titulo = a ? 'Editar agente' : 'Nuevo agente';
+  document.getElementById('form-agente-titulo').textContent = titulo;
+  document.getElementById('fa-id').value = a?.id_agente || '';
+  document.getElementById('fa-apellido').value = a?.apellido || '';
+  document.getElementById('fa-nombre').value = a?.nombre || '';
+  document.getElementById('fa-dni').value = a?.dni || '';
+  document.getElementById('fa-cuil').value = a?.cuil || '';
+  document.getElementById('fa-telefono').value = a?.telefono || '';
+  document.getElementById('fa-email').value = a?.email || '';
+  document.getElementById('fa-fecha-nac').value = a?.fecha_nacimiento || '';
+  document.getElementById('fa-fecha-ing').value = a?.fecha_ingreso || '';
+  document.getElementById('fa-establecimiento').value = a?.establecimiento || '';
+  document.getElementById('fa-sector').value = a?.sector || '';
+  document.getElementById('fa-tarea').value = a?.tarea_puesto || '';
+  document.getElementById('fa-categoria').value = a?.categoria || '';
+  document.getElementById('fa-contratacion').value = a?.tipo_contratacion || '';
+  document.getElementById('fa-activo').value = a?.activo || 'SI';
+  document.getElementById('fa-motivo-baja').value = a?.motivo_baja || '';
+  document.getElementById('fa-obs').value = a?.observaciones || '';
+  document.getElementById('fa-baja-row').style.display = (a?.activo==='NO') ? '' : 'none';
+  document.getElementById('fa-activo').onchange = function() {
+    document.getElementById('fa-baja-row').style.display = this.value==='NO' ? '' : 'none';
+  };
+  abrirModal('modal-form-agente');
+}
+
+async function guardarAgente() {
+  const id = document.getElementById('fa-id').value;
+  const data = {
+    id_agente: id || undefined,
+    apellido: document.getElementById('fa-apellido').value.trim(),
+    nombre: document.getElementById('fa-nombre').value.trim(),
+    dni: document.getElementById('fa-dni').value.trim(),
+    cuil: document.getElementById('fa-cuil').value.trim(),
+    telefono: document.getElementById('fa-telefono').value.trim(),
+    email: document.getElementById('fa-email').value.trim(),
+    fecha_nacimiento: document.getElementById('fa-fecha-nac').value,
+    fecha_ingreso: document.getElementById('fa-fecha-ing').value,
+    establecimiento: document.getElementById('fa-establecimiento').value.trim(),
+    sector: document.getElementById('fa-sector').value.trim(),
+    tarea_puesto: document.getElementById('fa-tarea').value.trim(),
+    categoria: document.getElementById('fa-categoria').value.trim(),
+    tipo_contratacion: document.getElementById('fa-contratacion').value,
+    activo: document.getElementById('fa-activo').value,
+    motivo_baja: document.getElementById('fa-motivo-baja').value.trim(),
+    observaciones: document.getElementById('fa-obs').value.trim(),
+  };
+
+  if(!data.apellido||!data.nombre||!data.dni||!data.cuil) { toast('Apellido, nombre, DNI y CUIL son requeridos','warn'); return; }
+
+  overlay(true,'Guardando...');
+  const action = id ? 'updateAgente' : 'crearAgente';
+  const r = await api(action, data);
+  overlay(false);
+
+  if(!r.ok) { toast(r.error,'err'); return; }
+  toast(r.mensaje,'ok');
+  cerrarModal('modal-form-agente');
+  loadPersonal(personalOffset);
+  loadStats();
+  loadListasMaestras();
+}
+
+// ── ÓRDENES DE SALIDA ─────────────────────────────────────────────
+let osOffset=0, osLoaded=false, osDebounce;
+function debounceOS() { clearTimeout(osDebounce); osDebounce=setTimeout(()=>loadOS(0),350); }
+
+async function loadOS(offset) {
+  osOffset = Math.max(0,offset);
+  overlay(true,'Cargando órdenes...');
+  const r = await api('getOrdenesSalida',{
+    q:document.getElementById('search-os').value.trim(),
+    desde:document.getElementById('os-desde').value,
+    hasta:document.getElementById('os-hasta').value,
+    limit:100, offset:osOffset
+  });
+  overlay(false);
+  if(!r.ok) { toast(r.error,'err'); return; }
+  const tbody = document.getElementById('tbody-os');
+  if(!r.ordenes.length) { tbody.innerHTML=`<tr><td colspan="8"><div class="empty"><p>Sin registros</p></div></td></tr>`; return; }
+  tbody.innerHTML = r.ordenes.map(o=>`
+    <tr>
+      <td class="mono">${xe(o.fecha)}</td>
+      <td><strong>${xe(o.apellido_nombre)}</strong></td>
+      <td class="mono">${xe(o.dni)}</td>
+      <td>${xe(o.sector)}</td>
+      <td>${xe(o.destino)}</td>
+      <td class="mono">${xe(o.hora_salida)}</td>
+      <td class="mono">${xe(o.hora_retorno)||'-'}</td>
+      <td><span class="badge si">${xe(o.tipo)||'—'}</span></td>
+    </tr>`).join('');
+  document.getElementById('pag-info-os').textContent=`${osOffset+1}–${osOffset+r.ordenes.length} de ${r.total}`;
+  document.getElementById('pag-os-prev').disabled=osOffset===0;
+  document.getElementById('pag-os-next').disabled=r.ordenes.length<100;
+}
+
+// ── ÓRDENES DE TRABAJO ────────────────────────────────────────────
+let otOffset=0, otLoaded=false, otDebounce;
+function debounceOT() { clearTimeout(otDebounce); otDebounce=setTimeout(()=>loadOT(0),350); }
+
+async function loadOT(offset) {
+  otOffset=Math.max(0,offset);
+  overlay(true,'Cargando órdenes...');
+  const r = await api('getOrdenesTrabajo',{
+    q:document.getElementById('search-ot').value.trim(),
+    desde:document.getElementById('ot-desde').value,
+    hasta:document.getElementById('ot-hasta').value,
+    limit:100, offset:otOffset
+  });
+  overlay(false);
+  if(!r.ok) { toast(r.error,'err'); return; }
+  const tbody=document.getElementById('tbody-ot');
+  if(!r.ordenes.length) { tbody.innerHTML=`<tr><td colspan="8"><div class="empty"><p>Sin registros</p></div></td></tr>`; return; }
+  tbody.innerHTML=r.ordenes.map(o=>`
+    <tr>
+      <td class="mono">${xe(o.fecha)}</td>
+      <td><strong>${xe(o.apellido_nombre)}</strong></td>
+      <td class="mono">${xe(o.dni)}</td>
+      <td>${xe(o.sector)}</td>
+      <td>${xe(o.cuadrilla)}</td>
+      <td>${xe(o.tarea)}</td>
+      <td>${xe(o.destino)}</td>
+      <td class="mono">${xe(o.cantidad_horas)||'-'}</td>
+    </tr>`).join('');
+  document.getElementById('pag-info-ot').textContent=`${otOffset+1}–${otOffset+r.ordenes.length} de ${r.total}`;
+  document.getElementById('pag-ot-prev').disabled=otOffset===0;
+  document.getElementById('pag-ot-next').disabled=r.ordenes.length<100;
+}
+
+// ── CUMPLEAÑOS ────────────────────────────────────────────────────
+async function loadCumpleanos() {
+  const r = await api('getCumpleanos');
+  const c = document.getElementById('bd-container');
+  if(!r.ok||!r.cumpleanos.length) {
+    c.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;text-align:center;color:var(--txt3);font-size:13px">
+      <div style="font-size:32px;margin-bottom:8px">🎂</div>
+      Nadie cumple años hoy.
+    </div>`;
+    return;
+  }
+  c.innerHTML=`<div style="margin-bottom:12px;font-size:13px;color:var(--txt3)">Cumplen años hoy:</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px">
+    ${r.cumpleanos.map(a=>`
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px">
+        <div style="font-size:24px;margin-bottom:8px">🎂</div>
+        <div style="font-weight:700;font-size:14px;color:var(--txt)">${xe(a.apellido_nombre)}</div>
+        <div style="font-size:12px;color:var(--txt3);margin-top:4px">${xe(a.establecimiento)} · ${xe(a.sector)}</div>
+      </div>`).join('')}
+    </div>`;
+  document.getElementById('badge-bd').textContent = r.cumpleanos.length;
+  document.getElementById('badge-bd').style.display = '';
+}
+
+// ── REPORTE POR AGENTE ────────────────────────────────────────────
+let reporteDebounce;
+function debounceReporte() { clearTimeout(reporteDebounce); reporteDebounce=setTimeout(buscarReporte,400); }
+async function buscarReporte() {
+  const q=document.getElementById('search-reporte').value.trim();
+  if(q.length<2) return;
+  const r=await api('buscarAgentes',{q,activo:'',limit:5,offset:0});
+  const el=document.getElementById('reporte-resultados');
+  if(!r.ok||!r.agentes.length) { el.innerHTML=`<p style="color:var(--txt3);font-size:13px">Sin resultados.</p>`; return; }
+  el.innerHTML=`<div style="display:flex;flex-direction:column;gap:8px">
+    ${r.agentes.map(a=>`
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r2);padding:12px;cursor:pointer;transition:background .1s"
+           onclick="verAgente('${xe(a.id_agente)}')"
+           onmouseenter="this.style.background='var(--blue-l)'" onmouseleave="this.style.background='var(--surface2)'">
+        <div style="font-weight:600;font-size:13px">${xe(a.apellido_nombre)}</div>
+        <div style="font-size:11px;color:var(--txt3);margin-top:2px">DNI ${xe(a.dni)} · CUIL ${xe(a.cuil)} · ${xe(a.establecimiento)}</div>
+      </div>`).join('')}
+  </div>`;
+}
+
+// ── LOGS ──────────────────────────────────────────────────────────
+async function loadLogs() {
+  const r=await api('getLogs');
+  if(!r.ok) { toast(r.error,'err'); return; }
+  const tbody=document.getElementById('tbody-logs');
+  if(!r.logs.length) { tbody.innerHTML=`<tr><td colspan="5"><div class="empty"><p>Sin logs</p></div></td></tr>`; return; }
+  tbody.innerHTML=r.logs.map(l=>`
+    <tr>
+      <td class="mono" style="white-space:nowrap">${fmtTS(l.timestamp)}</td>
+      <td>${xe(l.usuario)}</td>
+      <td><span class="badge si" style="font-size:10px">${xe(l.accion)}</span></td>
+      <td>${xe(l.entidad)}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${xe(l.detalle)}</td>
+    </tr>`).join('');
+}
+
+// ── USUARIOS ─────────────────────────────────────────────────────
+let usuarioEditando=null;
+async function loadUsuarios() {
+  const r=await api('getUsuarios');
+  if(!r.ok) { toast(r.error,'err'); return; }
+  const tbody=document.getElementById('tbody-usuarios');
+  const ROL_COLORS={superadmin:'superadmin',admin:'admin',user:'user',read:'read'};
+  tbody.innerHTML=r.usuarios.map(u=>`
+    <tr>
+      <td><strong>${xe(u.nombre)}</strong></td>
+      <td class="mono">${xe(u.usuario)}</td>
+      <td>${xe(u.email)}</td>
+      <td><span class="badge ${ROL_COLORS[u.rol]||''}">${xe(u.rol)}</span></td>
+      <td><span class="badge ${(u.activo||'SI').toLowerCase()}">${xe(u.activo)}</span></td>
+      <td class="mono" style="font-size:11px">${fmtTS(u.ultimo_login)}</td>
+      <td><button class="tbtn" style="font-size:11px;padding:4px 8px" onclick="abrirFormUsuario(${JSON.stringify(u).replace(/"/g,'&quot;')})">Editar</button></td>
+    </tr>`).join('');
+}
+
+function abrirFormUsuario(u=null) {
+  usuarioEditando=u;
+  document.getElementById('form-usuario-titulo').textContent = u ? 'Editar usuario' : 'Nuevo usuario';
+  document.getElementById('fu-id').value = u?.id_usuario||'';
+  document.getElementById('fu-nombre').value = u?.nombre||'';
+  document.getElementById('fu-usuario').value = u?.usuario||'';
+  document.getElementById('fu-email').value = u?.email||'';
+  document.getElementById('fu-rol').value = u?.rol||'read';
+  document.getElementById('fu-activo').value = u?.activo||'SI';
+  document.getElementById('fu-pwd').value='';
+  document.getElementById('fu-pwd-label').textContent = u ? 'Nueva contraseña (dejar vacío para no cambiar)' : 'Contraseña * (mín. 12 chars)';
+  if(u) document.getElementById('fu-usuario').disabled=true;
+  else document.getElementById('fu-usuario').disabled=false;
+  abrirModal('modal-form-usuario');
+}
+
+async function guardarUsuario() {
+  const id=document.getElementById('fu-id').value;
+  const nombre=document.getElementById('fu-nombre').value.trim();
+  const usuario=document.getElementById('fu-usuario').value.trim();
+  const email=document.getElementById('fu-email').value.trim();
+  const rol=document.getElementById('fu-rol').value;
+  const activo=document.getElementById('fu-activo').value;
+  const pwd=document.getElementById('fu-pwd').value;
+
+  if(!id && (!nombre||!usuario||!email||!pwd)) { toast('Completá todos los campos','warn'); return; }
+
+  overlay(true,'Guardando...');
+  let r;
+  if(id) r=await api('updateUsuario',{id_usuario:id,nombre,rol,activo,password:pwd||undefined});
+  else r=await api('crearUsuario',{nombre,usuario,email,rol,password:pwd});
+  overlay(false);
+
+  if(!r.ok) { toast(r.error,'err'); return; }
+  toast(r.mensaje,'ok');
+  cerrarModal('modal-form-usuario');
+  loadUsuarios();
+}
+
+// ── INICIALIZAR ────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
