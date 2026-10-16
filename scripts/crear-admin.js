@@ -6,8 +6,6 @@
 const { neon } = require('@neondatabase/serverless');
 const crypto = require('crypto');
 const readline = require('readline');
-require('dotenv').config({ path: '.env.local' });
-
 const sql = neon(process.env.DATABASE_URL);
 
 function hashPassword(plain) {
