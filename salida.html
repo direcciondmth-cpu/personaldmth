@@ -9,56 +9,91 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#F5F7FA;--surface:#FFF;--border:#C7D0DE;
-  --blue:#1B5EA6;--blue-l:#E8F0FB;
+  --bg:#F5F7FA;--surface:#FFF;--border:#C7D0DE;--border2:#9FACC2;
+  --blue:#1B5EA6;--blue-l:#E8F0FB;--blue-m:#BDD1F4;
   --green:#2A7D4F;--green-l:#E6F4EC;--green-m:#A8D8BC;
   --red:#C0392B;--red-l:#FDECEA;--red-m:#F4BFBA;
+  --amber:#C8870A;--amber-l:#FEF3DC;--amber-m:#F5D48A;
   --txt:#1A2332;--txt2:#3D4A5C;--txt3:#5C6B85;
   --fn:'Inter',sans-serif;--r:10px;--r2:6px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--txt);font-family:var(--fn);font-size:14px;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px 48px;}
+body{background:var(--bg);color:var(--txt);font-family:var(--fn);font-size:14px;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 16px 56px}
 
-.header{width:100%;max-width:520px;display:flex;align-items:center;gap:12px;margin-bottom:24px}
-.header-logo{width:28px;height:32px;flex-shrink:0}
+.header{width:100%;max-width:560px;display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.header svg{width:28px;height:32px;flex-shrink:0}
 .header-text h1{font-size:16px;font-weight:700;color:var(--blue)}
 .header-text p{font-size:11px;color:var(--txt3);margin-top:1px}
 
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;width:100%;max-width:520px;box-shadow:0 2px 8px rgba(26,35,50,.06);}
-.card-title{font-size:15px;font-weight:600;color:var(--txt);margin-bottom:6px}
-.card-sub{font-size:12px;color:var(--txt3);margin-bottom:20px;line-height:1.5}
+/* MODO TABS */
+.mode-tabs{display:flex;gap:8px;width:100%;max-width:560px;margin-bottom:16px}
+.mode-tab{flex:1;padding:10px;border:1.5px solid var(--border);border-radius:var(--r2);background:var(--surface);font-size:13px;font-weight:500;color:var(--txt2);cursor:pointer;transition:all .15s;text-align:center}
+.mode-tab.active{border-color:var(--blue);background:var(--blue-l);color:var(--blue);font-weight:600}
 
-.field{margin-bottom:14px}
-.field label{display:block;font-size:12px;font-weight:600;color:var(--txt2);margin-bottom:5px}
-.field label .req{color:var(--red);margin-left:2px}
-.field input,.field select,.field textarea{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px;font-family:var(--fn);color:var(--txt);background:var(--surface);outline:none;transition:border .15s;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:22px;width:100%;max-width:560px;box-shadow:0 2px 8px rgba(26,35,50,.06);display:none}
+.card.show{display:block}
+.card-title{font-size:14px;font-weight:600;color:var(--txt);margin-bottom:4px}
+.card-sub{font-size:12px;color:var(--txt3);margin-bottom:18px;line-height:1.5}
+
+/* FORM */
+.field{margin-bottom:13px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--txt2);margin-bottom:4px}
+.req{color:var(--red);margin-left:2px}
+.field input,.field select,.field textarea{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px;font-family:var(--fn);color:var(--txt);background:var(--surface);outline:none;transition:border .15s}
 .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--blue)}
-.field textarea{resize:vertical;min-height:70px}
+.field input[readonly]{background:var(--bg);color:var(--txt2)}
+.field textarea{resize:vertical;min-height:60px}
 .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
 
-.btn{width:100%;padding:12px;border:none;border-radius:var(--r2);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--fn);transition:background .15s;margin-top:6px}
+/* DNI LOOKUP */
+.dni-wrap{position:relative}
+.dni-spinner{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;display:none}
+.dni-spinner.show{display:block}
+@keyframes spin{to{transform:translateY(-50%) rotate(360deg)}}
+.dni-found{font-size:11px;margin-top:4px;color:var(--green);display:none}
+.dni-found.show{display:block}
+.dni-notfound{font-size:11px;margin-top:4px;color:var(--amber);display:none}
+.dni-notfound.show{display:block}
+
+/* CUADRILLA LIST */
+.cuad-list{margin-bottom:14px}
+.cuad-item{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r2);margin-bottom:6px}
+.cuad-item-info{flex:1;min-width:0}
+.cuad-item-nombre{font-size:12px;font-weight:600;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cuad-item-sector{font-size:11px;color:var(--txt3)}
+.cuad-item-del{border:none;background:none;color:var(--txt3);cursor:pointer;font-size:16px;padding:2px 4px;border-radius:4px;line-height:1}
+.cuad-item-del:hover{background:var(--red-l);color:var(--red)}
+.cuad-add{display:flex;gap:8px;align-items:flex-end;margin-bottom:14px}
+.cuad-add .field{flex:1;margin-bottom:0}
+.cuad-add-btn{padding:9px 14px;background:var(--blue);color:#fff;border:none;border-radius:var(--r2);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:var(--fn)}
+.cuad-add-btn:hover{background:#164f8f}
+.cuad-empty{font-size:12px;color:var(--txt3);text-align:center;padding:16px 0;border:1.5px dashed var(--border);border-radius:var(--r2);margin-bottom:14px}
+
+/* BUTTONS */
+.btn{width:100%;padding:12px;border:none;border-radius:var(--r2);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--fn);transition:background .15s;margin-top:4px}
 .btn-primary{background:var(--blue);color:#fff}
 .btn-primary:hover{background:#164f8f}
 .btn-primary:disabled{background:#8AAFD4;cursor:not-allowed}
 
-.err-msg{background:var(--red-l);color:var(--red);border:1px solid var(--red-m);border-radius:var(--r2);padding:10px 12px;font-size:13px;margin-bottom:14px;display:none}
+.err-msg{background:var(--red-l);color:var(--red);border:1px solid var(--red-m);border-radius:var(--r2);padding:9px 12px;font-size:13px;margin-bottom:12px;display:none}
 .err-msg.show{display:block}
 
-.success-card{background:var(--green-l);border:1px solid var(--green-m);border-radius:var(--r);padding:28px 24px;width:100%;max-width:520px;text-align:center;display:none}
+/* SUCCESS */
+.success-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;width:100%;max-width:560px;text-align:center;display:none;box-shadow:0 2px 8px rgba(26,35,50,.06)}
 .success-card.show{display:block}
-.success-icon{width:56px;height:56px;background:#fff;border-radius:50%;border:2px solid var(--green-m);display:flex;align-items:center;justify-content:center;margin:0 auto 14px}
-.success-num{font-size:22px;font-weight:700;color:var(--green);letter-spacing:.02em;margin-bottom:6px}
-.success-msg{font-size:13px;color:var(--txt2);line-height:1.6;margin-bottom:16px}
-.success-alert{background:#fff;border:1px solid var(--green-m);border-radius:var(--r2);padding:12px;font-size:12px;color:var(--txt2);line-height:1.5}
-
-.destino-row{display:none}
-.destino-row.show{display:block}
+.success-icon{width:52px;height:52px;background:var(--green-l);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+.success-num{font-size:20px;font-weight:700;color:var(--green);letter-spacing:.02em;margin-bottom:6px}
+.success-list{text-align:left;margin:12px 0;border-collapse:collapse;width:100%}
+.success-list td,.success-list th{padding:6px 10px;font-size:12px;border-bottom:1px solid var(--border)}
+.success-list th{font-weight:600;color:var(--txt2);background:var(--bg)}
+.success-alert{background:var(--amber-l);border:1px solid var(--amber-m);border-radius:var(--r2);padding:11px 12px;font-size:12px;color:var(--txt2);line-height:1.5;margin-top:14px;text-align:left}
 </style>
 </head>
 <body>
 
 <div class="header">
-  <svg class="header-logo" viewBox="0 0 100 110" xmlns="http://www.w3.org/2000/svg">
+  <svg viewBox="0 0 100 110" xmlns="http://www.w3.org/2000/svg">
     <defs><clipPath id="f"><path d="M20,13 L52,13 A42.5,42.5 0 0,1 52,98 L20,98 Z"/></clipPath></defs>
     <g clip-path="url(#f)">
       <rect x="20" y="37" width="32" height="61" fill="#1B5C9B"/>
@@ -67,36 +102,45 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fn);font-size:14px;
     </g>
   </svg>
   <div class="header-text">
-    <h1>Personal DMTH</h1>
-    <p>Dirección de Mantenimiento y Talleres – DGIME</p>
+    <h1>Orden de Salida</h1>
+    <p>Personal DMTH – Dirección de Mantenimiento y Talleres</p>
   </div>
 </div>
 
-<div class="card" id="form-card">
-  <div class="card-title">Solicitud de Orden de Salida</div>
-  <div class="card-sub">Completá el formulario para registrar tu salida del predio. Luego presentate al inspector para la firma correspondiente.</div>
+<div class="mode-tabs">
+  <button class="mode-tab active" id="tab-individual" onclick="setMode('individual')">👤 Salida individual</button>
+  <button class="mode-tab" id="tab-cuadrilla" onclick="setMode('cuadrilla')">👥 Salida de cuadrilla</button>
+</div>
 
-  <div class="err-msg" id="err-msg"></div>
+<!-- SALIDA INDIVIDUAL -->
+<div class="card show" id="card-individual">
+  <div class="card-title">Registrar salida</div>
+  <div class="card-sub">Ingresá tu DNI para cargar tus datos automáticamente.</div>
+  <div class="err-msg" id="err-ind"></div>
+
+  <div class="field">
+    <label>DNI <span class="req">*</span></label>
+    <div class="dni-wrap">
+      <input type="text" id="ind-dni" inputmode="numeric" maxlength="12" placeholder="Sin puntos" autocomplete="off" oninput="lookupDNI(this.value,'ind')">
+      <div class="dni-spinner" id="ind-spinner"></div>
+    </div>
+    <div class="dni-found" id="ind-found">✓ Agente encontrado</div>
+    <div class="dni-notfound" id="ind-notfound">No se encontró el DNI en el padrón — completá los datos manualmente.</div>
+  </div>
 
   <div class="field">
     <label>Apellido y Nombre <span class="req">*</span></label>
-    <input type="text" id="f-nombre" placeholder="APELLIDO, Nombre" autocomplete="off">
+    <input type="text" id="ind-nombre" placeholder="Se completa automáticamente" autocomplete="off">
   </div>
 
-  <div class="field-row">
-    <div class="field">
-      <label>DNI <span class="req">*</span></label>
-      <input type="text" id="f-dni" placeholder="Sin puntos" inputmode="numeric" maxlength="12" autocomplete="off">
-    </div>
-    <div class="field">
-      <label>Sector / Área <span class="req">*</span></label>
-      <input type="text" id="f-sector" placeholder="Ej: Taller mecánico" autocomplete="off">
-    </div>
+  <div class="field">
+    <label>Sector / Área <span class="req">*</span></label>
+    <input type="text" id="ind-sector" placeholder="Se completa automáticamente" autocomplete="off">
   </div>
 
   <div class="field">
     <label>Motivo <span class="req">*</span></label>
-    <select id="f-motivo" onchange="toggleDestino()">
+    <select id="ind-motivo" onchange="toggleDestino('ind')">
       <option value="">— Seleccioná un motivo —</option>
       <option value="OFICIAL – Gestión / trámite">OFICIAL – Gestión / trámite</option>
       <option value="OFICIAL – Traslado con vehículo">OFICIAL – Traslado con vehículo</option>
@@ -106,119 +150,357 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fn);font-size:14px;
     </select>
   </div>
 
-  <div class="field destino-row" id="destino-row">
+  <div class="field" id="ind-destino-row" style="display:none">
     <label>Destino <span class="req">*</span></label>
-    <input type="text" id="f-destino" placeholder="Indicá el lugar de destino">
+    <input type="text" id="ind-destino" placeholder="Lugar de destino">
   </div>
 
   <div class="field-row">
     <div class="field">
-      <label>Hora de salida (desde) <span class="req">*</span></label>
-      <input type="time" id="f-desde">
+      <label>Hora salida (desde) <span class="req">*</span></label>
+      <input type="time" id="ind-desde">
     </div>
     <div class="field">
-      <label>Hora de retorno (hasta)</label>
-      <input type="time" id="f-hasta">
+      <label>Hora retorno (hasta)</label>
+      <input type="time" id="ind-hasta">
     </div>
   </div>
 
   <div class="field">
     <label>Observaciones</label>
-    <textarea id="f-obs" placeholder="Información adicional (opcional)"></textarea>
+    <textarea id="ind-obs" placeholder="Opcional"></textarea>
   </div>
 
-  <button class="btn btn-primary" id="btn-enviar" onclick="enviar()">Enviar solicitud</button>
+  <button class="btn btn-primary" id="ind-btn" onclick="enviarIndividual()">Enviar solicitud</button>
 </div>
 
+<!-- SALIDA CUADRILLA -->
+<div class="card" id="card-cuadrilla">
+  <div class="card-title">Salida de cuadrilla</div>
+  <div class="card-sub">Agregá a cada integrante por DNI, luego completá el motivo y horario para todos.</div>
+  <div class="err-msg" id="err-cuad"></div>
+
+  <!-- Agregar integrante -->
+  <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r2);padding:14px;margin-bottom:16px">
+    <div style="font-size:12px;font-weight:600;color:var(--txt2);margin-bottom:10px">Agregar integrante</div>
+    <div class="cuad-add">
+      <div class="field">
+        <label>DNI</label>
+        <div class="dni-wrap">
+          <input type="text" id="cuad-dni-inp" inputmode="numeric" maxlength="12" placeholder="Sin puntos" autocomplete="off"
+            oninput="lookupDNI(this.value,'cuad')" onkeydown="if(event.key==='Enter'){event.preventDefault();agregarIntegrante()}">
+          <div class="dni-spinner" id="cuad-spinner"></div>
+        </div>
+        <div class="dni-found" id="cuad-found">✓ Encontrado</div>
+        <div class="dni-notfound" id="cuad-notfound">DNI no encontrado — completá manualmente.</div>
+      </div>
+    </div>
+    <div class="field-row" style="margin-bottom:10px">
+      <div class="field" style="margin-bottom:0">
+        <label>Apellido y Nombre</label>
+        <input type="text" id="cuad-nombre-inp" placeholder="Nombre completo" autocomplete="off">
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Sector</label>
+        <input type="text" id="cuad-sector-inp" placeholder="Sector" autocomplete="off">
+      </div>
+    </div>
+    <button class="cuad-add-btn" onclick="agregarIntegrante()">+ Agregar a la lista</button>
+  </div>
+
+  <!-- Lista integrantes -->
+  <div id="cuad-lista-wrap">
+    <div class="cuad-empty" id="cuad-empty">Todavía no hay integrantes en la cuadrilla.</div>
+    <div id="cuad-lista" class="cuad-list"></div>
+    <div id="cuad-count" style="font-size:12px;color:var(--txt3);margin-bottom:12px;display:none"></div>
+  </div>
+
+  <!-- Datos comunes -->
+  <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:2px">
+    <div style="font-size:12px;font-weight:600;color:var(--txt2);margin-bottom:10px">Datos de la salida (para todos)</div>
+
+    <div class="field">
+      <label>Motivo <span class="req">*</span></label>
+      <select id="cuad-motivo" onchange="toggleDestino('cuad')">
+        <option value="">— Seleccioná un motivo —</option>
+        <option value="OFICIAL – Gestión / trámite">OFICIAL – Gestión / trámite</option>
+        <option value="OFICIAL – Traslado con vehículo">OFICIAL – Traslado con vehículo</option>
+        <option value="OFICIAL – Comisión de servicio">OFICIAL – Comisión de servicio</option>
+        <option value="PARTICULAR – Asunto personal">PARTICULAR – Asunto personal</option>
+        <option value="PARTICULAR – Razones de salud">PARTICULAR – Razones de salud</option>
+      </select>
+    </div>
+
+    <div class="field" id="cuad-destino-row" style="display:none">
+      <label>Destino <span class="req">*</span></label>
+      <input type="text" id="cuad-destino" placeholder="Lugar de destino">
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Hora salida (desde) <span class="req">*</span></label>
+        <input type="time" id="cuad-desde">
+      </div>
+      <div class="field">
+        <label>Hora retorno (hasta)</label>
+        <input type="time" id="cuad-hasta">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Observaciones</label>
+      <textarea id="cuad-obs" placeholder="Opcional"></textarea>
+    </div>
+  </div>
+
+  <button class="btn btn-primary" id="cuad-btn" onclick="enviarCuadrilla()">Enviar cuadrilla</button>
+</div>
+
+<!-- SUCCESS -->
 <div class="success-card" id="success-card">
   <div class="success-icon">
     <svg viewBox="0 0 24 24" fill="none" width="28" height="28"><path d="M5 13l4 4L19 7" stroke="#2A7D4F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
   </div>
-  <div class="success-num" id="success-num">OS-XXXXXXX</div>
-  <div class="success-msg" id="success-msg">Tu solicitud fue registrada correctamente.</div>
+  <div class="success-num" id="success-num"></div>
+  <div id="success-body"></div>
   <div class="success-alert">
-    <strong>Importante:</strong> este número de orden <strong>no autoriza</strong> la salida por sí solo.<br>
-    Presentate al inspector de guardia para obtener la firma y completar el trámite.
+    <strong>⚠ Importante:</strong> esta solicitud <strong>no autoriza</strong> la salida por sí sola.<br>
+    Presentate al inspector de guardia con el número de orden para obtener la firma.
   </div>
-  <button class="btn btn-primary" style="max-width:240px;margin:20px auto 0" onclick="nueva()">Nueva solicitud</button>
+  <button class="btn btn-primary" style="max-width:220px;margin:18px auto 0" onclick="nueva()">Nueva solicitud</button>
 </div>
 
 <script>
 'use strict';
 const API = '/api';
+let cuadrilla = []; // {dni, apellido_nombre, sector}
+let dniTimer = {};
 
 function xe(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-function toggleDestino(){
-  const m=document.getElementById('f-motivo').value;
-  const show=m.startsWith('OFICIAL');
-  document.getElementById('destino-row').classList.toggle('show',show);
-  if(!show)document.getElementById('f-destino').value='';
+function setMode(m){
+  document.getElementById('card-individual').classList.toggle('show', m==='individual');
+  document.getElementById('card-cuadrilla').classList.toggle('show', m==='cuadrilla');
+  document.getElementById('tab-individual').classList.toggle('active', m==='individual');
+  document.getElementById('tab-cuadrilla').classList.toggle('active', m==='cuadrilla');
 }
 
-function showErr(msg){
-  const el=document.getElementById('err-msg');
-  el.textContent=msg;el.classList.add('show');
-  el.scrollIntoView({behavior:'smooth',block:'nearest'});
+function toggleDestino(prefix){
+  const m=document.getElementById(prefix+'-motivo').value;
+  const row=document.getElementById(prefix+'-destino-row');
+  row.style.display=m.startsWith('OFICIAL')?'':'none';
+  if(!m.startsWith('OFICIAL')){const d=document.getElementById(prefix+'-destino');if(d)d.value='';}
 }
-function hideErr(){document.getElementById('err-msg').classList.remove('show');}
 
-async function enviar(){
-  hideErr();
-  const nombre=document.getElementById('f-nombre').value.trim();
-  const dni=document.getElementById('f-dni').value.replace(/\D/g,'').trim();
-  const sector=document.getElementById('f-sector').value.trim();
-  const motivo=document.getElementById('f-motivo').value;
-  const destino=document.getElementById('f-destino').value.trim();
-  const desde=document.getElementById('f-desde').value;
-  const hasta=document.getElementById('f-hasta').value;
-  const obs=document.getElementById('f-obs').value.trim();
+// ── DNI LOOKUP ──────────────────────────────────────────────────────
+function lookupDNI(val, prefix){
+  const dni=val.replace(/\D/g,'');
+  clearTimeout(dniTimer[prefix]);
+  hideStatus(prefix);
+  if(dni.length<7) return;
+  dniTimer[prefix]=setTimeout(()=>doLookup(dni,prefix), 500);
+}
 
-  if(!nombre){showErr('Ingresá tu apellido y nombre.');return;}
-  if(!dni||dni.length<7){showErr('Ingresá un DNI válido.');return;}
-  if(!sector){showErr('Ingresá tu sector o área.');return;}
-  if(!motivo){showErr('Seleccioná el motivo de salida.');return;}
-  if(motivo.startsWith('OFICIAL')&&!destino){showErr('Ingresá el destino para una salida oficial.');return;}
-  if(!desde){showErr('Indicá la hora de salida.');return;}
+function hideStatus(prefix){
+  document.getElementById(prefix+'-found').classList.remove('show');
+  document.getElementById(prefix+'-notfound').classList.remove('show');
+  document.getElementById(prefix+'-spinner').classList.remove('show');
+}
 
-  const btn=document.getElementById('btn-enviar');
+async function doLookup(dni, prefix){
+  document.getElementById(prefix+'-spinner').classList.add('show');
+  try{
+    const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'buscarAgentePorDNI',dni})}).then(r=>r.json());
+    document.getElementById(prefix+'-spinner').classList.remove('show');
+    if(r.ok && r.encontrado){
+      const a=r.agente;
+      if(prefix==='ind'){
+        const n=document.getElementById('ind-nombre');
+        const s=document.getElementById('ind-sector');
+        if(!n.value) n.value=a.apellido_nombre||'';
+        if(!s.value) s.value=a.sector||a.establecimiento||'';
+        n.readOnly=true; s.readOnly=true;
+      } else {
+        // cuadrilla add form
+        const n=document.getElementById('cuad-nombre-inp');
+        const s=document.getElementById('cuad-sector-inp');
+        n.value=a.apellido_nombre||'';
+        s.value=a.sector||a.establecimiento||'';
+        n.readOnly=true; s.readOnly=true;
+      }
+      document.getElementById(prefix+'-found').classList.add('show');
+    } else {
+      if(prefix==='ind'){
+        document.getElementById('ind-nombre').readOnly=false;
+        document.getElementById('ind-sector').readOnly=false;
+      } else {
+        document.getElementById('cuad-nombre-inp').readOnly=false;
+        document.getElementById('cuad-sector-inp').readOnly=false;
+      }
+      document.getElementById(prefix+'-notfound').classList.add('show');
+    }
+  }catch(e){
+    document.getElementById(prefix+'-spinner').classList.remove('show');
+  }
+}
+
+// ── CUADRILLA ───────────────────────────────────────────────────────
+function agregarIntegrante(){
+  const dni=document.getElementById('cuad-dni-inp').value.replace(/\D/g,'').trim();
+  const nombre=document.getElementById('cuad-nombre-inp').value.trim();
+  const sector=document.getElementById('cuad-sector-inp').value.trim();
+  if(!dni||dni.length<7){alert('Ingresá un DNI válido.');return;}
+  if(!nombre){alert('Completá el nombre del integrante.');return;}
+  if(!sector){alert('Completá el sector.');return;}
+  if(cuadrilla.find(x=>x.dni===dni)){alert('Ese DNI ya está en la lista.');return;}
+  if(cuadrilla.length>=30){alert('Máximo 30 integrantes por cuadrilla.');return;}
+  cuadrilla.push({dni,apellido_nombre:nombre.toUpperCase(),sector:sector.toUpperCase()});
+  renderCuadrilla();
+  // limpiar form agregar
+  document.getElementById('cuad-dni-inp').value='';
+  document.getElementById('cuad-nombre-inp').value='';
+  document.getElementById('cuad-sector-inp').value='';
+  document.getElementById('cuad-nombre-inp').readOnly=false;
+  document.getElementById('cuad-sector-inp').readOnly=false;
+  hideStatus('cuad');
+  document.getElementById('cuad-dni-inp').focus();
+}
+
+function quitarIntegrante(idx){
+  cuadrilla.splice(idx,1);
+  renderCuadrilla();
+}
+
+function renderCuadrilla(){
+  const lista=document.getElementById('cuad-lista');
+  const empty=document.getElementById('cuad-empty');
+  const count=document.getElementById('cuad-count');
+  if(!cuadrilla.length){empty.style.display='';lista.innerHTML='';count.style.display='none';return;}
+  empty.style.display='none';
+  count.style.display='';
+  count.textContent=`${cuadrilla.length} integrante${cuadrilla.length>1?'s':''} en la cuadrilla`;
+  lista.innerHTML=cuadrilla.map((a,i)=>`
+    <div class="cuad-item">
+      <div class="cuad-item-info">
+        <div class="cuad-item-nombre">${xe(a.apellido_nombre)}</div>
+        <div class="cuad-item-sector">DNI ${xe(a.dni)} · ${xe(a.sector)}</div>
+      </div>
+      <button class="cuad-item-del" onclick="quitarIntegrante(${i})" title="Quitar">×</button>
+    </div>`).join('');
+}
+
+// ── ENVIAR INDIVIDUAL ───────────────────────────────────────────────
+function showErr(id,msg){const e=document.getElementById(id);e.textContent=msg;e.classList.add('show');e.scrollIntoView({behavior:'smooth',block:'nearest'});}
+function hideErr(id){document.getElementById(id).classList.remove('show');}
+
+async function enviarIndividual(){
+  hideErr('err-ind');
+  const dni=document.getElementById('ind-dni').value.replace(/\D/g,'').trim();
+  const nombre=document.getElementById('ind-nombre').value.trim();
+  const sector=document.getElementById('ind-sector').value.trim();
+  const motivo=document.getElementById('ind-motivo').value;
+  const destino=document.getElementById('ind-destino').value.trim();
+  const desde=document.getElementById('ind-desde').value;
+  const hasta=document.getElementById('ind-hasta').value;
+  const obs=document.getElementById('ind-obs').value.trim();
+
+  if(!dni||dni.length<7){showErr('err-ind','Ingresá tu DNI.');return;}
+  if(!nombre){showErr('err-ind','Ingresá tu apellido y nombre.');return;}
+  if(!sector){showErr('err-ind','Ingresá tu sector.');return;}
+  if(!motivo){showErr('err-ind','Seleccioná el motivo.');return;}
+  if(motivo.startsWith('OFICIAL')&&!destino){showErr('err-ind','Ingresá el destino para salida oficial.');return;}
+  if(!desde){showErr('err-ind','Indicá la hora de salida.');return;}
+
+  const btn=document.getElementById('ind-btn');
   btn.disabled=true;btn.textContent='Enviando…';
 
   try{
-    const r=await fetch(API,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
+    const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({action:'crearOrdenSalidaPublica',dni,apellido_nombre:nombre.toUpperCase(),sector:sector.toUpperCase(),motivo,destino,hora_salida:desde,hora_retorno:hasta,observaciones:obs})
     }).then(r=>r.json());
 
-    if(!r.ok){showErr(r.error||'Error al enviar. Intentá de nuevo.');btn.disabled=false;btn.textContent='Enviar solicitud';return;}
-
-    document.getElementById('success-num').textContent=r.numero_orden||'';
-    document.getElementById('success-msg').textContent=`Solicitud de ${nombre.toUpperCase()} registrada correctamente.`;
-    document.getElementById('form-card').style.display='none';
-    document.getElementById('success-card').classList.add('show');
-    window.scrollTo({top:0,behavior:'smooth'});
+    if(!r.ok){showErr('err-ind',r.error||'Error al enviar.');btn.disabled=false;btn.textContent='Enviar solicitud';return;}
+    mostrarExito([{apellido_nombre:nombre.toUpperCase(),numero_orden:r.numero_orden}],'individual');
   }catch(e){
-    showErr('Error de conexión. Verificá tu internet e intentá de nuevo.');
+    showErr('err-ind','Error de conexión. Verificá tu internet.');
     btn.disabled=false;btn.textContent='Enviar solicitud';
   }
 }
 
+// ── ENVIAR CUADRILLA ────────────────────────────────────────────────
+async function enviarCuadrilla(){
+  hideErr('err-cuad');
+  if(!cuadrilla.length){showErr('err-cuad','Agregá al menos un integrante a la cuadrilla.');return;}
+  const motivo=document.getElementById('cuad-motivo').value;
+  const destino=document.getElementById('cuad-destino').value.trim();
+  const desde=document.getElementById('cuad-desde').value;
+  const hasta=document.getElementById('cuad-hasta').value;
+  const obs=document.getElementById('cuad-obs').value.trim();
+
+  if(!motivo){showErr('err-cuad','Seleccioná el motivo.');return;}
+  if(motivo.startsWith('OFICIAL')&&!destino){showErr('err-cuad','Ingresá el destino para salida oficial.');return;}
+  if(!desde){showErr('err-cuad','Indicá la hora de salida.');return;}
+
+  const btn=document.getElementById('cuad-btn');
+  btn.disabled=true;btn.textContent='Enviando…';
+
+  try{
+    const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'crearCuadrillaPublica',agentes:cuadrilla,motivo,destino,hora_salida:desde,hora_retorno:hasta,observaciones:obs})
+    }).then(r=>r.json());
+
+    if(!r.ok){showErr('err-cuad',r.error||'Error al enviar.');btn.disabled=false;btn.textContent='Enviar cuadrilla';return;}
+    mostrarExito(r.resultados,'cuadrilla');
+  }catch(e){
+    showErr('err-cuad','Error de conexión. Verificá tu internet.');
+    btn.disabled=false;btn.textContent='Enviar cuadrilla';
+  }
+}
+
+// ── SUCCESS ─────────────────────────────────────────────────────────
+function mostrarExito(resultados, modo){
+  const sc=document.getElementById('success-card');
+  const num=document.getElementById('success-num');
+  const body=document.getElementById('success-body');
+
+  if(modo==='individual'&&resultados.length===1){
+    num.textContent=resultados[0].numero_orden;
+    body.innerHTML=`<p style="font-size:13px;color:var(--txt2);margin-bottom:4px">${xe(resultados[0].apellido_nombre)}</p>`;
+  } else {
+    num.textContent=`${resultados.length} orden${resultados.length>1?'es':''} generada${resultados.length>1?'s':''}`;
+    body.innerHTML=`<table class="success-list"><thead><tr><th>Agente</th><th>N° Orden</th></tr></thead><tbody>${
+      resultados.map(r=>`<tr><td>${xe(r.apellido_nombre)}</td><td style="font-weight:600;color:var(--green)">${xe(r.numero_orden)}</td></tr>`).join('')
+    }</tbody></table>`;
+  }
+
+  document.getElementById('card-individual').classList.remove('show');
+  document.getElementById('card-cuadrilla').classList.remove('show');
+  document.querySelector('.mode-tabs').style.display='none';
+  sc.classList.add('show');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
 function nueva(){
-  document.getElementById('f-nombre').value='';
-  document.getElementById('f-dni').value='';
-  document.getElementById('f-sector').value='';
-  document.getElementById('f-motivo').value='';
-  document.getElementById('f-destino').value='';
-  document.getElementById('f-desde').value='';
-  document.getElementById('f-hasta').value='';
-  document.getElementById('f-obs').value='';
-  document.getElementById('destino-row').classList.remove('show');
-  document.getElementById('form-card').style.display='';
+  // reset individual
+  ['ind-dni','ind-nombre','ind-sector','ind-destino','ind-desde','ind-hasta','ind-obs'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('ind-nombre').readOnly=false;
+  document.getElementById('ind-sector').readOnly=false;
+  document.getElementById('ind-destino-row').style.display='none';
+  document.getElementById('ind-motivo').value='';
+  document.getElementById('ind-btn').disabled=false;document.getElementById('ind-btn').textContent='Enviar solicitud';
+  hideStatus('ind');hideErr('err-ind');
+  // reset cuadrilla
+  cuadrilla=[];renderCuadrilla();
+  ['cuad-dni-inp','cuad-nombre-inp','cuad-sector-inp','cuad-destino','cuad-desde','cuad-hasta','cuad-obs'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('cuad-motivo').value='';
+  document.getElementById('cuad-destino-row').style.display='none';
+  document.getElementById('cuad-btn').disabled=false;document.getElementById('cuad-btn').textContent='Enviar cuadrilla';
+  hideStatus('cuad');hideErr('err-cuad');
+  // show tabs + individual
+  document.querySelector('.mode-tabs').style.display='';
   document.getElementById('success-card').classList.remove('show');
-  document.getElementById('btn-enviar').disabled=false;
-  document.getElementById('btn-enviar').textContent='Enviar solicitud';
-  hideErr();
+  setMode('individual');
   window.scrollTo({top:0,behavior:'smooth'});
 }
 </script>

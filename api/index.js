@@ -446,6 +446,20 @@ module.exports = async function handler(req, res) {
       return ok(res, { id, numero_orden: numero, mensaje: 'Orden creada' });
     }
 
+    // ─ BUSCAR AGENTE POR DNI (público, para salida.html) ─────────
+    if (action === 'buscarAgentePorDNI') {
+      const dni = String(body.dni || query.dni || '').replace(/\D/g, '').trim();
+      if (!dni || dni.length < 7) return err(res, 'DNI inválido');
+      const rows = await sql`
+        SELECT dni, apellido_nombre, establecimiento, sector
+        FROM agentes
+        WHERE dni = ${dni} AND activo = 'SI'
+        LIMIT 1
+      `;
+      if (!rows.length) return ok(res, { encontrado: false });
+      return ok(res, { encontrado: true, agente: rows[0] });
+    }
+
     // ─ CREAR ORDEN DE SALIDA (pública, sin auth) ──────────────────
     if (action === 'crearOrdenSalidaPublica') {
       const { dni, apellido_nombre, sector, motivo, destino, hora_salida, hora_retorno, observaciones } = body;
@@ -470,6 +484,35 @@ module.exports = async function handler(req, res) {
            ${sector}, ${destino||''}, ${motivo}, '', ${tipo}, 'web_publica', ${observaciones||''}, 'SI', 'web_publica')
       `;
       return ok(res, { id, numero_orden: numero, mensaje: 'Solicitud enviada. Presentate al inspector para la firma.' });
+    }
+
+    // ─ CREAR CUADRILLA (múltiples agentes, sin auth) ───────────────
+    if (action === 'crearCuadrillaPublica') {
+      const { agentes, motivo, destino, hora_salida, hora_retorno, observaciones } = body;
+      if (!Array.isArray(agentes) || agentes.length === 0) return err(res, 'Falta lista de agentes');
+      if (!motivo || !hora_salida) return err(res, 'Faltan campos requeridos');
+      if (agentes.length > 30) return err(res, 'Máximo 30 agentes por cuadrilla');
+
+      const hoy = new Date().toISOString().slice(0, 10);
+      const tipo = motivo.startsWith('PARTICULAR') ? 'PARTICULAR' : 'OFICIAL';
+      const resultados = [];
+
+      for (const ag of agentes) {
+        const { dni, apellido_nombre, sector } = ag;
+        if (!dni || !apellido_nombre || !sector) continue;
+        const id = genId('os');
+        const numero = 'OS-' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2,4).toUpperCase();
+        await sql`
+          INSERT INTO ordenes_salida
+            (id, numero_orden, fecha, hora_salida, hora_retorno, dni, apellido_nombre,
+             sector, destino, motivo, vehiculo, tipo, autorizado_por, observaciones, activo, usuario_carga)
+          VALUES
+            (${id}, ${numero}, ${hoy}, ${hora_salida}, ${hora_retorno||''}, ${dni}, ${apellido_nombre},
+             ${sector}, ${destino||''}, ${motivo}, '', ${tipo}, 'web_publica', ${observaciones||''}, 'SI', 'web_publica')
+        `;
+        resultados.push({ dni, apellido_nombre, numero_orden: numero });
+      }
+      return ok(res, { resultados, total: resultados.length });
     }
 
     // ─ DOC TIPOS ─────────────────────────────────────────────────
