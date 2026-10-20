@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orden de Salida – DMTH</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 110'><defs><clipPath id='f'><path d='M20,13 L52,13 A42.5,42.5 0 0,1 52,98 L20,98 Z'/></clipPath></defs><g clip-path='url(%23f)'><rect x='20' y='37' width='32' height='61' fill='%231B5C9B'/><rect x='34' y='13' width='46' height='55' fill='%232BACC8'/><rect x='50' y='52' width='44' height='46' fill='%237DA31E'/></g></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F7FA;--surface:#FFF;--border:#C7D0DE;
+  --blue:#1B5EA6;--blue-l:#E8F0FB;
+  --green:#2A7D4F;--green-l:#E6F4EC;--green-m:#A8D8BC;
+  --red:#C0392B;--red-l:#FDECEA;--red-m:#F4BFBA;
+  --txt:#1A2332;--txt2:#3D4A5C;--txt3:#5C6B85;
+  --fn:'Inter',sans-serif;--r:10px;--r2:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font-family:var(--fn);font-size:14px;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px 48px;}
+
+.header{width:100%;max-width:520px;display:flex;align-items:center;gap:12px;margin-bottom:24px}
+.header-logo{width:28px;height:32px;flex-shrink:0}
+.header-text h1{font-size:16px;font-weight:700;color:var(--blue)}
+.header-text p{font-size:11px;color:var(--txt3);margin-top:1px}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;width:100%;max-width:520px;box-shadow:0 2px 8px rgba(26,35,50,.06);}
+.card-title{font-size:15px;font-weight:600;color:var(--txt);margin-bottom:6px}
+.card-sub{font-size:12px;color:var(--txt3);margin-bottom:20px;line-height:1.5}
+
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--txt2);margin-bottom:5px}
+.field label .req{color:var(--red);margin-left:2px}
+.field input,.field select,.field textarea{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px;font-family:var(--fn);color:var(--txt);background:var(--surface);outline:none;transition:border .15s;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--blue)}
+.field textarea{resize:vertical;min-height:70px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+.btn{width:100%;padding:12px;border:none;border-radius:var(--r2);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--fn);transition:background .15s;margin-top:6px}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:#164f8f}
+.btn-primary:disabled{background:#8AAFD4;cursor:not-allowed}
+
+.err-msg{background:var(--red-l);color:var(--red);border:1px solid var(--red-m);border-radius:var(--r2);padding:10px 12px;font-size:13px;margin-bottom:14px;display:none}
+.err-msg.show{display:block}
+
+.success-card{background:var(--green-l);border:1px solid var(--green-m);border-radius:var(--r);padding:28px 24px;width:100%;max-width:520px;text-align:center;display:none}
+.success-card.show{display:block}
+.success-icon{width:56px;height:56px;background:#fff;border-radius:50%;border:2px solid var(--green-m);display:flex;align-items:center;justify-content:center;margin:0 auto 14px}
+.success-num{font-size:22px;font-weight:700;color:var(--green);letter-spacing:.02em;margin-bottom:6px}
+.success-msg{font-size:13px;color:var(--txt2);line-height:1.6;margin-bottom:16px}
+.success-alert{background:#fff;border:1px solid var(--green-m);border-radius:var(--r2);padding:12px;font-size:12px;color:var(--txt2);line-height:1.5}
+
+.destino-row{display:none}
+.destino-row.show{display:block}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <svg class="header-logo" viewBox="0 0 100 110" xmlns="http://www.w3.org/2000/svg">
+    <defs><clipPath id="f"><path d="M20,13 L52,13 A42.5,42.5 0 0,1 52,98 L20,98 Z"/></clipPath></defs>
+    <g clip-path="url(#f)">
+      <rect x="20" y="37" width="32" height="61" fill="#1B5C9B"/>
+      <rect x="34" y="13" width="46" height="55" fill="#2BACC8"/>
+      <rect x="50" y="52" width="44" height="46" fill="#7DA31E"/>
+    </g>
+  </svg>
+  <div class="header-text">
+    <h1>Personal DMTH</h1>
+    <p>Dirección de Mantenimiento y Talleres – DGIME</p>
+  </div>
+</div>
+
+<div class="card" id="form-card">
+  <div class="card-title">Solicitud de Orden de Salida</div>
+  <div class="card-sub">Completá el formulario para registrar tu salida del predio. Luego presentate al inspector para la firma correspondiente.</div>
+
+  <div class="err-msg" id="err-msg"></div>
+
+  <div class="field">
+    <label>Apellido y Nombre <span class="req">*</span></label>
+    <input type="text" id="f-nombre" placeholder="APELLIDO, Nombre" autocomplete="off">
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <label>DNI <span class="req">*</span></label>
+      <input type="text" id="f-dni" placeholder="Sin puntos" inputmode="numeric" maxlength="12" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Sector / Área <span class="req">*</span></label>
+      <input type="text" id="f-sector" placeholder="Ej: Taller mecánico" autocomplete="off">
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Motivo <span class="req">*</span></label>
+    <select id="f-motivo" onchange="toggleDestino()">
+      <option value="">— Seleccioná un motivo —</option>
+      <option value="OFICIAL – Gestión / trámite">OFICIAL – Gestión / trámite</option>
+      <option value="OFICIAL – Traslado con vehículo">OFICIAL – Traslado con vehículo</option>
+      <option value="OFICIAL – Comisión de servicio">OFICIAL – Comisión de servicio</option>
+      <option value="PARTICULAR – Asunto personal">PARTICULAR – Asunto personal</option>
+      <option value="PARTICULAR – Razones de salud">PARTICULAR – Razones de salud</option>
+    </select>
+  </div>
+
+  <div class="field destino-row" id="destino-row">
+    <label>Destino <span class="req">*</span></label>
+    <input type="text" id="f-destino" placeholder="Indicá el lugar de destino">
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <label>Hora de salida (desde) <span class="req">*</span></label>
+      <input type="time" id="f-desde">
+    </div>
+    <div class="field">
+      <label>Hora de retorno (hasta)</label>
+      <input type="time" id="f-hasta">
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Observaciones</label>
+    <textarea id="f-obs" placeholder="Información adicional (opcional)"></textarea>
+  </div>
+
+  <button class="btn btn-primary" id="btn-enviar" onclick="enviar()">Enviar solicitud</button>
+</div>
+
+<div class="success-card" id="success-card">
+  <div class="success-icon">
+    <svg viewBox="0 0 24 24" fill="none" width="28" height="28"><path d="M5 13l4 4L19 7" stroke="#2A7D4F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>
+  <div class="success-num" id="success-num">OS-XXXXXXX</div>
+  <div class="success-msg" id="success-msg">Tu solicitud fue registrada correctamente.</div>
+  <div class="success-alert">
+    <strong>Importante:</strong> este número de orden <strong>no autoriza</strong> la salida por sí solo.<br>
+    Presentate al inspector de guardia para obtener la firma y completar el trámite.
+  </div>
+  <button class="btn btn-primary" style="max-width:240px;margin:20px auto 0" onclick="nueva()">Nueva solicitud</button>
+</div>
+
+<script>
+'use strict';
+const API = '/api';
+
+function xe(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function toggleDestino(){
+  const m=document.getElementById('f-motivo').value;
+  const show=m.startsWith('OFICIAL');
+  document.getElementById('destino-row').classList.toggle('show',show);
+  if(!show)document.getElementById('f-destino').value='';
+}
+
+function showErr(msg){
+  const el=document.getElementById('err-msg');
+  el.textContent=msg;el.classList.add('show');
+  el.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function hideErr(){document.getElementById('err-msg').classList.remove('show');}
+
+async function enviar(){
+  hideErr();
+  const nombre=document.getElementById('f-nombre').value.trim();
+  const dni=document.getElementById('f-dni').value.replace(/\D/g,'').trim();
+  const sector=document.getElementById('f-sector').value.trim();
+  const motivo=document.getElementById('f-motivo').value;
+  const destino=document.getElementById('f-destino').value.trim();
+  const desde=document.getElementById('f-desde').value;
+  const hasta=document.getElementById('f-hasta').value;
+  const obs=document.getElementById('f-obs').value.trim();
+
+  if(!nombre){showErr('Ingresá tu apellido y nombre.');return;}
+  if(!dni||dni.length<7){showErr('Ingresá un DNI válido.');return;}
+  if(!sector){showErr('Ingresá tu sector o área.');return;}
+  if(!motivo){showErr('Seleccioná el motivo de salida.');return;}
+  if(motivo.startsWith('OFICIAL')&&!destino){showErr('Ingresá el destino para una salida oficial.');return;}
+  if(!desde){showErr('Indicá la hora de salida.');return;}
+
+  const btn=document.getElementById('btn-enviar');
+  btn.disabled=true;btn.textContent='Enviando…';
+
+  try{
+    const r=await fetch(API,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'crearOrdenSalidaPublica',dni,apellido_nombre:nombre.toUpperCase(),sector:sector.toUpperCase(),motivo,destino,hora_salida:desde,hora_retorno:hasta,observaciones:obs})
+    }).then(r=>r.json());
+
+    if(!r.ok){showErr(r.error||'Error al enviar. Intentá de nuevo.');btn.disabled=false;btn.textContent='Enviar solicitud';return;}
+
+    document.getElementById('success-num').textContent=r.numero_orden||'';
+    document.getElementById('success-msg').textContent=`Solicitud de ${nombre.toUpperCase()} registrada correctamente.`;
+    document.getElementById('form-card').style.display='none';
+    document.getElementById('success-card').classList.add('show');
+    window.scrollTo({top:0,behavior:'smooth'});
+  }catch(e){
+    showErr('Error de conexión. Verificá tu internet e intentá de nuevo.');
+    btn.disabled=false;btn.textContent='Enviar solicitud';
+  }
+}
+
+function nueva(){
+  document.getElementById('f-nombre').value='';
+  document.getElementById('f-dni').value='';
+  document.getElementById('f-sector').value='';
+  document.getElementById('f-motivo').value='';
+  document.getElementById('f-destino').value='';
+  document.getElementById('f-desde').value='';
+  document.getElementById('f-hasta').value='';
+  document.getElementById('f-obs').value='';
+  document.getElementById('destino-row').classList.remove('show');
+  document.getElementById('form-card').style.display='';
+  document.getElementById('success-card').classList.remove('show');
+  document.getElementById('btn-enviar').disabled=false;
+  document.getElementById('btn-enviar').textContent='Enviar solicitud';
+  hideErr();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>

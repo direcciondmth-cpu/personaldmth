@@ -810,6 +810,68 @@ td.mono{font-family:var(--mono);font-size:12px}
   </div>
 </div>
 
+<!-- ── MODAL FORM ORDEN DE SALIDA ─────────────────────────────────── -->
+<div class="modal-overlay hidden" id="modal-form-os">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-hdr">
+      <h3 id="form-os-titulo">Nueva Orden de Salida</h3>
+      <button class="modal-close" onclick="cerrarModal('modal-form-os')">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;gap:14px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-group">
+            <label class="form-label">DNI *</label>
+            <input class="form-input" id="fos-dni" type="text" placeholder="Sin puntos" oninput="buscarAgenteOS()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Sector *</label>
+            <input class="form-input" id="fos-sector" type="text" placeholder="Sector">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Apellido y Nombre *</label>
+          <input class="form-input" id="fos-nombre" type="text" placeholder="APELLIDO Nombre">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Motivo *</label>
+          <select class="form-input" id="fos-motivo" onchange="toggleDestinoOS()">
+            <option value="">— Seleccioná —</option>
+            <option value="PARTICULAR (1 HORA SEMANAL)">PARTICULAR (1 HORA SEMANAL)</option>
+            <option value="OFICIAL (COMISIÓN DE ENTRADA / SALIDA)">OFICIAL – COMISIÓN ENTRADA/SALIDA</option>
+            <option value="OFICIAL (SALIDA OFICIAL SIN MARCAR SALIDA)">OFICIAL – SIN MARCAR SALIDA</option>
+            <option value="OFICIAL (COMISIÓN DE SERVICIO)">OFICIAL – COMISIÓN DE SERVICIO</option>
+            <option value="OFICIAL (SALIDA GREMIAL)">OFICIAL – SALIDA GREMIAL</option>
+          </select>
+        </div>
+        <div class="form-group" id="fos-destino-wrap" style="display:none">
+          <label class="form-label">Destino</label>
+          <input class="form-input" id="fos-destino" type="text" placeholder="Destino de la comisión">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-group">
+            <label class="form-label">Desde *</label>
+            <input class="form-input" id="fos-desde" type="time">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Hasta</label>
+            <input class="form-input" id="fos-hasta" type="time">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Observaciones</label>
+          <textarea class="form-input" id="fos-obs" rows="2" placeholder="Opcional"></textarea>
+        </div>
+        <div id="fos-err" class="login-err"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="tbtn primary" onclick="guardarOS()">Guardar</button>
+      <button class="tbtn" onclick="cerrarModal('modal-form-os')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── MODAL OLVIDÉ CONTRASEÑA ─────────────────────────────────────── -->
 <div class="modal-overlay hidden" id="modal-olvide">
   <div class="modal" style="max-width:420px">
@@ -834,6 +896,59 @@ td.mono{font-family:var(--mono);font-size:12px}
     </div>
     <div class="modal-ftr">
       <button class="tbtn primary" onclick="cerrarModal('modal-olvide')">Entendido</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL REGISTRAR DOCUMENTO ──────────────────────────────────── -->
+<div class="modal-overlay hidden" id="modal-reg-doc">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-hdr">
+      <h3 id="rd-tipo-nombre">Documento</h3>
+      <button class="modal-close" onclick="cerrarModal('modal-reg-doc')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="rd-tipo-id">
+      <div class="form-row">
+        <label class="form-label">Estado</label>
+        <select id="rd-estado" class="form-input">
+          <option value="vigente">Vigente</option>
+          <option value="pendiente">Pendiente de verificación</option>
+          <option value="vencido">Vencido</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Fecha de vencimiento</label>
+        <input type="date" id="rd-vto" class="form-input">
+      </div>
+      <div class="form-row">
+        <label class="form-label">Observaciones</label>
+        <input type="text" id="rd-obs" class="form-input" placeholder="Opcional">
+      </div>
+    </div>
+    <div class="modal-ftr">
+      <button class="tbtn" onclick="cerrarModal('modal-reg-doc')">Cancelar</button>
+      <button class="tbtn primary btn-primary" onclick="guardarRegDoc()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL GESTIONAR TIPOS DE DOCUMENTO ─────────────────────────── -->
+<div class="modal-overlay hidden" id="modal-gestion-doc-tipos">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-hdr">
+      <h3>Tipos de documento</h3>
+      <button class="modal-close" onclick="cerrarModal('modal-gestion-doc-tipos')">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="gdt-lista" style="margin-bottom:16px"></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="text" id="gdt-nuevo" class="form-input" placeholder="Nuevo tipo…" style="flex:1" onkeydown="if(event.key==='Enter')agregarDocTipo()">
+        <button class="tbtn primary" id="gdt-btn-agregar" onclick="agregarDocTipo()">Agregar</button>
+      </div>
+    </div>
+    <div class="modal-ftr">
+      <button class="tbtn primary" onclick="cerrarModal('modal-gestion-doc-tipos');if(agenteActual)cargarDocsAgente(agenteActual.id_agente)">Listo</button>
     </div>
   </div>
 </div>
@@ -902,6 +1017,8 @@ function setupUI(){
   const canWrite=['user','admin','superadmin'].includes(ME.rol);
   if(isAdmin){
     document.getElementById('btn-nuevo-agente').style.display='';
+  }
+  if(canWrite){
     if(document.getElementById('btn-nueva-os')) document.getElementById('btn-nueva-os').style.display='';
     if(document.getElementById('btn-nueva-ot')) document.getElementById('btn-nueva-ot').style.display='';
   }
@@ -980,6 +1097,7 @@ function switchTab(tabId,btn){
     const el=document.getElementById(id);
     if(el)el.style.display=(id===tabId)?'':'none';
   });
+  if(tabId==='tab-docs'&&agenteActual) cargarDocsAgente(agenteActual.id_agente);
 }
 
 // ── STATS ──────────────────────────────────────────────────────────
@@ -1115,7 +1233,7 @@ async function verAgente(id){
     <div style="padding:16px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
         <span style="font-size:13px;font-weight:600;color:var(--txt)">Documentos del agente</span>
-        ${isAdmin?`<button class="tbtn primary" style="font-size:11px" onclick="registrarDoc()">+ Registrar documento</button>`:''}
+        <span style="font-size:11px;color:var(--txt3)">${['user','admin','superadmin'].includes(ME?.rol)?'Hacé clic en un documento para actualizar su estado':''}</span>
       </div>
       <div id="docs-lista">
         ${buildDocsHTML(a)}
@@ -1136,24 +1254,115 @@ async function verAgente(id){
 }
 
 function buildDocsHTML(a){
-  const docs=[
-    {nombre:'DNI',estado:a.dni?'ok':'vence',vto:''},
-    {nombre:'Libreta sanitaria',estado:'vence',vto:'Verificar'},
-    {nombre:'Carnet de conducir',estado:'vence',vto:'Verificar'},
-  ];
-  return docs.map(d=>`
-    <div class="doc-item">
+  return `<div id="docs-contenido" style="min-height:60px"><p style="color:var(--txt3);font-size:13px">Cargando documentos…</p></div>`;
+}
+
+async function cargarDocsAgente(agenteId){
+  const el=document.getElementById('docs-contenido');
+  if(!el)return;
+  const r=await api('getDocsAgente',{agente_id:agenteId});
+  if(!r.ok){el.innerHTML='<p style="color:var(--txt3);font-size:13px">No se pudieron cargar los documentos.</p>';return;}
+  const {docs,tipos}=r;
+  // build map tipo_id -> doc
+  const docMap={};
+  for(const d of docs) docMap[d.tipo_id]=d;
+  const isW=['user','admin','superadmin'].includes(ME?.rol);
+  const estadoLabel={vigente:'Vigente',vencido:'Vencido',pendiente:'Verificar'};
+  const estadoClass={vigente:'ok',vencido:'vence',pendiente:'vence'};
+  let html=tipos.map(t=>{
+    const d=docMap[t.id];
+    const est=d?.estado||'pendiente';
+    const cls=estadoClass[est]||'vence';
+    const lbl=estadoLabel[est]||est;
+    const vto=d?.fecha_vto?`Vto: ${d.fecha_vto}`:d?'Sin vencimiento':'Sin registrar';
+    const clickAttr=isW?`style="cursor:pointer" onclick="abrirRegDoc('${xe(t.id)}','${xe(t.nombre)}','${xe(d?.estado||'pendiente')}','${xe(d?.fecha_vto||'')}','${xe(d?.observaciones||'')}')"`:'' ;
+    return `<div class="doc-item" ${clickAttr}>
       <div class="doc-icon">DOC</div>
       <div class="doc-info">
-        <div class="doc-nombre">${xe(d.nombre)}</div>
-        <div class="doc-meta">${d.vto||'—'}</div>
+        <div class="doc-nombre">${xe(t.nombre)}</div>
+        <div class="doc-meta">${vto}</div>
       </div>
-      <span class="doc-estado ${d.estado}">${d.estado==='ok'?'Vigente':d.estado==='vence'?'Verificar':'Vencido'}</span>
-    </div>`).join('');
+      <span class="doc-estado ${cls}">${lbl}</span>
+    </div>`;
+  }).join('');
+  if(!tipos.length) html='<p style="color:var(--txt3);font-size:13px">No hay tipos de documento configurados.</p>';
+  // botón gestionar tipos (solo admin)
+  const isA=['admin','superadmin'].includes(ME?.rol);
+  const btnGestionar=isA?`<button class="tbtn" style="font-size:11px;margin-top:10px" onclick="abrirGestionDocTipos()">⚙ Gestionar tipos</button>`:'';
+  el.innerHTML=html+btnGestionar;
+}
+
+// ─── REGISTRAR DOCUMENTO ──────────────────────────────────────────
+function abrirRegDoc(tipo_id,tipo_nombre,estado,fecha_vto,observaciones){
+  if(!agenteActual)return;
+  document.getElementById('rd-tipo-nombre').textContent=tipo_nombre;
+  document.getElementById('rd-tipo-id').value=tipo_id;
+  document.getElementById('rd-estado').value=estado||'pendiente';
+  document.getElementById('rd-vto').value=fecha_vto||'';
+  document.getElementById('rd-obs').value=observaciones||'';
+  abrirModal('modal-reg-doc');
+}
+
+async function guardarRegDoc(){
+  if(!agenteActual)return;
+  const tipo_id=document.getElementById('rd-tipo-id').value;
+  const estado=document.getElementById('rd-estado').value;
+  const fecha_vto=document.getElementById('rd-vto').value;
+  const observaciones=document.getElementById('rd-obs').value;
+  const btn=document.querySelector('#modal-reg-doc .modal-footer .btn-primary');
+  if(btn){btn.disabled=true;btn.textContent='Guardando…';}
+  const r=await api('upsertDocAgente',{agente_id:agenteActual.id_agente,tipo_id,estado,fecha_vto,observaciones});
+  if(btn){btn.disabled=false;btn.textContent='Guardar';}
+  if(!r.ok){toast(r.error||'Error al guardar','error');return;}
+  toast('Documento actualizado','ok');
+  cerrarModal('modal-reg-doc');
+  cargarDocsAgente(agenteActual.id_agente);
 }
 
 function registrarDoc(){
-  toast('Control de documentación en desarrollo','info');
+  if(!agenteActual)return;
+  // click en cualquier doc item abre el modal; este botón del header ya no se usa
+  // pero si no hay docs aún, abrimos el primero disponible
+  const el=document.getElementById('docs-contenido');
+  const first=el&&el.querySelector('.doc-item');
+  if(first) first.click();
+}
+
+// ─── GESTIONAR TIPOS DE DOCUMENTO ────────────────────────────────
+async function abrirGestionDocTipos(){
+  const r=await api('getDocTipos',{});
+  if(!r.ok){toast('Error cargando tipos','error');return;}
+  const lista=r.tipos.map(t=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:13px">${xe(t.nombre)}</span>
+      <button class="tbtn" style="font-size:11px;color:var(--red)" onclick="eliminarDocTipo('${xe(t.id)}',this)">Eliminar</button>
+    </div>`).join('');
+  document.getElementById('gdt-lista').innerHTML=lista||'<p style="color:var(--txt3);font-size:13px">Sin tipos.</p>';
+  document.getElementById('gdt-nuevo').value='';
+  abrirModal('modal-gestion-doc-tipos');
+}
+
+async function eliminarDocTipo(id,btn){
+  btn.disabled=true;
+  const r=await api('deleteDocTipo',{id});
+  if(!r.ok){toast('Error','error');btn.disabled=false;return;}
+  btn.closest('div').remove();
+  toast('Tipo eliminado','ok');
+}
+
+async function agregarDocTipo(){
+  const inp=document.getElementById('gdt-nuevo');
+  const nombre=inp.value.trim();
+  if(!nombre)return;
+  const btn=document.getElementById('gdt-btn-agregar');
+  btn.disabled=true;
+  const r=await api('addDocTipo',{nombre});
+  btn.disabled=false;
+  if(!r.ok){toast(r.error||'Error','error');return;}
+  inp.value='';
+  // reload lista
+  abrirGestionDocTipos();
+  toast('Tipo agregado','ok');
 }
 
 async function cargarOrdenesAgente(dni){
@@ -1366,6 +1575,64 @@ async function buscarReporte(){
         <div style="font-size:11px;color:var(--txt3);margin-top:2px">DNI ${xe(a.dni)} · CUIL ${xe(a.cuil)} · ${xe(a.establecimiento)}</div>
       </div>`).join('')}
   </div>`;
+}
+
+// ── ÓRDENES DE SALIDA — FORMULARIO ───────────────────────────────
+let osDebounceAgt;
+function buscarAgenteOS(){
+  clearTimeout(osDebounceAgt);
+  const dni=document.getElementById('fos-dni').value.replace(/\D/g,'');
+  if(dni.length<7)return;
+  osDebounceAgt=setTimeout(async()=>{
+    const r=await api('buscarAgentes',{q:dni,limit:1,offset:0});
+    if(r.ok&&r.agentes.length){
+      const a=r.agentes[0];
+      if(!document.getElementById('fos-nombre').value)
+        document.getElementById('fos-nombre').value=a.apellido_nombre||'';
+      if(!document.getElementById('fos-sector').value)
+        document.getElementById('fos-sector').value=a.sector||'';
+    }
+  },400);
+}
+
+function toggleDestinoOS(){
+  const v=document.getElementById('fos-motivo').value;
+  const show=v.startsWith('OFICIAL');
+  document.getElementById('fos-destino-wrap').style.display=show?'':'none';
+}
+
+function abrirFormOS(){
+  ['fos-dni','fos-nombre','fos-sector','fos-destino','fos-desde','fos-hasta','fos-obs'].forEach(id=>{
+    document.getElementById(id).value='';
+  });
+  document.getElementById('fos-motivo').value='';
+  document.getElementById('fos-destino-wrap').style.display='none';
+  document.getElementById('fos-err').classList.remove('show');
+  document.getElementById('fos-err').textContent='';
+  abrirModal('modal-form-os');
+}
+
+async function guardarOS(){
+  const dni=document.getElementById('fos-dni').value.replace(/\D/g,'').trim();
+  const nombre=document.getElementById('fos-nombre').value.trim();
+  const sector=document.getElementById('fos-sector').value.trim();
+  const motivo=document.getElementById('fos-motivo').value;
+  const desde=document.getElementById('fos-desde').value;
+  const errEl=document.getElementById('fos-err');
+  errEl.classList.remove('show');
+  if(!dni||!nombre||!sector||!motivo||!desde){
+    errEl.textContent='Completá los campos obligatorios (*)';errEl.classList.add('show');return;
+  }
+  const r=await api('crearOrdenSalida',{
+    dni,apellido_nombre:nombre.toUpperCase(),sector:sector.toUpperCase(),motivo,
+    destino:document.getElementById('fos-destino').value.trim(),
+    hora_salida:desde,hora_retorno:document.getElementById('fos-hasta').value,
+    observaciones:document.getElementById('fos-obs').value.trim()
+  });
+  if(!r.ok){errEl.textContent=r.error;errEl.classList.add('show');return;}
+  cerrarModal('modal-form-os');
+  toast(`Orden ${r.numero_orden} creada`);
+  loadOS(0);
 }
 
 // ── LOGS ──────────────────────────────────────────────────────────

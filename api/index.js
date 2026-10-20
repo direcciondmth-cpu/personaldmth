@@ -420,6 +420,119 @@ module.exports = async function handler(req, res) {
       return ok(res, { ordenes: rows, total: parseInt(total[0].n) });
     }
 
+    // ─ CREAR ORDEN DE SALIDA (interna, requiere auth) ─────────────
+    if (action === 'crearOrdenSalida') {
+      const auth = requireAuth(req, 'user');
+      if (!auth) return err(res, 'No autorizado', 401);
+
+      const { dni, apellido_nombre, sector, motivo, destino, hora_salida, hora_retorno, observaciones, vehiculo } = body;
+      if (!dni || !apellido_nombre || !sector || !motivo || !hora_salida)
+        return err(res, 'Faltan campos requeridos');
+
+      const id = genId('os');
+      const numero = 'OS-' + Date.now().toString(36).toUpperCase();
+      const fecha = new Date().toISOString().slice(0, 10);
+      const tipo = motivo.startsWith('PARTICULAR') ? 'PARTICULAR' : 'OFICIAL';
+
+      await sql`
+        INSERT INTO ordenes_salida
+          (id, numero_orden, fecha, hora_salida, hora_retorno, dni, apellido_nombre,
+           sector, destino, motivo, vehiculo, tipo, autorizado_por, observaciones, activo, usuario_carga)
+        VALUES
+          (${id}, ${numero}, ${fecha}, ${hora_salida}, ${hora_retorno||''}, ${dni}, ${apellido_nombre},
+           ${sector}, ${destino||''}, ${motivo}, ${vehiculo||''}, ${tipo}, ${auth.u}, ${observaciones||''}, 'SI', ${auth.u})
+      `;
+      await log(sql, auth.u, 'CREAR_OS', 'ordenes_salida', id, `${apellido_nombre} – ${motivo}`);
+      return ok(res, { id, numero_orden: numero, mensaje: 'Orden creada' });
+    }
+
+    // ─ CREAR ORDEN DE SALIDA (pública, sin auth) ──────────────────
+    if (action === 'crearOrdenSalidaPublica') {
+      const { dni, apellido_nombre, sector, motivo, destino, hora_salida, hora_retorno, observaciones } = body;
+      if (!dni || !apellido_nombre || !sector || !motivo || !hora_salida)
+        return err(res, 'Faltan campos requeridos');
+
+      // Limitar: max 5 envíos por DNI por día (anti-spam básico)
+      const hoy = new Date().toISOString().slice(0, 10);
+      const prev = await sql`SELECT COUNT(*) as n FROM ordenes_salida WHERE dni=${dni} AND fecha=${hoy}`;
+      if (parseInt(prev[0].n) >= 5) return err(res, 'Límite de envíos diarios alcanzado para este DNI', 429);
+
+      const id = genId('os');
+      const numero = 'OS-' + Date.now().toString(36).toUpperCase();
+      const tipo = motivo.startsWith('PARTICULAR') ? 'PARTICULAR' : 'OFICIAL';
+
+      await sql`
+        INSERT INTO ordenes_salida
+          (id, numero_orden, fecha, hora_salida, hora_retorno, dni, apellido_nombre,
+           sector, destino, motivo, vehiculo, tipo, autorizado_por, observaciones, activo, usuario_carga)
+        VALUES
+          (${id}, ${numero}, ${hoy}, ${hora_salida}, ${hora_retorno||''}, ${dni}, ${apellido_nombre},
+           ${sector}, ${destino||''}, ${motivo}, '', ${tipo}, 'web_publica', ${observaciones||''}, 'SI', 'web_publica')
+      `;
+      return ok(res, { id, numero_orden: numero, mensaje: 'Solicitud enviada. Presentate al inspector para la firma.' });
+    }
+
+    // ─ DOC TIPOS ─────────────────────────────────────────────────
+    if (action === 'getDocTipos') {
+      const auth = requireAuth(req, 'read');
+      if (!auth) return err(res, 'No autorizado', 401);
+      const rows = await sql`SELECT * FROM doc_tipos WHERE activo='SI' ORDER BY orden, nombre`;
+      return ok(res, { tipos: rows });
+    }
+
+    if (action === 'addDocTipo') {
+      const auth = requireAuth(req, 'admin');
+      if (!auth) return err(res, 'No autorizado', 401);
+      const { nombre } = body;
+      if (!nombre) return err(res, 'Falta nombre');
+      const id = genId('dt');
+      await sql`INSERT INTO doc_tipos (id, nombre, orden) VALUES (${id}, ${nombre.trim()}, 99)`;
+      await log(sql, auth.u, 'ADD_DOC_TIPO', 'doc_tipos', id, nombre);
+      return ok(res, { id, nombre });
+    }
+
+    if (action === 'deleteDocTipo') {
+      const auth = requireAuth(req, 'admin');
+      if (!auth) return err(res, 'No autorizado', 401);
+      const { id } = body;
+      if (!id) return err(res, 'Falta id');
+      await sql`UPDATE doc_tipos SET activo='NO' WHERE id=${id}`;
+      return ok(res, { ok: true });
+    }
+
+    if (action === 'getDocsAgente') {
+      const auth = requireAuth(req, 'read');
+      if (!auth) return err(res, 'No autorizado', 401);
+      const agente_id = body.agente_id || query.agente_id;
+      if (!agente_id) return err(res, 'Falta agente_id');
+      const docs = await sql`
+        SELECT ad.*, dt.nombre as tipo_nombre
+        FROM agente_documentos ad
+        JOIN doc_tipos dt ON dt.id = ad.tipo_id
+        WHERE ad.agente_id = ${agente_id} AND ad.activo = 'SI'
+        ORDER BY dt.orden, dt.nombre`;
+      const tipos = await sql`SELECT * FROM doc_tipos WHERE activo='SI' ORDER BY orden, nombre`;
+      return ok(res, { docs, tipos });
+    }
+
+    if (action === 'upsertDocAgente') {
+      const auth = requireAuth(req, 'user');
+      if (!auth) return err(res, 'No autorizado', 401);
+      const { agente_id, tipo_id, estado, fecha_vto, observaciones } = body;
+      if (!agente_id || !tipo_id) return err(res, 'Faltan campos');
+      const existing = await sql`SELECT id FROM agente_documentos WHERE agente_id=${agente_id} AND tipo_id=${tipo_id} AND activo='SI'`;
+      if (existing.length) {
+        await sql`UPDATE agente_documentos SET estado=${estado||'pendiente'}, fecha_vto=${fecha_vto||''}, observaciones=${observaciones||''}, fecha_carga=NOW(), usuario_carga=${auth.u} WHERE id=${existing[0].id}`;
+        await log(sql, auth.u, 'UPDATE_DOC', 'agente_documentos', existing[0].id, tipo_id);
+        return ok(res, { id: existing[0].id });
+      } else {
+        const id = genId('adoc');
+        await sql`INSERT INTO agente_documentos (id, agente_id, tipo_id, estado, fecha_vto, observaciones, usuario_carga) VALUES (${id}, ${agente_id}, ${tipo_id}, ${estado||'pendiente'}, ${fecha_vto||''}, ${observaciones||''}, ${auth.u})`;
+        await log(sql, auth.u, 'ADD_DOC', 'agente_documentos', id, tipo_id);
+        return ok(res, { id });
+      }
+    }
+
     // ─ ORDENES DE TRABAJO ─────────────────────────────────────────
     if (action === 'getOrdenesTrabajo') {
       const auth = requireAuth(req, 'read');
