@@ -90,6 +90,8 @@ input,select,textarea{font-family:var(--fn)}
 /* ─── TARJETAS STAT ──────────────────────────────────────────────── */
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:24px}
 .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;}
+.stat-card[onclick]{cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.stat-card[onclick]:hover{border-color:var(--blue-m);box-shadow:0 2px 8px rgba(27,94,166,.12)}
 .stat-label{font-size:11px;font-weight:600;color:var(--txt3);letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px}
 .stat-val{font-size:28px;font-weight:700;color:var(--txt);font-family:var(--mono);line-height:1}
 .stat-sub{font-size:11px;color:var(--txt3);margin-top:4px}
@@ -369,11 +371,11 @@ td.mono{font-family:var(--mono);font-size:12px}
     <!-- ─── DASHBOARD ──────────────────────────────────────────── -->
     <div class="section active" id="s-dashboard">
       <div class="stats-grid" id="stats-grid">
-        <div class="stat-card"><div class="stat-label">Agentes activos</div><div class="stat-val" id="st-activos">-</div><div class="stat-sub">en nómina</div></div>
-        <div class="stat-card"><div class="stat-label">Bajas</div><div class="stat-val" id="st-bajas">-</div><div class="stat-sub">dados de baja</div></div>
+        <div class="stat-card" onclick="goTo('personal',document.querySelector('[data-section=personal]'))"><div class="stat-label">Agentes activos</div><div class="stat-val" id="st-activos">-</div><div class="stat-sub">en nómina</div></div>
+        <div class="stat-card" onclick="goTo('personal',document.querySelector('[data-section=personal]'))"><div class="stat-label">Bajas</div><div class="stat-val" id="st-bajas">-</div><div class="stat-sub">dados de baja</div></div>
         <div class="stat-card"><div class="stat-label">Establecimientos</div><div class="stat-val" id="st-estab">-</div><div class="stat-sub">distintos</div></div>
         <div class="stat-card"><div class="stat-label">Sectores</div><div class="stat-val" id="st-sectores">-</div><div class="stat-sub">distintos</div></div>
-        <div class="stat-card"><div class="stat-label">Órdenes Salida</div><div class="stat-val" id="st-os">-</div><div class="stat-sub">registradas</div></div>
+        <div class="stat-card" onclick="goTo('ordenes-salida',document.querySelector('[data-section=ordenes-salida]'))"><div class="stat-label">Órdenes Salida</div><div class="stat-val" id="st-os">-</div><div class="stat-sub">registradas</div></div>
       </div>
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;color:var(--txt3);font-size:13px;line-height:1.7">
         <strong style="color:var(--txt);font-size:14px">Bienvenido a Personal DMTH</strong><br>
