@@ -195,6 +195,7 @@ td.mono{font-family:var(--mono);font-size:12px}
 .pill-btn:hover{border-color:var(--blue-m);color:var(--blue)}
 .pill-btn.active{background:var(--blue);border-color:var(--blue);color:#fff}
 .pill-btn.tardanza.active{background:var(--amber);border-color:var(--amber);color:#fff}
+.pill-btn.ausente.active{background:var(--red);border-color:var(--red);color:#fff}
 .reporte-section{margin-bottom:20px}
 .reporte-section h4{font-size:13px;font-weight:700;color:var(--txt);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
 .reporte-row{display:flex;align-items:center;padding:8px 12px;border-radius:var(--r2);margin-bottom:4px;font-size:13px;background:var(--surface)}
@@ -523,11 +524,12 @@ td.mono{font-family:var(--mono);font-size:12px}
               <svg viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 10.5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
               <input type="text" id="search-asist" placeholder="Buscar agente..." oninput="filtrarAsistencias()">
             </div>
-            <input type="date" id="asist-fecha" style="padding:7px 10px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px" onchange="cargarAsistencias()">
+            <input type="date" id="asist-fecha" style="padding:7px 10px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px" onchange="cambiarFechaAsist()">
             <div id="asist-filtros" style="display:flex;gap:6px">
               <button class="pill-btn active" data-estado="" onclick="setPillFiltro(this,'')">Todos</button>
               <button class="pill-btn" data-estado="PRESENTE" onclick="setPillFiltro(this,'PRESENTE')">Presentes</button>
               <button class="pill-btn tardanza" data-estado="TARDANZA" onclick="setPillFiltro(this,'TARDANZA')">Tardanzas</button>
+              <button class="pill-btn ausente" data-estado="AUSENTE" onclick="setPillFiltro(this,'AUSENTE')">Ausentes</button>
             </div>
             <button class="tbtn" onclick="exportTableCSV('table-asist','asistencias')">
               <svg viewBox="0 0 16 16" fill="none" width="13" height="13"><path d="M8 2v8M5 7l3 3 3-3M3 13h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> CSV
@@ -548,16 +550,6 @@ td.mono{font-family:var(--mono);font-size:12px}
               <button class="pag-btn" id="pag-asist-prev" onclick="cargarAsistencias(asistOffset-200)" disabled>←</button>
               <button class="pag-btn" id="pag-asist-next" onclick="cargarAsistencias(asistOffset+200)" disabled>→</button>
             </div>
-          </div>
-        </div>
-        <!-- Ausentes -->
-        <div id="asist-ausentes-wrap" style="display:none">
-          <h3 style="font-size:14px;font-weight:700;color:var(--txt);margin-bottom:10px">Ausentes del padrón activo</h3>
-          <div style="overflow-x:auto">
-            <table id="table-ausentes">
-              <thead><tr><th>DNI</th><th>APELLIDO Y NOMBRE</th><th>ESTABLECIMIENTO</th><th>SECTOR</th><th>HORARIO</th><th>EXCEPCIÓN</th></tr></thead>
-              <tbody id="tbody-ausentes"></tbody>
-            </table>
           </div>
         </div>
       </div>
@@ -1832,30 +1824,78 @@ function switchAsistTab(tab){
 }
 
 function filtrarAsistencias(){cargarAsistencias(0);}
+function cambiarFechaAsist(){_asistTodos=[];cargarAsistencias(0);}
+
+// Datos cargados para filtrado client-side
+let _asistTodos=[];
 
 async function cargarAsistencias(offset){
-  asistOffset=Math.max(0,offset||0);
   const fecha=document.getElementById('asist-fecha').value;
-  const q=document.getElementById('search-asist').value.trim();
-  const estado=asistFiltroEstado;
+  const q=document.getElementById('search-asist').value.trim().toLowerCase();
   if(!fecha){
     document.getElementById('tbody-asist').innerHTML=`<tr><td colspan="8"><div class="empty"><p>Seleccioná una fecha para ver asistencias.</p></div></td></tr>`;
     return;
   }
-  overlay(true,'Cargando asistencias...');
-  const r=await api('getAsistencias',{fecha,q,estado,limit:200,offset:asistOffset});
-  overlay(false);
-  if(!r.ok){toast(r.error,'err');return;}
+
+  // Si no hay datos cargados para esta fecha (o es primera carga), ir al API
+  if(offset===0||!_asistTodos.length){
+    overlay(true,'Cargando asistencias...');
+    const r=await api('getAsistencias',{fecha,q:'',estado:'',limit:500,offset:0});
+    overlay(false);
+    if(!r.ok){toast(r.error,'err');return;}
+
+    // Normalizar ausentes al mismo formato de fila
+    const ausentesNorm=(r.ausentes||[]).map(a=>({
+      dni:a.dni,
+      apellido_nombre:a.apellido_nombre,
+      hora_entrada:'',
+      hora_salida:'',
+      horario_raw:a.horario_raw||'',
+      horario_esperado:a.hora_entrada||'',
+      minutos_tardanza:0,
+      servicio:a.establecimiento||a.sector||'',
+      estado:a.excepcion||'AUSENTE',
+      _ausente:true
+    }));
+
+    // Combinar y ordenar por nombre
+    _asistTodos=[...(r.asistencias||[]),...ausentesNorm]
+      .sort((a,b)=>a.apellido_nombre.localeCompare(b.apellido_nombre,'es'));
+
+    // Stats con datos completos
+    const nPresentes=_asistTodos.filter(a=>a.estado==='PRESENTE').length;
+    const nTardanzas=_asistTodos.filter(a=>a.estado==='TARDANZA').length;
+    const nAusentes=_asistTodos.filter(a=>a._ausente).length;
+    const nTotal=nPresentes+nTardanzas+nAusentes;
+    document.getElementById('asist-presentes').textContent=nPresentes+nTardanzas;
+    document.getElementById('asist-tardanzas').textContent=nTardanzas;
+    document.getElementById('asist-ausentes').textContent=nAusentes;
+    document.getElementById('asist-pct').textContent=nTotal?Math.round((nPresentes+nTardanzas)/nTotal*100)+'%':'—';
+    document.getElementById('asist-stats').style.display='';
+  }
+
+  // Filtrar client-side
+  let lista=_asistTodos;
+  if(q) lista=lista.filter(a=>a.apellido_nombre.toLowerCase().includes(q)||a.dni.includes(q));
+  if(asistFiltroEstado==='AUSENTE'){
+    lista=lista.filter(a=>a._ausente);
+  } else if(asistFiltroEstado){
+    lista=lista.filter(a=>a.estado===asistFiltroEstado);
+  }
 
   const tbody=document.getElementById('tbody-asist');
-  if(!r.asistencias.length){
-    tbody.innerHTML=`<tr><td colspan="8"><div class="empty"><p>Sin asistencias para ${fecha}. ¿Importaste el Excel del biométrico?</p></div></td></tr>`;
+  if(!lista.length){
+    const msg=_asistTodos.length?'Sin resultados para el filtro seleccionado.':'Sin asistencias para '+fecha+'. ¿Importaste el Excel del biométrico?';
+    tbody.innerHTML=`<tr><td colspan="8"><div class="empty"><p>${msg}</p></div></td></tr>`;
   } else {
-    tbody.innerHTML=r.asistencias.map(a=>{
+    const estadoStyles={
+      'TARDANZA':'background:var(--amber-l);color:var(--amber);border:1px solid var(--amber-m)',
+      'PRESENTE':'background:var(--green-l);color:var(--green);border:1px solid var(--green-m)',
+      'AUSENTE':'background:var(--red-l);color:var(--red);border:1px solid var(--red-m)'
+    };
+    tbody.innerHTML=lista.map(a=>{
       const tardanza=a.minutos_tardanza>0?`+${a.minutos_tardanza}min`:'—';
-      const estadoMap={'TARDANZA':'background:var(--amber-l);color:var(--amber);border:1px solid var(--amber-m)',
-        'PRESENTE':'background:var(--green-l);color:var(--green);border:1px solid var(--green-m)'};
-      const estadoStyle=estadoMap[a.estado]||'background:var(--blue-l);color:var(--blue);border:1px solid var(--blue-m)';
+      const estilo=estadoStyles[a.estado]||'background:var(--blue-l);color:var(--blue);border:1px solid var(--blue-m)';
       return `<tr>
         <td class="mono">${xe(a.dni)}</td>
         <td><strong>${xe(a.apellido_nombre)}</strong></td>
@@ -1864,45 +1904,14 @@ async function cargarAsistencias(offset){
         <td class="mono" style="color:var(--txt3);font-size:12px">${xe(a.horario_raw)||xe(a.horario_esperado)||'—'}</td>
         <td class="mono" style="color:var(--amber);font-size:12px">${tardanza}</td>
         <td style="font-size:12px">${xe(a.servicio)||'—'}</td>
-        <td><span style="padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;${estadoStyle}">${xe(a.estado)}</span></td>
+        <td><span style="padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;${estilo}">${xe(a.estado)}</span></td>
       </tr>`;
     }).join('');
   }
 
-  // Stats
-  const presentes=r.asistencias.filter(a=>a.estado==='PRESENTE'||a.estado==='TARDANZA').length;
-  const tardanzas=r.asistencias.filter(a=>a.estado==='TARDANZA').length;
-  const ausentes=r.ausentes?.length||0;
-  const total=presentes+ausentes;
-  document.getElementById('asist-presentes').textContent=presentes;
-  document.getElementById('asist-tardanzas').textContent=tardanzas;
-  document.getElementById('asist-ausentes').textContent=ausentes;
-  document.getElementById('asist-pct').textContent=total?Math.round(presentes/total*100)+'%':'—';
-  document.getElementById('asist-stats').style.display='';
-
-  // Ausentes
-  const aw=document.getElementById('asist-ausentes-wrap');
-  const tba=document.getElementById('tbody-ausentes');
-  if(r.ausentes?.length){
-    tba.innerHTML=r.ausentes.map(a=>{
-      const excStyle=a.excepcion?'background:var(--blue-l);color:var(--blue);border:1px solid var(--blue-m)':'';
-      return `<tr>
-        <td class="mono">${xe(a.dni)}</td>
-        <td>${xe(a.apellido_nombre)}</td>
-        <td style="font-size:12px">${xe(a.establecimiento)}</td>
-        <td style="font-size:12px">${xe(a.sector)}</td>
-        <td class="mono" style="font-size:12px;color:var(--txt3)">${xe(a.hora_entrada)||'—'}</td>
-        <td>${a.excepcion?`<span style="padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;${excStyle}">${xe(a.excepcion)}</span>`:'—'}</td>
-      </tr>`;
-    }).join('');
-    aw.style.display='';
-  } else {
-    aw.style.display='none';
-  }
-
-  document.getElementById('pag-info-asist').textContent=`${asistOffset+1}–${asistOffset+(r.asistencias.length||0)} de ${r.total}`;
-  document.getElementById('pag-asist-prev').disabled=asistOffset===0;
-  document.getElementById('pag-asist-next').disabled=(r.asistencias.length||0)<200;
+  document.getElementById('pag-info-asist').textContent=`${lista.length} registros`;
+  document.getElementById('pag-asist-prev').disabled=true;
+  document.getElementById('pag-asist-next').disabled=true;
 }
 
 function setPillFiltro(btn, estado){
@@ -1918,16 +1927,12 @@ let _asistLastData=null;
 function verReporteAsist(){
   const fecha=document.getElementById('asist-fecha').value;
   if(!fecha){toast('Seleccioná una fecha primero','err');return;}
+  if(!_asistTodos.length){toast('Cargá una fecha primero','err');return;}
 
-  // Re-fetch con filtro vacío para tener todos los registros del día
-  const _orig=asistFiltroEstado;
-  asistFiltroEstado='';
-  api('getAsistencias',{fecha,q:'',estado:'',limit:500,offset:0}).then(r=>{
-    asistFiltroEstado=_orig;
-    if(!r.ok){toast(r.error,'err');return;}
-
-    const tardanzas=(r.asistencias||[]).filter(a=>a.estado==='TARDANZA').sort((a,b)=>(b.minutos_tardanza||0)-(a.minutos_tardanza||0));
-    const ausentes=(r.ausentes||[]);
+  // Usar datos ya cargados en _asistTodos
+  Promise.resolve().then(()=>{
+    const tardanzas=_asistTodos.filter(a=>a.estado==='TARDANZA').sort((a,b)=>(b.minutos_tardanza||0)-(a.minutos_tardanza||0));
+    const ausentes=_asistTodos.filter(a=>a._ausente);
     _asistLastData={fecha,tardanzas,ausentes};
 
     let html=`<p style="color:var(--txt3);font-size:13px;margin-bottom:16px">Fecha: <strong>${fecha}</strong></p>`;
