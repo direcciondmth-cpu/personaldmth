@@ -515,6 +515,20 @@ module.exports = async function handler(req, res) {
       return ok(res, { resultados, total: resultados.length });
     }
 
+    // ─ ÓRDENES POR DNI (público, solo lectura) ────────────────────
+    if (action === 'getOrdenesPorDNI') {
+      const dni = String(body.dni || query.dni || '').replace(/\D/g, '').trim();
+      if (!dni || dni.length < 7) return err(res, 'DNI inválido');
+      const rows = await sql`
+        SELECT numero_orden, fecha, hora_salida, hora_retorno, motivo, destino, sector, apellido_nombre, tipo
+        FROM ordenes_salida
+        WHERE dni = ${dni} AND activo = 'SI'
+        ORDER BY fecha_carga DESC
+        LIMIT 20
+      `;
+      return ok(res, { ordenes: rows });
+    }
+
     // ─ DOC TIPOS ─────────────────────────────────────────────────
     if (action === 'getDocTipos') {
       const auth = requireAuth(req, 'read');

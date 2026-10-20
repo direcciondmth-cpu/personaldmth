@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+/* ── VARIABLES ─────────────────────────────────────────────────── */
 :root{
   --bg:#F5F7FA;--surface:#FFF;--border:#C7D0DE;--border2:#9FACC2;
   --blue:#1B5EA6;--blue-l:#E8F0FB;--blue-m:#BDD1F4;
@@ -18,14 +19,15 @@
   --fn:'Inter',sans-serif;--r:10px;--r2:6px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--txt);font-family:var(--fn);font-size:14px;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 16px 56px}
+
+/* ── SCREEN BASE ───────────────────────────────────────────────── */
+body{background:var(--bg);color:var(--txt);font-family:var(--fn);font-size:14px;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 16px 60px}
 
 .header{width:100%;max-width:560px;display:flex;align-items:center;gap:12px;margin-bottom:20px}
 .header svg{width:28px;height:32px;flex-shrink:0}
 .header-text h1{font-size:16px;font-weight:700;color:var(--blue)}
 .header-text p{font-size:11px;color:var(--txt3);margin-top:1px}
 
-/* MODO TABS */
 .mode-tabs{display:flex;gap:8px;width:100%;max-width:560px;margin-bottom:16px}
 .mode-tab{flex:1;padding:10px;border:1.5px solid var(--border);border-radius:var(--r2);background:var(--surface);font-size:13px;font-weight:500;color:var(--txt2);cursor:pointer;transition:all .15s;text-align:center}
 .mode-tab.active{border-color:var(--blue);background:var(--blue-l);color:var(--blue);font-weight:600}
@@ -44,55 +46,123 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fn);font-size:14px;
 .field input[readonly]{background:var(--bg);color:var(--txt2)}
 .field textarea{resize:vertical;min-height:60px}
 .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.field-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
 
 /* DNI LOOKUP */
 .dni-wrap{position:relative}
 .dni-spinner{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;display:none}
 .dni-spinner.show{display:block}
 @keyframes spin{to{transform:translateY(-50%) rotate(360deg)}}
-.dni-found{font-size:11px;margin-top:4px;color:var(--green);display:none}
-.dni-found.show{display:block}
-.dni-notfound{font-size:11px;margin-top:4px;color:var(--amber);display:none}
-.dni-notfound.show{display:block}
+.dni-tag{font-size:11px;margin-top:4px;display:none}
+.dni-tag.show{display:block}
+.dni-tag.found{color:var(--green)}
+.dni-tag.notfound{color:var(--amber)}
 
-/* CUADRILLA LIST */
-.cuad-list{margin-bottom:14px}
+/* CUADRILLA */
+.cuad-list{margin-bottom:10px}
 .cuad-item{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r2);margin-bottom:6px}
 .cuad-item-info{flex:1;min-width:0}
 .cuad-item-nombre{font-size:12px;font-weight:600;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cuad-item-sector{font-size:11px;color:var(--txt3)}
 .cuad-item-del{border:none;background:none;color:var(--txt3);cursor:pointer;font-size:16px;padding:2px 4px;border-radius:4px;line-height:1}
 .cuad-item-del:hover{background:var(--red-l);color:var(--red)}
-.cuad-add{display:flex;gap:8px;align-items:flex-end;margin-bottom:14px}
-.cuad-add .field{flex:1;margin-bottom:0}
-.cuad-add-btn{padding:9px 14px;background:var(--blue);color:#fff;border:none;border-radius:var(--r2);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:var(--fn)}
+.cuad-add-btn{padding:9px 14px;background:var(--blue);color:#fff;border:none;border-radius:var(--r2);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:var(--fn)}
 .cuad-add-btn:hover{background:#164f8f}
-.cuad-empty{font-size:12px;color:var(--txt3);text-align:center;padding:16px 0;border:1.5px dashed var(--border);border-radius:var(--r2);margin-bottom:14px}
+.cuad-empty{font-size:12px;color:var(--txt3);text-align:center;padding:14px;border:1.5px dashed var(--border);border-radius:var(--r2);margin-bottom:12px}
 
 /* BUTTONS */
 .btn{width:100%;padding:12px;border:none;border-radius:var(--r2);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--fn);transition:background .15s;margin-top:4px}
 .btn-primary{background:var(--blue);color:#fff}
 .btn-primary:hover{background:#164f8f}
 .btn-primary:disabled{background:#8AAFD4;cursor:not-allowed}
+.btn-outline{background:var(--surface);color:var(--blue);border:1.5px solid var(--blue)}
+.btn-outline:hover{background:var(--blue-l)}
 
 .err-msg{background:var(--red-l);color:var(--red);border:1px solid var(--red-m);border-radius:var(--r2);padding:9px 12px;font-size:13px;margin-bottom:12px;display:none}
 .err-msg.show{display:block}
 
-/* SUCCESS */
+/* SUCCESS SCREEN */
 .success-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;width:100%;max-width:560px;text-align:center;display:none;box-shadow:0 2px 8px rgba(26,35,50,.06)}
 .success-card.show{display:block}
 .success-icon{width:52px;height:52px;background:var(--green-l);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
-.success-num{font-size:20px;font-weight:700;color:var(--green);letter-spacing:.02em;margin-bottom:6px}
+.success-num{font-size:22px;font-weight:700;color:var(--green);letter-spacing:.02em;margin-bottom:4px}
 .success-list{text-align:left;margin:12px 0;border-collapse:collapse;width:100%}
 .success-list td,.success-list th{padding:6px 10px;font-size:12px;border-bottom:1px solid var(--border)}
 .success-list th{font-weight:600;color:var(--txt2);background:var(--bg)}
 .success-alert{background:var(--amber-l);border:1px solid var(--amber-m);border-radius:var(--r2);padding:11px 12px;font-size:12px;color:var(--txt2);line-height:1.5;margin-top:14px;text-align:left}
+.success-btns{display:flex;gap:10px;margin-top:14px}
+.success-btns .btn{margin-top:0}
+
+/* HISTORIAL */
+.hist-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;width:100%;max-width:560px;margin-top:14px;display:none}
+.hist-card.show{display:block}
+.hist-title{font-size:13px;font-weight:600;color:var(--txt);margin-bottom:12px}
+.hist-table{width:100%;border-collapse:collapse;font-size:12px}
+.hist-table th{padding:6px 10px;font-weight:600;color:var(--txt2);background:var(--bg);border-bottom:1px solid var(--border);text-align:left}
+.hist-table td{padding:7px 10px;border-bottom:1px solid var(--border);color:var(--txt)}
+.hist-table tr:last-child td{border-bottom:none}
+.hist-badge{display:inline-block;padding:2px 7px;border-radius:99px;font-size:10px;font-weight:600}
+.hist-badge.OFICIAL{background:var(--blue-l);color:var(--blue)}
+.hist-badge.PARTICULAR{background:var(--amber-l);color:var(--amber)}
+
+/* ── PRINT STYLES ──────────────────────────────────────────────── */
+@media print{
+  body{padding:0;background:#fff;display:block}
+  .header,.mode-tabs,.card,.success-card,.hist-card,.no-print{display:none!important}
+  #print-area{display:block!important}
+}
+
+#print-area{display:none}
+
+.ticket-page{
+  width:210mm;min-height:297mm;padding:0;
+  display:flex;flex-direction:column;
+  font-family:'Inter',Arial,sans-serif;
+}
+
+.ticket-half{
+  width:100%;height:148.5mm;
+  padding:12mm 14mm 10mm;
+  box-sizing:border-box;
+  display:flex;flex-direction:column;
+  position:relative;
+}
+.ticket-half:first-child{
+  border-bottom:1.5px dashed #888;
+}
+
+.tk-copy-label{
+  position:absolute;top:8mm;right:12mm;
+  font-size:8pt;font-weight:600;color:#666;letter-spacing:.08em;text-transform:uppercase;
+  border:1px solid #bbb;border-radius:3px;padding:2px 7px;
+}
+
+.tk-header{display:flex;align-items:center;gap:8pt;margin-bottom:6mm}
+.tk-logo{width:22pt;height:25pt;flex-shrink:0}
+.tk-org-name{font-size:10pt;font-weight:700;color:#1B5EA6}
+.tk-org-sub{font-size:7.5pt;color:#666;margin-top:1pt}
+
+.tk-title{font-size:14pt;font-weight:700;color:#1A2332;margin-bottom:1.5mm}
+.tk-num{font-size:11pt;font-weight:600;color:#1B5EA6;margin-bottom:4mm;letter-spacing:.03em}
+
+.tk-grid{display:grid;grid-template-columns:1fr 1fr;gap:2mm 6mm;margin-bottom:4mm}
+.tk-field{}
+.tk-field-label{font-size:7pt;font-weight:600;color:#5C6B85;text-transform:uppercase;letter-spacing:.05em}
+.tk-field-val{font-size:9pt;font-weight:600;color:#1A2332;margin-top:0.5mm}
+
+.tk-motivo-box{border:1px solid #C7D0DE;border-radius:4px;padding:2.5mm 3.5mm;margin-bottom:3mm}
+.tk-motivo-label{font-size:7pt;font-weight:600;color:#5C6B85;text-transform:uppercase;letter-spacing:.05em}
+.tk-motivo-val{font-size:9pt;font-weight:600;color:#1A2332;margin-top:0.5mm}
+
+.tk-footer{margin-top:auto;border-top:1px solid #eee;padding-top:3mm;display:flex;justify-content:space-between;align-items:flex-end}
+.tk-firma-box{width:52mm}
+.tk-firma-line{border-bottom:1px solid #888;height:8mm;margin-bottom:1.5mm}
+.tk-firma-label{font-size:7pt;color:#666;text-align:center}
+.tk-date{font-size:7.5pt;color:#666;text-align:right}
 </style>
 </head>
 <body>
 
-<div class="header">
+<div class="header no-print">
   <svg viewBox="0 0 100 110" xmlns="http://www.w3.org/2000/svg">
     <defs><clipPath id="f"><path d="M20,13 L52,13 A42.5,42.5 0 0,1 52,98 L20,98 Z"/></clipPath></defs>
     <g clip-path="url(#f)">
@@ -107,7 +177,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fn);font-size:14px;
   </div>
 </div>
 
-<div class="mode-tabs">
+<div class="mode-tabs no-print">
   <button class="mode-tab active" id="tab-individual" onclick="setMode('individual')">👤 Salida individual</button>
   <button class="mode-tab" id="tab-cuadrilla" onclick="setMode('cuadrilla')">👥 Salida de cuadrilla</button>
 </div>
@@ -124,15 +194,14 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fn);font-size:14px;
       <input type="text" id="ind-dni" inputmode="numeric" maxlength="12" placeholder="Sin puntos" autocomplete="off" oninput="lookupDNI(this.value,'ind')">
       <div class="dni-spinner" id="ind-spinner"></div>
     </div>
-    <div class="dni-found" id="ind-found">✓ Agente encontrado</div>
-    <div class="dni-notfound" id="ind-notfound">No se encontró el DNI en el padrón — completá los datos manualmente.</div>
+    <div class="dni-tag found" id="ind-found">✓ Agente encontrado</div>
+    <div class="dni-tag notfound" id="ind-notfound">No se encontró el DNI — completá los datos manualmente.</div>
   </div>
 
   <div class="field">
     <label>Apellido y Nombre <span class="req">*</span></label>
     <input type="text" id="ind-nombre" placeholder="Se completa automáticamente" autocomplete="off">
   </div>
-
   <div class="field">
     <label>Sector / Área <span class="req">*</span></label>
     <input type="text" id="ind-sector" placeholder="Se completa automáticamente" autocomplete="off">
@@ -149,7 +218,6 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fn);font-size:14px;
       <option value="PARTICULAR – Razones de salud">PARTICULAR – Razones de salud</option>
     </select>
   </div>
-
   <div class="field" id="ind-destino-row" style="display:none">
     <label>Destino <span class="req">*</span></label>
     <input type="text" id="ind-destino" placeholder="Lugar de destino">
@@ -177,23 +245,20 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fn);font-size:14px;
 <!-- SALIDA CUADRILLA -->
 <div class="card" id="card-cuadrilla">
   <div class="card-title">Salida de cuadrilla</div>
-  <div class="card-sub">Agregá a cada integrante por DNI, luego completá el motivo y horario para todos.</div>
+  <div class="card-sub">Agregá integrantes por DNI, luego completá el motivo y horario para todos.</div>
   <div class="err-msg" id="err-cuad"></div>
 
-  <!-- Agregar integrante -->
-  <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r2);padding:14px;margin-bottom:16px">
+  <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r2);padding:14px;margin-bottom:14px">
     <div style="font-size:12px;font-weight:600;color:var(--txt2);margin-bottom:10px">Agregar integrante</div>
-    <div class="cuad-add">
-      <div class="field">
-        <label>DNI</label>
-        <div class="dni-wrap">
-          <input type="text" id="cuad-dni-inp" inputmode="numeric" maxlength="12" placeholder="Sin puntos" autocomplete="off"
-            oninput="lookupDNI(this.value,'cuad')" onkeydown="if(event.key==='Enter'){event.preventDefault();agregarIntegrante()}">
-          <div class="dni-spinner" id="cuad-spinner"></div>
-        </div>
-        <div class="dni-found" id="cuad-found">✓ Encontrado</div>
-        <div class="dni-notfound" id="cuad-notfound">DNI no encontrado — completá manualmente.</div>
+    <div class="field">
+      <label>DNI</label>
+      <div class="dni-wrap">
+        <input type="text" id="cuad-dni-inp" inputmode="numeric" maxlength="12" placeholder="Sin puntos" autocomplete="off"
+          oninput="lookupDNI(this.value,'cuad')" onkeydown="if(event.key==='Enter'){event.preventDefault();agregarIntegrante()}">
+        <div class="dni-spinner" id="cuad-spinner"></div>
       </div>
+      <div class="dni-tag found" id="cuad-found">✓ Encontrado</div>
+      <div class="dni-tag notfound" id="cuad-notfound">DNI no encontrado — completá manualmente.</div>
     </div>
     <div class="field-row" style="margin-bottom:10px">
       <div class="field" style="margin-bottom:0">
@@ -208,17 +273,12 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fn);font-size:14px;
     <button class="cuad-add-btn" onclick="agregarIntegrante()">+ Agregar a la lista</button>
   </div>
 
-  <!-- Lista integrantes -->
-  <div id="cuad-lista-wrap">
-    <div class="cuad-empty" id="cuad-empty">Todavía no hay integrantes en la cuadrilla.</div>
-    <div id="cuad-lista" class="cuad-list"></div>
-    <div id="cuad-count" style="font-size:12px;color:var(--txt3);margin-bottom:12px;display:none"></div>
-  </div>
+  <div class="cuad-empty" id="cuad-empty">Todavía no hay integrantes.</div>
+  <div id="cuad-lista" class="cuad-list"></div>
+  <div id="cuad-count" style="font-size:12px;color:var(--txt3);margin-bottom:12px;display:none"></div>
 
-  <!-- Datos comunes -->
-  <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:2px">
+  <div style="border-top:1px solid var(--border);padding-top:14px">
     <div style="font-size:12px;font-weight:600;color:var(--txt2);margin-bottom:10px">Datos de la salida (para todos)</div>
-
     <div class="field">
       <label>Motivo <span class="req">*</span></label>
       <select id="cuad-motivo" onchange="toggleDestino('cuad')">
@@ -230,12 +290,10 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fn);font-size:14px;
         <option value="PARTICULAR – Razones de salud">PARTICULAR – Razones de salud</option>
       </select>
     </div>
-
     <div class="field" id="cuad-destino-row" style="display:none">
       <label>Destino <span class="req">*</span></label>
       <input type="text" id="cuad-destino" placeholder="Lugar de destino">
     </div>
-
     <div class="field-row">
       <div class="field">
         <label>Hora salida (desde) <span class="req">*</span></label>
@@ -246,7 +304,6 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fn);font-size:14px;
         <input type="time" id="cuad-hasta">
       </div>
     </div>
-
     <div class="field">
       <label>Observaciones</label>
       <textarea id="cuad-obs" placeholder="Opcional"></textarea>
@@ -256,85 +313,104 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fn);font-size:14px;
   <button class="btn btn-primary" id="cuad-btn" onclick="enviarCuadrilla()">Enviar cuadrilla</button>
 </div>
 
-<!-- SUCCESS -->
+<!-- SUCCESS SCREEN -->
 <div class="success-card" id="success-card">
   <div class="success-icon">
     <svg viewBox="0 0 24 24" fill="none" width="28" height="28"><path d="M5 13l4 4L19 7" stroke="#2A7D4F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
   </div>
   <div class="success-num" id="success-num"></div>
-  <div id="success-body"></div>
+  <div id="success-body" style="margin-bottom:6px"></div>
   <div class="success-alert">
     <strong>⚠ Importante:</strong> esta solicitud <strong>no autoriza</strong> la salida por sí sola.<br>
-    Presentate al inspector de guardia con el número de orden para obtener la firma.
+    Presentate al inspector de guardia con el número de orden para la firma.
   </div>
-  <button class="btn btn-primary" style="max-width:220px;margin:18px auto 0" onclick="nueva()">Nueva solicitud</button>
+  <div class="success-btns">
+    <button class="btn btn-primary" onclick="imprimirTicket()">🖨 Imprimir ticket</button>
+    <button class="btn btn-outline" onclick="nueva()">Nueva solicitud</button>
+  </div>
 </div>
+
+<!-- HISTORIAL (visible después de lookup DNI exitoso) -->
+<div class="hist-card" id="hist-card">
+  <div class="hist-title" id="hist-title">Mis últimas órdenes</div>
+  <div id="hist-body"></div>
+</div>
+
+<!-- ÁREA DE IMPRESIÓN (oculta en pantalla, visible al imprimir) -->
+<div id="print-area"></div>
 
 <script>
 'use strict';
-const API = '/api';
-let cuadrilla = []; // {dni, apellido_nombre, sector}
-let dniTimer = {};
+const API='/api';
+let cuadrilla=[];
+let dniTimer={};
+let lastOrders=[];   // órdenes para imprimir
+let lastOrderDNI=''; // DNI del último lookup exitoso
 
-function xe(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+const xe=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const fmtFecha=d=>d?d.slice(0,10).split('-').reverse().join('/'):'';
+const today=()=>new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'});
+const nowHM=()=>new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
 
+// ── MODO ────────────────────────────────────────────────────────────
 function setMode(m){
-  document.getElementById('card-individual').classList.toggle('show', m==='individual');
-  document.getElementById('card-cuadrilla').classList.toggle('show', m==='cuadrilla');
-  document.getElementById('tab-individual').classList.toggle('active', m==='individual');
-  document.getElementById('tab-cuadrilla').classList.toggle('active', m==='cuadrilla');
+  document.getElementById('card-individual').classList.toggle('show',m==='individual');
+  document.getElementById('card-cuadrilla').classList.toggle('show',m==='cuadrilla');
+  document.getElementById('tab-individual').classList.toggle('active',m==='individual');
+  document.getElementById('tab-cuadrilla').classList.toggle('active',m==='cuadrilla');
 }
 
-function toggleDestino(prefix){
-  const m=document.getElementById(prefix+'-motivo').value;
-  const row=document.getElementById(prefix+'-destino-row');
-  row.style.display=m.startsWith('OFICIAL')?'':'none';
-  if(!m.startsWith('OFICIAL')){const d=document.getElementById(prefix+'-destino');if(d)d.value='';}
+function toggleDestino(p){
+  const m=document.getElementById(p+'-motivo').value;
+  document.getElementById(p+'-destino-row').style.display=m.startsWith('OFICIAL')?'':'none';
+  if(!m.startsWith('OFICIAL')){const d=document.getElementById(p+'-destino');if(d)d.value='';}
 }
 
 // ── DNI LOOKUP ──────────────────────────────────────────────────────
-function lookupDNI(val, prefix){
+function lookupDNI(val,prefix){
   const dni=val.replace(/\D/g,'');
   clearTimeout(dniTimer[prefix]);
   hideStatus(prefix);
-  if(dni.length<7) return;
-  dniTimer[prefix]=setTimeout(()=>doLookup(dni,prefix), 500);
+  if(dni.length<7)return;
+  dniTimer[prefix]=setTimeout(()=>doLookup(dni,prefix),500);
 }
 
-function hideStatus(prefix){
-  document.getElementById(prefix+'-found').classList.remove('show');
-  document.getElementById(prefix+'-notfound').classList.remove('show');
-  document.getElementById(prefix+'-spinner').classList.remove('show');
+function hideStatus(p){
+  document.getElementById(p+'-found').classList.remove('show');
+  document.getElementById(p+'-notfound').classList.remove('show');
+  document.getElementById(p+'-spinner').classList.remove('show');
 }
 
-async function doLookup(dni, prefix){
+async function doLookup(dni,prefix){
   document.getElementById(prefix+'-spinner').classList.add('show');
   try{
     const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({action:'buscarAgentePorDNI',dni})}).then(r=>r.json());
     document.getElementById(prefix+'-spinner').classList.remove('show');
-    if(r.ok && r.encontrado){
+
+    if(r.ok&&r.encontrado){
       const a=r.agente;
       if(prefix==='ind'){
         const n=document.getElementById('ind-nombre');
         const s=document.getElementById('ind-sector');
-        if(!n.value) n.value=a.apellido_nombre||'';
-        if(!s.value) s.value=a.sector||a.establecimiento||'';
-        n.readOnly=true; s.readOnly=true;
-      } else {
-        // cuadrilla add form
-        const n=document.getElementById('cuad-nombre-inp');
-        const s=document.getElementById('cuad-sector-inp');
-        n.value=a.apellido_nombre||'';
-        s.value=a.sector||a.establecimiento||'';
-        n.readOnly=true; s.readOnly=true;
+        if(!n.value)n.value=a.apellido_nombre||'';
+        if(!s.value)s.value=a.sector||a.establecimiento||'';
+        n.readOnly=true;s.readOnly=true;
+        // cargar historial
+        lastOrderDNI=dni;
+        cargarHistorial(dni,a.apellido_nombre);
+      }else{
+        document.getElementById('cuad-nombre-inp').value=a.apellido_nombre||'';
+        document.getElementById('cuad-sector-inp').value=a.sector||a.establecimiento||'';
+        document.getElementById('cuad-nombre-inp').readOnly=true;
+        document.getElementById('cuad-sector-inp').readOnly=true;
       }
       document.getElementById(prefix+'-found').classList.add('show');
-    } else {
+    }else{
       if(prefix==='ind'){
         document.getElementById('ind-nombre').readOnly=false;
         document.getElementById('ind-sector').readOnly=false;
-      } else {
+      }else{
         document.getElementById('cuad-nombre-inp').readOnly=false;
         document.getElementById('cuad-sector-inp').readOnly=false;
       }
@@ -345,40 +421,63 @@ async function doLookup(dni, prefix){
   }
 }
 
+// ── HISTORIAL ───────────────────────────────────────────────────────
+async function cargarHistorial(dni,nombre){
+  const card=document.getElementById('hist-card');
+  const body=document.getElementById('hist-body');
+  const title=document.getElementById('hist-title');
+  card.classList.add('show');
+  title.textContent='Cargando historial…';
+  body.innerHTML='';
+  try{
+    const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'getOrdenesPorDNI',dni})}).then(r=>r.json());
+    if(!r.ok||!r.ordenes.length){
+      title.textContent='Sin órdenes anteriores';
+      body.innerHTML='<p style="font-size:12px;color:var(--txt3);padding:8px 0">No hay registros anteriores para este DNI.</p>';
+      return;
+    }
+    title.textContent=`Últimas órdenes (${nombre||dni})`;
+    body.innerHTML=`<table class="hist-table">
+      <thead><tr><th>Fecha</th><th>Hora</th><th>Motivo</th><th>N° Orden</th></tr></thead>
+      <tbody>${r.ordenes.map(o=>`
+        <tr>
+          <td>${fmtFecha(o.fecha)}</td>
+          <td>${xe(o.hora_salida||'')}${o.hora_retorno?'–'+xe(o.hora_retorno):''}</td>
+          <td><span class="hist-badge ${xe(o.tipo)}">${xe(o.tipo)}</span> ${xe(o.motivo.split('–')[1]||o.motivo).trim()}</td>
+          <td style="font-weight:600;color:var(--blue);font-size:11px">${xe(o.numero_orden)}</td>
+        </tr>`).join('')}
+      </tbody></table>`;
+  }catch(e){
+    title.textContent='Error al cargar historial';
+  }
+}
+
 // ── CUADRILLA ───────────────────────────────────────────────────────
 function agregarIntegrante(){
   const dni=document.getElementById('cuad-dni-inp').value.replace(/\D/g,'').trim();
   const nombre=document.getElementById('cuad-nombre-inp').value.trim();
   const sector=document.getElementById('cuad-sector-inp').value.trim();
   if(!dni||dni.length<7){alert('Ingresá un DNI válido.');return;}
-  if(!nombre){alert('Completá el nombre del integrante.');return;}
+  if(!nombre){alert('Completá el nombre.');return;}
   if(!sector){alert('Completá el sector.');return;}
   if(cuadrilla.find(x=>x.dni===dni)){alert('Ese DNI ya está en la lista.');return;}
-  if(cuadrilla.length>=30){alert('Máximo 30 integrantes por cuadrilla.');return;}
+  if(cuadrilla.length>=30){alert('Máximo 30 integrantes.');return;}
   cuadrilla.push({dni,apellido_nombre:nombre.toUpperCase(),sector:sector.toUpperCase()});
   renderCuadrilla();
-  // limpiar form agregar
-  document.getElementById('cuad-dni-inp').value='';
-  document.getElementById('cuad-nombre-inp').value='';
-  document.getElementById('cuad-sector-inp').value='';
-  document.getElementById('cuad-nombre-inp').readOnly=false;
-  document.getElementById('cuad-sector-inp').readOnly=false;
+  ['cuad-dni-inp','cuad-nombre-inp','cuad-sector-inp'].forEach(id=>{
+    const e=document.getElementById(id);e.value='';e.readOnly=false;
+  });
   hideStatus('cuad');
   document.getElementById('cuad-dni-inp').focus();
 }
-
-function quitarIntegrante(idx){
-  cuadrilla.splice(idx,1);
-  renderCuadrilla();
-}
-
+function quitarIntegrante(i){cuadrilla.splice(i,1);renderCuadrilla();}
 function renderCuadrilla(){
   const lista=document.getElementById('cuad-lista');
   const empty=document.getElementById('cuad-empty');
   const count=document.getElementById('cuad-count');
   if(!cuadrilla.length){empty.style.display='';lista.innerHTML='';count.style.display='none';return;}
-  empty.style.display='none';
-  count.style.display='';
+  empty.style.display='none';count.style.display='';
   count.textContent=`${cuadrilla.length} integrante${cuadrilla.length>1?'s':''} en la cuadrilla`;
   lista.innerHTML=cuadrilla.map((a,i)=>`
     <div class="cuad-item">
@@ -386,14 +485,15 @@ function renderCuadrilla(){
         <div class="cuad-item-nombre">${xe(a.apellido_nombre)}</div>
         <div class="cuad-item-sector">DNI ${xe(a.dni)} · ${xe(a.sector)}</div>
       </div>
-      <button class="cuad-item-del" onclick="quitarIntegrante(${i})" title="Quitar">×</button>
+      <button class="cuad-item-del" onclick="quitarIntegrante(${i})">×</button>
     </div>`).join('');
 }
 
-// ── ENVIAR INDIVIDUAL ───────────────────────────────────────────────
+// ── ERRORS ──────────────────────────────────────────────────────────
 function showErr(id,msg){const e=document.getElementById(id);e.textContent=msg;e.classList.add('show');e.scrollIntoView({behavior:'smooth',block:'nearest'});}
 function hideErr(id){document.getElementById(id).classList.remove('show');}
 
+// ── ENVIAR INDIVIDUAL ───────────────────────────────────────────────
 async function enviarIndividual(){
   hideErr('err-ind');
   const dni=document.getElementById('ind-dni').value.replace(/\D/g,'').trim();
@@ -404,102 +504,189 @@ async function enviarIndividual(){
   const desde=document.getElementById('ind-desde').value;
   const hasta=document.getElementById('ind-hasta').value;
   const obs=document.getElementById('ind-obs').value.trim();
-
   if(!dni||dni.length<7){showErr('err-ind','Ingresá tu DNI.');return;}
-  if(!nombre){showErr('err-ind','Ingresá tu apellido y nombre.');return;}
-  if(!sector){showErr('err-ind','Ingresá tu sector.');return;}
+  if(!nombre){showErr('err-ind','Completá tu nombre.');return;}
+  if(!sector){showErr('err-ind','Completá tu sector.');return;}
   if(!motivo){showErr('err-ind','Seleccioná el motivo.');return;}
-  if(motivo.startsWith('OFICIAL')&&!destino){showErr('err-ind','Ingresá el destino para salida oficial.');return;}
+  if(motivo.startsWith('OFICIAL')&&!destino){showErr('err-ind','Ingresá el destino.');return;}
   if(!desde){showErr('err-ind','Indicá la hora de salida.');return;}
-
   const btn=document.getElementById('ind-btn');
   btn.disabled=true;btn.textContent='Enviando…';
-
   try{
     const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({action:'crearOrdenSalidaPublica',dni,apellido_nombre:nombre.toUpperCase(),sector:sector.toUpperCase(),motivo,destino,hora_salida:desde,hora_retorno:hasta,observaciones:obs})
     }).then(r=>r.json());
-
     if(!r.ok){showErr('err-ind',r.error||'Error al enviar.');btn.disabled=false;btn.textContent='Enviar solicitud';return;}
+    lastOrders=[{
+      numero_orden:r.numero_orden,apellido_nombre:nombre.toUpperCase(),
+      dni,sector:sector.toUpperCase(),motivo,destino,
+      hora_salida:desde,hora_retorno:hasta,fecha:new Date().toISOString().slice(0,10)
+    }];
     mostrarExito([{apellido_nombre:nombre.toUpperCase(),numero_orden:r.numero_orden}],'individual');
   }catch(e){
-    showErr('err-ind','Error de conexión. Verificá tu internet.');
-    btn.disabled=false;btn.textContent='Enviar solicitud';
+    showErr('err-ind','Error de conexión.');btn.disabled=false;btn.textContent='Enviar solicitud';
   }
 }
 
 // ── ENVIAR CUADRILLA ────────────────────────────────────────────────
 async function enviarCuadrilla(){
   hideErr('err-cuad');
-  if(!cuadrilla.length){showErr('err-cuad','Agregá al menos un integrante a la cuadrilla.');return;}
+  if(!cuadrilla.length){showErr('err-cuad','Agregá al menos un integrante.');return;}
   const motivo=document.getElementById('cuad-motivo').value;
   const destino=document.getElementById('cuad-destino').value.trim();
   const desde=document.getElementById('cuad-desde').value;
   const hasta=document.getElementById('cuad-hasta').value;
   const obs=document.getElementById('cuad-obs').value.trim();
-
   if(!motivo){showErr('err-cuad','Seleccioná el motivo.');return;}
-  if(motivo.startsWith('OFICIAL')&&!destino){showErr('err-cuad','Ingresá el destino para salida oficial.');return;}
+  if(motivo.startsWith('OFICIAL')&&!destino){showErr('err-cuad','Ingresá el destino.');return;}
   if(!desde){showErr('err-cuad','Indicá la hora de salida.');return;}
-
   const btn=document.getElementById('cuad-btn');
   btn.disabled=true;btn.textContent='Enviando…';
-
   try{
     const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({action:'crearCuadrillaPublica',agentes:cuadrilla,motivo,destino,hora_salida:desde,hora_retorno:hasta,observaciones:obs})
     }).then(r=>r.json());
-
     if(!r.ok){showErr('err-cuad',r.error||'Error al enviar.');btn.disabled=false;btn.textContent='Enviar cuadrilla';return;}
+    // enriquecer resultados con datos completos para imprimir
+    lastOrders=r.resultados.map((res,i)=>({
+      ...cuadrilla[i],...res,motivo,destino,hora_salida:desde,hora_retorno:hasta,
+      fecha:new Date().toISOString().slice(0,10)
+    }));
     mostrarExito(r.resultados,'cuadrilla');
   }catch(e){
-    showErr('err-cuad','Error de conexión. Verificá tu internet.');
-    btn.disabled=false;btn.textContent='Enviar cuadrilla';
+    showErr('err-cuad','Error de conexión.');btn.disabled=false;btn.textContent='Enviar cuadrilla';
   }
 }
 
 // ── SUCCESS ─────────────────────────────────────────────────────────
-function mostrarExito(resultados, modo){
-  const sc=document.getElementById('success-card');
+function mostrarExito(resultados,modo){
   const num=document.getElementById('success-num');
   const body=document.getElementById('success-body');
-
   if(modo==='individual'&&resultados.length===1){
     num.textContent=resultados[0].numero_orden;
-    body.innerHTML=`<p style="font-size:13px;color:var(--txt2);margin-bottom:4px">${xe(resultados[0].apellido_nombre)}</p>`;
-  } else {
+    body.innerHTML=`<p style="font-size:13px;color:var(--txt2)">${xe(resultados[0].apellido_nombre)}</p>`;
+  }else{
     num.textContent=`${resultados.length} orden${resultados.length>1?'es':''} generada${resultados.length>1?'s':''}`;
     body.innerHTML=`<table class="success-list"><thead><tr><th>Agente</th><th>N° Orden</th></tr></thead><tbody>${
       resultados.map(r=>`<tr><td>${xe(r.apellido_nombre)}</td><td style="font-weight:600;color:var(--green)">${xe(r.numero_orden)}</td></tr>`).join('')
     }</tbody></table>`;
   }
-
   document.getElementById('card-individual').classList.remove('show');
   document.getElementById('card-cuadrilla').classList.remove('show');
+  document.getElementById('hist-card').classList.remove('show');
   document.querySelector('.mode-tabs').style.display='none';
-  sc.classList.add('show');
+  document.getElementById('success-card').classList.add('show');
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
+// ── IMPRIMIR TICKET ─────────────────────────────────────────────────
+function buildTicketHTML(o){
+  const tipo=o.motivo.startsWith('OFICIAL')?'OFICIAL':'PARTICULAR';
+  const motivoCorto=o.motivo.split('–')[1]?.trim()||o.motivo;
+  const fechaStr=fmtFecha(o.fecha);
+  const hora=o.hora_salida+(o.hora_retorno?' – '+o.hora_retorno:'');
+
+  const mitad=(copia)=>`
+    <div class="ticket-half">
+      <div class="tk-copy-label">${copia}</div>
+      <div class="tk-header">
+        <svg class="tk-logo" viewBox="0 0 100 110" xmlns="http://www.w3.org/2000/svg">
+          <defs><clipPath id="tkf"><path d="M20,13 L52,13 A42.5,42.5 0 0,1 52,98 L20,98 Z"/></clipPath></defs>
+          <g clip-path="url(#tkf)">
+            <rect x="20" y="37" width="32" height="61" fill="#1B5C9B"/>
+            <rect x="34" y="13" width="46" height="55" fill="#2BACC8"/>
+            <rect x="50" y="52" width="44" height="46" fill="#7DA31E"/>
+          </g>
+        </svg>
+        <div>
+          <div class="tk-org-name">Personal DMTH – DGIME</div>
+          <div class="tk-org-sub">Dirección de Mantenimiento y Talleres</div>
+        </div>
+      </div>
+
+      <div class="tk-title">ORDEN DE SALIDA</div>
+      <div class="tk-num">${xe(o.numero_orden)}</div>
+
+      <div class="tk-grid">
+        <div class="tk-field">
+          <div class="tk-field-label">Apellido y Nombre</div>
+          <div class="tk-field-val">${xe(o.apellido_nombre)}</div>
+        </div>
+        <div class="tk-field">
+          <div class="tk-field-label">DNI</div>
+          <div class="tk-field-val">${xe(o.dni)}</div>
+        </div>
+        <div class="tk-field">
+          <div class="tk-field-label">Sector</div>
+          <div class="tk-field-val">${xe(o.sector)}</div>
+        </div>
+        <div class="tk-field">
+          <div class="tk-field-label">Fecha</div>
+          <div class="tk-field-val">${fechaStr}</div>
+        </div>
+        <div class="tk-field">
+          <div class="tk-field-label">Tipo</div>
+          <div class="tk-field-val">${tipo}</div>
+        </div>
+        <div class="tk-field">
+          <div class="tk-field-label">Horario</div>
+          <div class="tk-field-val">${xe(hora)}</div>
+        </div>
+      </div>
+
+      <div class="tk-motivo-box">
+        <div class="tk-motivo-label">Motivo</div>
+        <div class="tk-motivo-val">${xe(motivoCorto)}${o.destino?' — '+xe(o.destino):''}</div>
+      </div>
+
+      <div class="tk-footer">
+        <div class="tk-firma-box">
+          <div class="tk-firma-line"></div>
+          <div class="tk-firma-label">Firma Inspector de Guardia</div>
+        </div>
+        <div class="tk-date">Generado: ${today()} ${nowHM()}</div>
+      </div>
+    </div>`;
+
+  return mitad('COPIA TRABAJADOR') + mitad('COPIA GUARDIA');
+}
+
+function imprimirTicket(){
+  const area=document.getElementById('print-area');
+  // Si hay múltiples órdenes (cuadrilla), poner de a 2 por hoja
+  let pages='';
+  for(let i=0;i<lastOrders.length;i+=2){
+    if(i>0) pages+='<div style="page-break-before:always"></div>';
+    const o1=lastOrders[i];
+    const o2=lastOrders[i+1];
+    pages+=`<div class="ticket-page">${buildTicketHTML(o1)}</div>`;
+    if(o2) pages+=`<div class="ticket-page" style="page-break-before:always">${buildTicketHTML(o2)}</div>`;
+  }
+  area.innerHTML=pages;
+  window.print();
+}
+
+// ── NUEVA ────────────────────────────────────────────────────────────
 function nueva(){
-  // reset individual
-  ['ind-dni','ind-nombre','ind-sector','ind-destino','ind-desde','ind-hasta','ind-obs'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
-  document.getElementById('ind-nombre').readOnly=false;
-  document.getElementById('ind-sector').readOnly=false;
+  ['ind-dni','ind-nombre','ind-sector','ind-destino','ind-desde','ind-hasta','ind-obs'].forEach(id=>{
+    const e=document.getElementById(id);if(e){e.value='';e.readOnly=false;}
+  });
   document.getElementById('ind-destino-row').style.display='none';
   document.getElementById('ind-motivo').value='';
   document.getElementById('ind-btn').disabled=false;document.getElementById('ind-btn').textContent='Enviar solicitud';
   hideStatus('ind');hideErr('err-ind');
-  // reset cuadrilla
   cuadrilla=[];renderCuadrilla();
-  ['cuad-dni-inp','cuad-nombre-inp','cuad-sector-inp','cuad-destino','cuad-desde','cuad-hasta','cuad-obs'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  ['cuad-dni-inp','cuad-nombre-inp','cuad-sector-inp','cuad-destino','cuad-desde','cuad-hasta','cuad-obs'].forEach(id=>{
+    const e=document.getElementById(id);if(e){e.value='';e.readOnly=false;}
+  });
   document.getElementById('cuad-motivo').value='';
   document.getElementById('cuad-destino-row').style.display='none';
   document.getElementById('cuad-btn').disabled=false;document.getElementById('cuad-btn').textContent='Enviar cuadrilla';
   hideStatus('cuad');hideErr('err-cuad');
-  // show tabs + individual
   document.querySelector('.mode-tabs').style.display='';
   document.getElementById('success-card').classList.remove('show');
+  document.getElementById('hist-card').classList.remove('show');
+  lastOrders=[];
   setMode('individual');
   window.scrollTo({top:0,behavior:'smooth'});
 }
