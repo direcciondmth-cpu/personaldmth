@@ -2083,9 +2083,9 @@ async function procesarArchivoAsist(file){
     else{dt=new Date(fechaRaw);}
     if(isNaN(dt.getTime()))continue;
 
-    // SheetJS cellDates:true → UTC components = valores exactos del Excel
-    const fecha=`${dt.getUTCFullYear()}-${String(dt.getUTCMonth()+1).padStart(2,'0')}-${String(dt.getUTCDate()).padStart(2,'0')}`;
-    const horaStr=String(dt.getUTCHours()).padStart(2,'0')+':'+String(dt.getUTCMinutes()).padStart(2,'0');
+    // SheetJS cellDates:true → Date object con LOCAL time = valor real del Excel
+    const fecha=`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+    const horaStr=String(dt.getHours()).padStart(2,'0')+':'+String(dt.getMinutes()).padStart(2,'0');
     const servicio=String(row[iServicio]||'').trim();
     const key=`${fecha}_${dni}`;
 
@@ -2095,7 +2095,7 @@ async function procesarArchivoAsist(file){
     if(!rec.servicio&&servicio)rec.servicio=servicio;
 
     // Todos los registros del biométrico tienen tipo=0; inferir entrada (mínima) y salida (máxima) por hora
-    const minutos=dt.getUTCHours()*60+dt.getUTCMinutes();
+    const minutos=dt.getHours()*60+dt.getMinutes();
     if(minutos<rec._entMin){rec._entMin=minutos;rec.hora_entrada=horaStr;}
     if(minutos>rec._salMax){rec._salMax=minutos;rec.hora_salida=horaStr;}
   }
