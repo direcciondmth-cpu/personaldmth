@@ -520,13 +520,31 @@ module.exports = async function handler(req, res) {
       const dni = String(body.dni || query.dni || '').replace(/\D/g, '').trim();
       if (!dni || dni.length < 7) return err(res, 'DNI inválido');
       const rows = await sql`
-        SELECT numero_orden, fecha, hora_salida, hora_retorno, motivo, destino, sector, apellido_nombre, tipo
+        SELECT id, numero_orden, fecha, hora_salida, hora_retorno, motivo, destino, sector, apellido_nombre, tipo, observaciones
         FROM ordenes_salida
         WHERE dni = ${dni} AND activo = 'SI'
         ORDER BY fecha_carga DESC
         LIMIT 20
       `;
       return ok(res, { ordenes: rows });
+    }
+
+    // ─ EDITAR ORDEN PÚBLICA (solo si el DNI del cuerpo coincide) ──
+    if (action === 'editarOrdenPublica') {
+      const { id, dni, motivo, destino, hora_salida, hora_retorno, observaciones } = body;
+      if (!id || !dni) return err(res, 'Faltan campos');
+      if (!motivo || !hora_salida) return err(res, 'Faltan campos requeridos');
+      // Verificar que la orden pertenece al DNI declarado
+      const check = await sql`SELECT id FROM ordenes_salida WHERE id=${id} AND dni=${dni} AND activo='SI'`;
+      if (!check.length) return err(res, 'Orden no encontrada o DNI incorrecto', 403);
+      const tipo = motivo.startsWith('PARTICULAR') ? 'PARTICULAR' : 'OFICIAL';
+      await sql`
+        UPDATE ordenes_salida
+        SET motivo=${motivo}, destino=${destino||''}, hora_salida=${hora_salida},
+            hora_retorno=${hora_retorno||''}, tipo=${tipo}, observaciones=${observaciones||''}
+        WHERE id=${id}
+      `;
+      return ok(res, { ok: true });
     }
 
     // ─ DOC TIPOS ─────────────────────────────────────────────────

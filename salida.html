@@ -98,11 +98,27 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fn);font-size:14px;
 .hist-title{font-size:13px;font-weight:600;color:var(--txt);margin-bottom:12px}
 .hist-table{width:100%;border-collapse:collapse;font-size:12px}
 .hist-table th{padding:6px 10px;font-weight:600;color:var(--txt2);background:var(--bg);border-bottom:1px solid var(--border);text-align:left}
-.hist-table td{padding:7px 10px;border-bottom:1px solid var(--border);color:var(--txt)}
+.hist-table td{padding:7px 10px;border-bottom:1px solid var(--border);color:var(--txt);vertical-align:middle}
 .hist-table tr:last-child td{border-bottom:none}
 .hist-badge{display:inline-block;padding:2px 7px;border-radius:99px;font-size:10px;font-weight:600}
 .hist-badge.OFICIAL{background:var(--blue-l);color:var(--blue)}
 .hist-badge.PARTICULAR{background:var(--amber-l);color:var(--amber)}
+.hist-actions{display:flex;gap:5px}
+.hist-btn{padding:4px 9px;border-radius:var(--r2);font-size:11px;font-weight:600;cursor:pointer;font-family:var(--fn);border:none;white-space:nowrap}
+.hist-btn-edit{background:var(--blue-l);color:var(--blue)}
+.hist-btn-edit:hover{background:var(--blue-m)}
+.hist-btn-print{background:var(--bg);color:var(--txt2);border:1px solid var(--border)!important}
+.hist-btn-print:hover{background:var(--border)}
+
+/* MODAL EDITAR ORDEN */
+.modal-overlay{position:fixed;inset:0;background:rgba(26,35,50,.45);display:flex;align-items:center;justify-content:center;z-index:999;display:none}
+.modal-overlay.show{display:flex}
+.modal-box{background:var(--surface);border-radius:var(--r);padding:22px;width:100%;max-width:480px;box-shadow:0 8px 32px rgba(26,35,50,.15);margin:16px}
+.modal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.modal-hdr h3{font-size:14px;font-weight:600;color:var(--txt)}
+.modal-close{border:none;background:none;font-size:20px;color:var(--txt3);cursor:pointer;padding:0 4px;line-height:1}
+.modal-ftr{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
+.modal-ftr .btn{width:auto;padding:9px 18px;margin-top:0;font-size:13px}
 
 /* ── PRINT STYLES ──────────────────────────────────────────────── */
 @media print{
@@ -336,6 +352,54 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fn);font-size:14px;
   <div id="hist-body"></div>
 </div>
 
+<!-- MODAL EDITAR ORDEN -->
+<div class="modal-overlay" id="modal-edit">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <h3 id="medit-titulo">Editar orden</h3>
+      <button class="modal-close" onclick="cerrarModalEdit()">×</button>
+    </div>
+    <input type="hidden" id="medit-id">
+    <input type="hidden" id="medit-dni">
+    <input type="hidden" id="medit-nombre">
+    <input type="hidden" id="medit-sector">
+    <input type="hidden" id="medit-fecha">
+    <div class="err-msg" id="medit-err"></div>
+    <div class="field">
+      <label>Motivo <span class="req">*</span></label>
+      <select id="medit-motivo" onchange="meditToggleDestino()">
+        <option value="OFICIAL – Gestión / trámite">OFICIAL – Gestión / trámite</option>
+        <option value="OFICIAL – Traslado con vehículo">OFICIAL – Traslado con vehículo</option>
+        <option value="OFICIAL – Comisión de servicio">OFICIAL – Comisión de servicio</option>
+        <option value="PARTICULAR – Asunto personal">PARTICULAR – Asunto personal</option>
+        <option value="PARTICULAR – Razones de salud">PARTICULAR – Razones de salud</option>
+      </select>
+    </div>
+    <div class="field" id="medit-destino-row">
+      <label>Destino</label>
+      <input type="text" id="medit-destino" placeholder="Lugar de destino">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Hora salida <span class="req">*</span></label>
+        <input type="time" id="medit-desde">
+      </div>
+      <div class="field">
+        <label>Hora retorno</label>
+        <input type="time" id="medit-hasta">
+      </div>
+    </div>
+    <div class="field">
+      <label>Observaciones</label>
+      <textarea id="medit-obs" placeholder="Opcional" style="min-height:50px"></textarea>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn btn-outline" onclick="cerrarModalEdit()">Cancelar</button>
+      <button class="btn btn-primary" id="medit-save" onclick="guardarEdicion()">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
 <!-- ÁREA DE IMPRESIÓN (oculta en pantalla, visible al imprimir) -->
 <div id="print-area"></div>
 
@@ -422,7 +486,10 @@ async function doLookup(dni,prefix){
 }
 
 // ── HISTORIAL ───────────────────────────────────────────────────────
+let histDNI='', histNombre='';
+
 async function cargarHistorial(dni,nombre){
+  histDNI=dni; histNombre=nombre||dni;
   const card=document.getElementById('hist-card');
   const body=document.getElementById('hist-body');
   const title=document.getElementById('hist-title');
@@ -432,25 +499,111 @@ async function cargarHistorial(dni,nombre){
   try{
     const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({action:'getOrdenesPorDNI',dni})}).then(r=>r.json());
-    if(!r.ok||!r.ordenes.length){
-      title.textContent='Sin órdenes anteriores';
-      body.innerHTML='<p style="font-size:12px;color:var(--txt3);padding:8px 0">No hay registros anteriores para este DNI.</p>';
-      return;
-    }
-    title.textContent=`Últimas órdenes (${nombre||dni})`;
-    body.innerHTML=`<table class="hist-table">
-      <thead><tr><th>Fecha</th><th>Hora</th><th>Motivo</th><th>N° Orden</th></tr></thead>
-      <tbody>${r.ordenes.map(o=>`
-        <tr>
-          <td>${fmtFecha(o.fecha)}</td>
-          <td>${xe(o.hora_salida||'')}${o.hora_retorno?'–'+xe(o.hora_retorno):''}</td>
-          <td><span class="hist-badge ${xe(o.tipo)}">${xe(o.tipo)}</span> ${xe(o.motivo.split('–')[1]||o.motivo).trim()}</td>
-          <td style="font-weight:600;color:var(--blue);font-size:11px">${xe(o.numero_orden)}</td>
-        </tr>`).join('')}
-      </tbody></table>`;
+    renderHistorial(r, title, body);
   }catch(e){
     title.textContent='Error al cargar historial';
   }
+}
+
+function renderHistorial(r, title, body){
+  if(!title) title=document.getElementById('hist-title');
+  if(!body) body=document.getElementById('hist-body');
+  if(!r.ok||!r.ordenes||!r.ordenes.length){
+    title.textContent='Sin órdenes anteriores';
+    body.innerHTML='<p style="font-size:12px;color:var(--txt3);padding:8px 0">No hay registros anteriores para este DNI.</p>';
+    return;
+  }
+  title.textContent=`Últimas órdenes (${histNombre})`;
+  body.innerHTML=`<table class="hist-table">
+    <thead><tr><th>Fecha</th><th>Hora</th><th>Motivo</th><th>N° Orden</th><th></th></tr></thead>
+    <tbody>${r.ordenes.map(o=>`
+      <tr>
+        <td>${fmtFecha(o.fecha)}</td>
+        <td style="white-space:nowrap">${xe(o.hora_salida||'')}${o.hora_retorno?'–'+xe(o.hora_retorno):''}</td>
+        <td><span class="hist-badge ${xe(o.tipo)}">${xe(o.tipo)}</span> ${xe((o.motivo.split('–')[1]||o.motivo).trim())}</td>
+        <td style="font-weight:600;color:var(--blue);font-size:11px;white-space:nowrap">${xe(o.numero_orden)}</td>
+        <td>
+          <div class="hist-actions">
+            <button class="hist-btn hist-btn-edit" onclick='abrirEdicion(${JSON.stringify(o)})'>Editar</button>
+            <button class="hist-btn hist-btn-print" onclick='reimprimirOrden(${JSON.stringify(o)})'>🖨</button>
+          </div>
+        </td>
+      </tr>`).join('')}
+    </tbody></table>`;
+}
+
+// ── EDITAR ORDEN ────────────────────────────────────────────────────
+function abrirEdicion(o){
+  document.getElementById('medit-titulo').textContent=`Editar ${xe(o.numero_orden)}`;
+  document.getElementById('medit-id').value=o.id;
+  document.getElementById('medit-dni').value=histDNI;
+  document.getElementById('medit-nombre').value=o.apellido_nombre||'';
+  document.getElementById('medit-sector').value=o.sector||'';
+  document.getElementById('medit-fecha').value=o.fecha||'';
+  document.getElementById('medit-motivo').value=o.motivo||'';
+  document.getElementById('medit-destino').value=o.destino||'';
+  document.getElementById('medit-desde').value=o.hora_salida||'';
+  document.getElementById('medit-hasta').value=o.hora_retorno||'';
+  document.getElementById('medit-obs').value=o.observaciones||'';
+  meditToggleDestino();
+  document.getElementById('medit-err').classList.remove('show');
+  document.getElementById('modal-edit').classList.add('show');
+}
+
+function cerrarModalEdit(){
+  document.getElementById('modal-edit').classList.remove('show');
+}
+
+function meditToggleDestino(){
+  const m=document.getElementById('medit-motivo').value;
+  document.getElementById('medit-destino-row').style.display=m.startsWith('OFICIAL')?'':'none';
+}
+
+async function guardarEdicion(){
+  const id=document.getElementById('medit-id').value;
+  const dni=document.getElementById('medit-dni').value;
+  const motivo=document.getElementById('medit-motivo').value;
+  const destino=document.getElementById('medit-destino').value.trim();
+  const hora_salida=document.getElementById('medit-desde').value;
+  const hora_retorno=document.getElementById('medit-hasta').value;
+  const observaciones=document.getElementById('medit-obs').value.trim();
+  const errEl=document.getElementById('medit-err');
+  errEl.classList.remove('show');
+  if(!motivo||!hora_salida){errEl.textContent='Completá los campos requeridos.';errEl.classList.add('show');return;}
+  if(motivo.startsWith('OFICIAL')&&!destino){errEl.textContent='Ingresá el destino.';errEl.classList.add('show');return;}
+  const btn=document.getElementById('medit-save');
+  btn.disabled=true;btn.textContent='Guardando…';
+  try{
+    const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'editarOrdenPublica',id,dni,motivo,destino,hora_salida,hora_retorno,observaciones})
+    }).then(r=>r.json());
+    btn.disabled=false;btn.textContent='Guardar cambios';
+    if(!r.ok){errEl.textContent=r.error||'Error al guardar.';errEl.classList.add('show');return;}
+    cerrarModalEdit();
+    // recargar historial
+    const rh=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'getOrdenesPorDNI',dni})}).then(r=>r.json());
+    renderHistorial(rh);
+  }catch(e){
+    btn.disabled=false;btn.textContent='Guardar cambios';
+    errEl.textContent='Error de conexión.';errEl.classList.add('show');
+  }
+}
+
+// ── REIMPRIMIR DESDE HISTORIAL ──────────────────────────────────────
+function reimprimirOrden(o){
+  lastOrders=[{
+    numero_orden:o.numero_orden,
+    apellido_nombre:o.apellido_nombre,
+    dni:histDNI,
+    sector:o.sector,
+    motivo:o.motivo,
+    destino:o.destino||'',
+    hora_salida:o.hora_salida,
+    hora_retorno:o.hora_retorno||'',
+    fecha:o.fecha
+  }];
+  imprimirTicket();
 }
 
 // ── CUADRILLA ───────────────────────────────────────────────────────
