@@ -479,68 +479,123 @@ td.mono{font-family:var(--mono);font-size:12px}
 
     <!-- ─── ASISTENCIAS ────────────────────────────────────────── -->
     <div class="section" id="s-asistencias">
-      <!-- Tarjetas resumen -->
-      <div id="asist-stats" style="display:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:20px">
-        <div class="stat-card"><div class="stat-label">Presentes</div><div class="stat-val" id="asist-presentes">-</div><div class="stat-sub">marcaron entrada</div></div>
-        <div class="stat-card"><div class="stat-label">Tardanzas</div><div class="stat-val" id="asist-tardanzas">-</div><div class="stat-sub">después de hora</div></div>
-        <div class="stat-card"><div class="stat-label">Ausentes</div><div class="stat-val" id="asist-ausentes">-</div><div class="stat-sub">del padrón</div></div>
-        <div class="stat-card"><div class="stat-label">% Asistencia</div><div class="stat-val" id="asist-pct">-</div><div class="stat-sub">del padrón activo</div></div>
+      <!-- Pestañas -->
+      <div class="tabs" style="margin-bottom:16px">
+        <button class="tab-btn active" id="tab-asist-reg" onclick="switchAsistTab('reg')">Registros</button>
+        <button class="tab-btn" id="tab-asist-hor" onclick="switchAsistTab('hor')">Horarios</button>
+        <button class="tab-btn" id="tab-asist-exc" onclick="switchAsistTab('exc')">Excepciones</button>
       </div>
 
-      <!-- Importar -->
-      <label class="asist-import-box" id="import-box" ondragover="event.preventDefault();this.style.borderColor='var(--blue)'" ondragleave="this.style.borderColor=''" ondrop="event.preventDefault();this.style.borderColor='';procesarArchivoAsist(event.dataTransfer.files[0])">
-        <input type="file" id="import-file" accept=".xlsx,.xls" onchange="procesarArchivoAsist(this.files[0]);this.value=''">
-        <svg viewBox="0 0 48 48" fill="none" width="40" height="40" style="margin:0 auto 10px;opacity:.4"><rect x="8" y="4" width="32" height="40" rx="3" stroke="currentColor" stroke-width="2"/><path d="M16 16h16M16 22h16M16 28h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M32 34l4-4-4-4M36 30H26" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <div style="font-size:14px;font-weight:600;color:var(--txt2);margin-bottom:4px">Importar planilla del biométrico</div>
-        <div style="font-size:12px;color:var(--txt3)">Arrastrá o hacé clic — Excel del reloj biométrico (.xlsx)</div>
-        <div style="font-size:11px;color:var(--txt3);margin-top:6px">Columnas esperadas: ID · Nombre · DNI · Tipo · Fecha · Servicio</div>
-      </label>
-      <div id="asist-import-msg" style="margin-top:12px"></div>
-
-      <!-- Hora límite tardanza -->
-      <div style="display:flex;align-items:center;gap:10px;margin:16px 0 8px;font-size:13px;color:var(--txt3)">
-        <span>Hora límite sin tardanza:</span>
-        <input type="time" id="asist-hora-limite" value="07:00" style="padding:4px 8px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px">
-      </div>
-
-      <!-- Tabla presentes -->
-      <div class="table-wrap" style="margin-bottom:20px">
-        <div class="table-header">
-          <div class="search-box">
-            <svg viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 10.5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-            <input type="text" id="search-asist" placeholder="Buscar agente..." oninput="filtrarAsistencias()">
+      <!-- ══ PESTAÑA REGISTROS ══ -->
+      <div id="asist-tab-reg">
+        <!-- Stats -->
+        <div id="asist-stats" style="display:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:16px">
+          <div class="stat-card"><div class="stat-label">Presentes</div><div class="stat-val" id="asist-presentes">-</div><div class="stat-sub">con entrada</div></div>
+          <div class="stat-card"><div class="stat-label">Tardanzas</div><div class="stat-val" id="asist-tardanzas">-</div><div class="stat-sub">excedieron horario</div></div>
+          <div class="stat-card"><div class="stat-label">Ausentes</div><div class="stat-val" id="asist-ausentes">-</div><div class="stat-sub">del padrón</div></div>
+          <div class="stat-card"><div class="stat-label">% Asistencia</div><div class="stat-val" id="asist-pct">-</div><div class="stat-sub">del padrón activo</div></div>
+        </div>
+        <!-- Importar biométrico -->
+        <label class="asist-import-box" ondragover="event.preventDefault();this.style.borderColor='var(--blue)'" ondragleave="this.style.borderColor=''" ondrop="event.preventDefault();this.style.borderColor='';procesarArchivoAsist(event.dataTransfer.files[0])">
+          <input type="file" id="import-file" accept=".xlsx,.xls" onchange="procesarArchivoAsist(this.files[0]);this.value=''">
+          <svg viewBox="0 0 48 48" fill="none" width="36" height="36" style="margin:0 auto 8px;opacity:.4"><rect x="8" y="4" width="32" height="40" rx="3" stroke="currentColor" stroke-width="2"/><path d="M16 16h16M16 22h16M16 28h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <div style="font-size:14px;font-weight:600;color:var(--txt2);margin-bottom:4px">Importar planilla del biométrico</div>
+          <div style="font-size:12px;color:var(--txt3)">Excel del reloj biométrico (Report9) — columnas: ID · Nombre · DNI · Tipo · Fecha · Servicio</div>
+        </label>
+        <div id="asist-import-msg" style="margin-top:10px"></div>
+        <!-- Tabla -->
+        <div class="table-wrap" style="margin-top:16px;margin-bottom:20px">
+          <div class="table-header">
+            <div class="search-box">
+              <svg viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 10.5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <input type="text" id="search-asist" placeholder="Buscar agente..." oninput="filtrarAsistencias()">
+            </div>
+            <input type="date" id="asist-fecha" style="padding:7px 10px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px" onchange="cargarAsistencias()">
+            <select id="asist-filtro-estado" onchange="filtrarAsistencias()" style="padding:7px 10px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px">
+              <option value="">Todos</option>
+              <option value="PRESENTE">Presentes</option>
+              <option value="TARDANZA">Tardanzas</option>
+            </select>
+            <button class="tbtn" onclick="exportTableCSV('table-asist','asistencias')">
+              <svg viewBox="0 0 16 16" fill="none" width="13" height="13"><path d="M8 2v8M5 7l3 3 3-3M3 13h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> CSV
+            </button>
           </div>
-          <input type="date" id="asist-fecha" style="padding:7px 10px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px" onchange="cargarAsistencias()">
-          <button class="tbtn" onclick="exportTableCSV('table-asist','asistencias')">
-            <svg viewBox="0 0 16 16" fill="none" width="13" height="13"><path d="M8 2v8M5 7l3 3 3-3M3 13h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            CSV
-          </button>
+          <div style="overflow-x:auto">
+            <table id="table-asist">
+              <thead><tr><th>DNI</th><th>APELLIDO Y NOMBRE</th><th>ENTRADA</th><th>SALIDA</th><th>ESPERADO</th><th>TARDANZA</th><th>SERVICIO</th><th>ESTADO</th></tr></thead>
+              <tbody id="tbody-asist"><tr><td colspan="8"><div class="empty"><p>Importá la planilla del biométrico para ver asistencias.</p></div></td></tr></tbody>
+            </table>
+          </div>
+          <div class="pagination">
+            <span class="pag-info" id="pag-info-asist">-</span>
+            <div class="pag-btns">
+              <button class="pag-btn" id="pag-asist-prev" onclick="cargarAsistencias(asistOffset-200)" disabled>←</button>
+              <button class="pag-btn" id="pag-asist-next" onclick="cargarAsistencias(asistOffset+200)" disabled>→</button>
+            </div>
+          </div>
         </div>
-        <div style="overflow-x:auto">
-          <table id="table-asist">
-            <thead><tr><th>DNI</th><th>APELLIDO Y NOMBRE</th><th>HORA ENTRADA</th><th>HORA SALIDA</th><th>SERVICIO</th><th>TARDANZA</th><th>ESTADO</th></tr></thead>
-            <tbody id="tbody-asist">
-              <tr><td colspan="7"><div class="empty"><p>Importá la planilla del biométrico para ver asistencias.</p></div></td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="pagination">
-          <span class="pag-info" id="pag-info-asist">-</span>
-          <div class="pag-btns">
-            <button class="pag-btn" id="pag-asist-prev" onclick="cargarAsistencias(asistOffset-200)" disabled>←</button>
-            <button class="pag-btn" id="pag-asist-next" onclick="cargarAsistencias(asistOffset+200)" disabled>→</button>
+        <!-- Ausentes -->
+        <div id="asist-ausentes-wrap" style="display:none">
+          <h3 style="font-size:14px;font-weight:700;color:var(--txt);margin-bottom:10px">Ausentes del padrón activo</h3>
+          <div style="overflow-x:auto">
+            <table id="table-ausentes">
+              <thead><tr><th>DNI</th><th>APELLIDO Y NOMBRE</th><th>ESTABLECIMIENTO</th><th>SECTOR</th><th>HORARIO</th><th>EXCEPCIÓN</th></tr></thead>
+              <tbody id="tbody-ausentes"></tbody>
+            </table>
           </div>
         </div>
       </div>
 
-      <!-- Tabla ausentes -->
-      <div id="asist-ausentes-wrap" style="display:none">
-        <h3 style="font-size:14px;font-weight:700;color:var(--txt);margin-bottom:10px">Ausentes del padrón activo</h3>
-        <div style="overflow-x:auto">
-          <table id="table-ausentes">
-            <thead><tr><th>DNI</th><th>APELLIDO Y NOMBRE</th><th>ESTABLECIMIENTO</th><th>SECTOR</th></tr></thead>
-            <tbody id="tbody-ausentes"></tbody>
-          </table>
+      <!-- ══ PESTAÑA HORARIOS ══ -->
+      <div id="asist-tab-hor" style="display:none">
+        <label class="asist-import-box" ondragover="event.preventDefault();this.style.borderColor='var(--blue)'" ondragleave="this.style.borderColor=''" ondrop="event.preventDefault();this.style.borderColor='';procesarArchivoHorarios(event.dataTransfer.files[0])">
+          <input type="file" id="import-file-hor" accept=".xlsx,.xls" onchange="procesarArchivoHorarios(this.files[0]);this.value=''">
+          <svg viewBox="0 0 48 48" fill="none" width="36" height="36" style="margin:0 auto 8px;opacity:.4"><circle cx="24" cy="24" r="18" stroke="currentColor" stroke-width="2"/><path d="M24 14v10l6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <div style="font-size:14px;font-weight:600;color:var(--txt2);margin-bottom:4px">Importar DETALLE DEL RELOJ</div>
+          <div style="font-size:12px;color:var(--txt3)">Excel con horarios del personal — columnas: ID · Nombre · Sector · DNI · Servicio · Horario</div>
+        </label>
+        <div id="hor-import-msg" style="margin-top:10px"></div>
+        <div class="table-wrap" style="margin-top:16px">
+          <div class="table-header">
+            <div class="search-box">
+              <svg viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 10.5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <input type="text" id="search-hor" placeholder="Buscar agente..." oninput="buscarHorarios()">
+            </div>
+            <button class="tbtn" onclick="cargarHorarios()">
+              <svg viewBox="0 0 16 16" fill="none" width="13" height="13"><path d="M13 8A5 5 0 1 1 8 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M13 3v5h-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Recargar
+            </button>
+          </div>
+          <div id="hor-total" style="padding:6px 16px;font-size:12px;color:var(--txt3)"></div>
+          <div style="overflow-x:auto">
+            <table id="table-hor">
+              <thead><tr><th>DNI</th><th>APELLIDO Y NOMBRE</th><th>SECTOR</th><th>SERVICIO</th><th>HORARIO</th><th>ENTRADA ESPERADA</th></tr></thead>
+              <tbody id="tbody-hor"><tr><td colspan="6"><div class="empty"><p>Importá el archivo de horarios.</p></div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PESTAÑA EXCEPCIONES ══ -->
+      <div id="asist-tab-exc" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div style="font-size:13px;color:var(--txt3)">Excepciones individuales: vacaciones, ART, licencias, alto rango, etc.</div>
+          <button class="tbtn primary" onclick="abrirAddExcepcion()">+ Agregar excepción</button>
+        </div>
+        <div class="table-wrap">
+          <div class="table-header">
+            <div class="search-box">
+              <svg viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 10.5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <input type="text" id="search-exc" placeholder="Buscar por nombre o DNI..." oninput="buscarExcepciones()">
+            </div>
+            <input type="date" id="exc-desde" onchange="cargarExcepciones()" style="padding:7px 10px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px" placeholder="Desde">
+            <input type="date" id="exc-hasta" onchange="cargarExcepciones()" style="padding:7px 10px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px" placeholder="Hasta">
+          </div>
+          <div style="overflow-x:auto">
+            <table id="table-exc">
+              <thead><tr><th>DNI</th><th>APELLIDO Y NOMBRE</th><th>DESDE</th><th>HASTA</th><th>TIPO</th><th>OBSERVACIONES</th><th></th></tr></thead>
+              <tbody id="tbody-exc"><tr><td colspan="7"><div class="empty"><p>No hay excepciones cargadas.</p></div></td></tr></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -860,6 +915,63 @@ td.mono{font-family:var(--mono);font-size:12px}
     <div class="modal-footer">
       <button class="tbtn primary" onclick="guardarOS()">Guardar</button>
       <button class="tbtn" onclick="cerrarModal('modal-form-os')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL AGREGAR EXCEPCIÓN ────────────────────────────────────────── -->
+<div class="modal-overlay hidden" id="modal-add-exc">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-hdr">
+      <h3>Agregar Excepción de Asistencia</h3>
+      <button class="modal-close" onclick="cerrarModal('modal-add-exc')">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;gap:13px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-group">
+            <label class="form-label">DNI *</label>
+            <input class="form-input" id="exc-dni" type="text" placeholder="Sin puntos" oninput="buscarAgenteExc()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Apellido y Nombre</label>
+            <input class="form-input" id="exc-nombre" type="text" readonly style="background:var(--surface2)">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tipo *</label>
+          <select class="form-input" id="exc-tipo">
+            <option value="">— Seleccioná —</option>
+            <option value="VACACIONES">Vacaciones</option>
+            <option value="ART">ART</option>
+            <option value="LICENCIA MÉDICA">Licencia médica</option>
+            <option value="LICENCIA GREMIAL">Licencia gremial</option>
+            <option value="LICENCIA ESPECIAL">Licencia especial</option>
+            <option value="ALTO RANGO">Alto rango (sin control)</option>
+            <option value="COMISIÓN">Comisión externa</option>
+            <option value="OTRO">Otro</option>
+          </select>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-group">
+            <label class="form-label">Desde *</label>
+            <input class="form-input" id="exc-fd" type="date">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Hasta *</label>
+            <input class="form-input" id="exc-fh" type="date">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Observaciones</label>
+          <textarea class="form-input" id="exc-obs" rows="2" placeholder="Opcional (número de resolución, diagnóstico, etc.)"></textarea>
+        </div>
+        <div id="exc-err" class="login-err"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="tbtn primary" onclick="guardarExcepcion()">Guardar</button>
+      <button class="tbtn" onclick="cerrarModal('modal-add-exc')">Cancelar</button>
     </div>
   </div>
 </div>
@@ -1665,9 +1777,17 @@ function exportCumpleanosCSV(){
   exportCSV(headers,rows,`cumpleanos_${new Date().toISOString().slice(0,10)}.csv`);
 }
 
-// ── ASISTENCIAS ────────────────────────────────────────────────────
 // ── ASISTENCIAS ───────────────────────────────────────────────────
 let asistOffset=0;
+
+function switchAsistTab(tab){
+  ['reg','hor','exc'].forEach(t=>{
+    document.getElementById('asist-tab-'+t).style.display=t===tab?'':'none';
+    document.getElementById('tab-asist-'+t).classList.toggle('active',t===tab);
+  });
+  if(tab==='hor')cargarHorarios();
+  if(tab==='exc')cargarExcepciones();
+}
 
 function filtrarAsistencias(){cargarAsistencias(0);}
 
@@ -1675,38 +1795,40 @@ async function cargarAsistencias(offset){
   asistOffset=Math.max(0,offset||0);
   const fecha=document.getElementById('asist-fecha').value;
   const q=document.getElementById('search-asist').value.trim();
+  const estado=document.getElementById('asist-filtro-estado').value;
   if(!fecha){
-    document.getElementById('tbody-asist').innerHTML=`<tr><td colspan="7"><div class="empty"><p>Seleccioná una fecha para ver asistencias.</p></div></td></tr>`;
+    document.getElementById('tbody-asist').innerHTML=`<tr><td colspan="8"><div class="empty"><p>Seleccioná una fecha para ver asistencias.</p></div></td></tr>`;
     return;
   }
   overlay(true,'Cargando asistencias...');
-  const r=await api('getAsistencias',{fecha,q,limit:200,offset:asistOffset});
+  const r=await api('getAsistencias',{fecha,q,estado,limit:200,offset:asistOffset});
   overlay(false);
   if(!r.ok){toast(r.error,'err');return;}
 
   const tbody=document.getElementById('tbody-asist');
   if(!r.asistencias.length){
-    tbody.innerHTML=`<tr><td colspan="7"><div class="empty"><p>Sin asistencias para ${fecha}. ¿Importaste el Excel del biométrico?</p></div></td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="8"><div class="empty"><p>Sin asistencias para ${fecha}. ¿Importaste el Excel del biométrico?</p></div></td></tr>`;
   } else {
-    const limite=document.getElementById('asist-hora-limite').value||'07:00';
     tbody.innerHTML=r.asistencias.map(a=>{
       const tardanza=a.minutos_tardanza>0?`+${a.minutos_tardanza}min`:'—';
-      const estadoColor=a.estado==='TARDANZA'?'background:var(--amber-l);color:var(--amber);border:1px solid var(--amber-m)':
-        a.estado==='PRESENTE'?'background:var(--green-l);color:var(--green);border:1px solid var(--green-m)':'background:var(--red-l);color:var(--red);border:1px solid var(--red-m)';
+      const estadoMap={'TARDANZA':'background:var(--amber-l);color:var(--amber);border:1px solid var(--amber-m)',
+        'PRESENTE':'background:var(--green-l);color:var(--green);border:1px solid var(--green-m)'};
+      const estadoStyle=estadoMap[a.estado]||'background:var(--blue-l);color:var(--blue);border:1px solid var(--blue-m)';
       return `<tr>
         <td class="mono">${xe(a.dni)}</td>
         <td><strong>${xe(a.apellido_nombre)}</strong></td>
-        <td class="mono" style="color:${a.hora_entrada?'inherit':'var(--txt3)'}">${xe(a.hora_entrada)||'—'}</td>
-        <td class="mono" style="color:${a.hora_salida?'inherit':'var(--txt3)'}">${xe(a.hora_salida)||'—'}</td>
-        <td style="font-size:12px">${xe(a.servicio)||'—'}</td>
+        <td class="mono">${xe(a.hora_entrada)||'—'}</td>
+        <td class="mono">${xe(a.hora_salida)||'—'}</td>
+        <td class="mono" style="color:var(--txt3);font-size:12px">${xe(a.horario_esperado)||'—'}</td>
         <td class="mono" style="color:var(--amber);font-size:12px">${tardanza}</td>
-        <td><span style="padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;${estadoColor}">${xe(a.estado)}</span></td>
+        <td style="font-size:12px">${xe(a.servicio)||'—'}</td>
+        <td><span style="padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;${estadoStyle}">${xe(a.estado)}</span></td>
       </tr>`;
     }).join('');
   }
 
   // Stats
-  const presentes=r.asistencias.filter(a=>a.estado!=='AUSENTE').length;
+  const presentes=r.asistencias.filter(a=>a.estado==='PRESENTE'||a.estado==='TARDANZA').length;
   const tardanzas=r.asistencias.filter(a=>a.estado==='TARDANZA').length;
   const ausentes=r.ausentes?.length||0;
   const total=presentes+ausentes;
@@ -1720,12 +1842,17 @@ async function cargarAsistencias(offset){
   const aw=document.getElementById('asist-ausentes-wrap');
   const tba=document.getElementById('tbody-ausentes');
   if(r.ausentes?.length){
-    tba.innerHTML=r.ausentes.map(a=>`<tr>
-      <td class="mono">${xe(a.dni)}</td>
-      <td>${xe(a.apellido_nombre)}</td>
-      <td style="font-size:12px">${xe(a.establecimiento)}</td>
-      <td style="font-size:12px">${xe(a.sector)}</td>
-    </tr>`).join('');
+    tba.innerHTML=r.ausentes.map(a=>{
+      const excStyle=a.excepcion?'background:var(--blue-l);color:var(--blue);border:1px solid var(--blue-m)':'';
+      return `<tr>
+        <td class="mono">${xe(a.dni)}</td>
+        <td>${xe(a.apellido_nombre)}</td>
+        <td style="font-size:12px">${xe(a.establecimiento)}</td>
+        <td style="font-size:12px">${xe(a.sector)}</td>
+        <td class="mono" style="font-size:12px;color:var(--txt3)">${xe(a.hora_entrada)||'—'}</td>
+        <td>${a.excepcion?`<span style="padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;${excStyle}">${xe(a.excepcion)}</span>`:'—'}</td>
+      </tr>`;
+    }).join('');
     aw.style.display='';
   } else {
     aw.style.display='none';
@@ -1771,8 +1898,6 @@ async function procesarArchivoAsist(file){
 
   // Agrupar por fecha+DNI
   const map=new Map();
-  const limite=document.getElementById('asist-hora-limite').value||'07:00';
-  const [lh,lm]=limite.split(':').map(Number);
 
   for(let i=headerRow+1;i<rows.length;i++){
     const row=rows[i];
@@ -1807,18 +1932,8 @@ async function procesarArchivoAsist(file){
     }
   }
 
-  // Calcular estado
-  const registros=[...map.values()].map(r=>{
-    const [eh,em]=r.hora_entrada.split(':').map(Number);
-    const entMin=eh*60+(em||0);
-    const limMin=lh*60+lm;
-    let minTardanza=0,estado='PRESENTE';
-    if(r.hora_entrada&&entMin>limMin){
-      minTardanza=entMin-limMin;
-      estado='TARDANZA';
-    }
-    return {...r,estado,minutos_tardanza:minTardanza};
-  });
+  // Estado se calcula server-side usando horarios individuales
+  const registros=[...map.values()];
 
   if(!registros.length){msg.innerHTML=`<div style="background:var(--amber-l);border:1px solid var(--amber-m);border-radius:var(--r2);padding:10px 14px;font-size:13px;color:var(--amber)">No se encontraron registros válidos en el archivo.</div>`;return;}
 
@@ -1842,6 +1957,157 @@ async function procesarArchivoAsist(file){
   const fecha=registros[0].fecha;
   document.getElementById('asist-fecha').value=fecha;
   cargarAsistencias(0);
+}
+
+// ── HORARIOS ──────────────────────────────────────────────────────
+let horDebounce;
+function buscarHorarios(){clearTimeout(horDebounce);horDebounce=setTimeout(cargarHorarios,300);}
+
+async function cargarHorarios(){
+  const q=document.getElementById('search-hor')?.value.trim()||'';
+  const r=await api('getHorarios',{q});
+  const tbody=document.getElementById('tbody-hor');
+  if(!r.ok){toast(r.error,'err');return;}
+  document.getElementById('hor-total').textContent=r.total?`${r.total} horarios cargados`:'';
+  if(!r.horarios.length){tbody.innerHTML=`<tr><td colspan="6"><div class="empty"><p>No hay horarios cargados.</p></div></td></tr>`;return;}
+  tbody.innerHTML=r.horarios.map(h=>`<tr>
+    <td class="mono">${xe(h.dni)}</td>
+    <td>${xe(h.apellido_nombre)}</td>
+    <td style="font-size:12px">${xe(h.sector)||'—'}</td>
+    <td style="font-size:12px">${xe(h.servicio)||'—'}</td>
+    <td style="font-size:12px;color:var(--txt3)">${xe(h.horario_raw)||'—'}</td>
+    <td class="mono" style="font-weight:600">${xe(h.hora_entrada)||'—'}</td>
+  </tr>`).join('');
+}
+
+function parseHorarioStr(s){
+  if(!s||s==='-'||s.toLowerCase()==='horario')return{entrada:'',salida:''};
+  const times=(String(s).match(/\d{1,2}:\d{2}/g)||[]).map(t=>t.padStart(5,'0'));
+  return{entrada:times[0]||'',salida:times[1]||''};
+}
+
+async function procesarArchivoHorarios(file){
+  if(!file)return;
+  const msg=document.getElementById('hor-import-msg');
+  msg.innerHTML=`<div style="background:var(--blue-l);border:1px solid var(--blue-m);border-radius:var(--r2);padding:10px 14px;font-size:13px;color:var(--blue)">⏳ Procesando <strong>${xe(file.name)}</strong>…</div>`;
+
+  if(!window.XLSX){
+    await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);});
+  }
+
+  const buf=await file.arrayBuffer();
+  const wb=window.XLSX.read(buf,{type:'array'});
+  const ws=wb.Sheets[wb.SheetNames[0]];
+  const rows=window.XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+
+  const horarios=[];
+  for(const row of rows){
+    if(row.length<5)continue;
+    // Columnas: 0=Edit, 1=ID, 2=Nombre, 3=Sector, 4=DNI, 5=?, 6=Servicio, 7=Horario
+    const bioId=String(row[1]||'').trim();
+    const nombre=String(row[2]||'').trim().toUpperCase();
+    const sector=String(row[3]||'').trim().toUpperCase();
+    const dniRaw=String(row[4]||'').replace(/\D/g,'').trim();
+    const servicio=String(row[6]||'').trim().toUpperCase();
+    const horarioRaw=String(row[7]||'').trim();
+
+    if(!dniRaw||dniRaw.length<7||!nombre||nombre==='NOMBRE')continue;
+    // Excluir inactivos (servicio NO, JUBILADO, FALLECIDO, DUPLICADO, encabezados)
+    if(['NO','JUBILADO','FALLECIDO','DUPLICADO','SERVICIO'].includes(servicio))continue;
+
+    const {entrada,salida}=parseHorarioStr(horarioRaw);
+    horarios.push({bio_id:bioId,dni:dniRaw,apellido_nombre:nombre,sector,servicio,hora_entrada:entrada,hora_salida:salida,horario_raw:horarioRaw});
+  }
+
+  if(!horarios.length){msg.innerHTML=`<div style="background:var(--amber-l);border:1px solid var(--amber-m);border-radius:var(--r2);padding:10px 14px;font-size:13px;color:var(--amber)">No se encontraron registros válidos.</div>`;return;}
+
+  msg.innerHTML=`<div style="background:var(--blue-l);border:1px solid var(--blue-m);border-radius:var(--r2);padding:10px 14px;font-size:13px;color:var(--blue)">⬆️ Guardando ${horarios.length} horarios…</div>`;
+  overlay(true,'Importando horarios...');
+  const resp=await api('importarHorarios',{horarios});
+  overlay(false);
+
+  if(!resp.ok){msg.innerHTML=`<div style="background:var(--red-l);border:1px solid var(--red-m);border-radius:var(--r2);padding:10px 14px;font-size:13px;color:var(--red)">Error: ${xe(resp.error)}</div>`;return;}
+  msg.innerHTML=`<div style="background:var(--green-l);border:1px solid var(--green-m);border-radius:var(--r2);padding:10px 14px;font-size:13px;color:var(--green)">
+    ✅ Horarios importados — <strong>${resp.insertados}</strong> nuevos · <strong>${resp.actualizados}</strong> actualizados · <strong>${resp.errores}</strong> errores
+  </div>`;
+  cargarHorarios();
+}
+
+// ── EXCEPCIONES ───────────────────────────────────────────────────
+let excDebounce;
+function buscarExcepciones(){clearTimeout(excDebounce);excDebounce=setTimeout(cargarExcepciones,300);}
+
+async function cargarExcepciones(){
+  const q=document.getElementById('search-exc')?.value.trim()||'';
+  const desde=document.getElementById('exc-desde')?.value||'';
+  const hasta=document.getElementById('exc-hasta')?.value||'';
+  const r=await api('getExcepciones',{q,desde,hasta});
+  const tbody=document.getElementById('tbody-exc');
+  if(!r.ok){toast(r.error,'err');return;}
+  if(!r.excepciones.length){tbody.innerHTML=`<tr><td colspan="7"><div class="empty"><p>No hay excepciones para el período seleccionado.</p></div></td></tr>`;return;}
+  tbody.innerHTML=r.excepciones.map(e=>{
+    const tipoStyle='background:var(--blue-l);color:var(--blue);border:1px solid var(--blue-m)';
+    return `<tr>
+      <td class="mono">${xe(e.dni)}</td>
+      <td>${xe(e.apellido_nombre)}</td>
+      <td class="mono">${xe(e.fecha_desde)}</td>
+      <td class="mono">${xe(e.fecha_hasta)}</td>
+      <td><span style="padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;${tipoStyle}">${xe(e.tipo)}</span></td>
+      <td style="font-size:12px;color:var(--txt3)">${xe(e.observaciones)||'—'}</td>
+      <td><button class="tbtn" style="padding:3px 8px;font-size:11px;color:var(--red)" onclick="eliminarExcepcion('${xe(e.id)}')">Eliminar</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function abrirAddExcepcion(){
+  document.getElementById('exc-dni').value='';
+  document.getElementById('exc-nombre').value='';
+  document.getElementById('exc-tipo').value='';
+  document.getElementById('exc-fd').value=new Date().toISOString().slice(0,10);
+  document.getElementById('exc-fh').value=new Date().toISOString().slice(0,10);
+  document.getElementById('exc-obs').value='';
+  document.getElementById('exc-err').style.display='none';
+  abrirModal('modal-add-exc');
+}
+
+let _excLookupDebounce;
+async function buscarAgenteExc(){
+  clearTimeout(_excLookupDebounce);
+  const dni=document.getElementById('exc-dni').value.replace(/\D/g,'');
+  if(dni.length<7){document.getElementById('exc-nombre').value='';return;}
+  _excLookupDebounce=setTimeout(async()=>{
+    const r=await api('buscarAgentePorDNI',{dni});
+    if(r.ok&&r.encontrado) document.getElementById('exc-nombre').value=r.agente.apellido_nombre||'';
+    else document.getElementById('exc-nombre').value='No encontrado en padrón';
+  },400);
+}
+
+async function guardarExcepcion(){
+  const dni=document.getElementById('exc-dni').value.replace(/\D/g,'').trim();
+  const apellido_nombre=document.getElementById('exc-nombre').value.trim();
+  const tipo=document.getElementById('exc-tipo').value;
+  const fecha_desde=document.getElementById('exc-fd').value;
+  const fecha_hasta=document.getElementById('exc-fh').value;
+  const observaciones=document.getElementById('exc-obs').value.trim();
+  const errEl=document.getElementById('exc-err');
+  errEl.style.display='none';
+  if(!dni||!tipo||!fecha_desde||!fecha_hasta){errEl.textContent='Completá DNI, tipo y fechas.';errEl.style.display='';return;}
+  if(fecha_hasta<fecha_desde){errEl.textContent='La fecha hasta debe ser mayor o igual a desde.';errEl.style.display='';return;}
+  overlay(true,'Guardando...');
+  const r=await api('addExcepcion',{dni,apellido_nombre,tipo,fecha_desde,fecha_hasta,observaciones});
+  overlay(false);
+  if(!r.ok){errEl.textContent=r.error||'Error';errEl.style.display='';return;}
+  cerrarModal('modal-add-exc');
+  toast('Excepción guardada');
+  cargarExcepciones();
+}
+
+async function eliminarExcepcion(id){
+  if(!confirm('¿Eliminar esta excepción?'))return;
+  const r=await api('deleteExcepcion',{id});
+  if(!r.ok){toast(r.error,'err');return;}
+  toast('Excepción eliminada');
+  cargarExcepciones();
 }
 
 // ── REPORTE POR AGENTE ────────────────────────────────────────────

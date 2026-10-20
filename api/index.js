@@ -744,18 +744,48 @@ module.exports = async function handler(req, res) {
     if (action === 'importarAsistencias') {
       const auth = requireAuth(req, 'user');
       if (!auth) return err(res, 'No autorizado', 401);
-      const { registros } = body; // array de {fecha,dni,apellido_nombre,hora_entrada,hora_salida,estado,servicio,minutos_tardanza}
+      // registros: [{fecha,dni,apellido_nombre,hora_entrada,hora_salida,servicio}] — estado calculado server-side
+      const { registros } = body;
       if (!Array.isArray(registros) || !registros.length) return err(res, 'Sin registros');
       if (registros.length > 1000) return err(res, 'Máximo 1000 registros por importación');
+
+      // Cargar horarios individuales (map dni → hora_entrada)
+      const dnis = [...new Set(registros.map(r => r.dni).filter(Boolean))];
+      const horarioRows = dnis.length ? await sql`SELECT dni, hora_entrada FROM horarios WHERE dni = ANY(${dnis}) AND activo='SI'` : [];
+      const horariosMap = Object.fromEntries(horarioRows.map(h => [h.dni, h.hora_entrada]));
+
+      // Cargar excepciones activas para la fecha
+      const fecha0 = registros[0]?.fecha || '';
+      const excRows = fecha0 ? await sql`SELECT dni, tipo FROM asistencia_excepciones WHERE activo='SI' AND fecha_desde <= ${fecha0} AND fecha_hasta >= ${fecha0}` : [];
+      const excMap = Object.fromEntries(excRows.map(e => [e.dni, e.tipo]));
 
       let insertados = 0, actualizados = 0, errores = 0;
       for (const r of registros) {
         if (!r.fecha || !r.dni || !r.apellido_nombre) { errores++; continue; }
         const id = genId('ast');
+
+        // Calcular tardanza usando horario individual (si existe) o sin tardanza
+        let estado = 'PRESENTE', minutos_tardanza = 0;
+        if (excMap[r.dni]) {
+          estado = excMap[r.dni]; // VACACIONES, ART, LICENCIA, etc.
+        } else if (r.hora_entrada) {
+          const horaLimite = horariosMap[r.dni] || ''; // horario individual
+          if (horaLimite) {
+            const [lh, lm] = horaLimite.split(':').map(Number);
+            const [eh, em] = r.hora_entrada.split(':').map(Number);
+            const limMin = lh * 60 + lm;
+            const entMin = eh * 60 + em;
+            if (entMin > limMin + 10) { // 10 min de gracia
+              minutos_tardanza = entMin - limMin;
+              estado = 'TARDANZA';
+            }
+          }
+        }
+
         try {
           const res2 = await sql`
             INSERT INTO asistencias (id,fecha,dni,apellido_nombre,hora_entrada,hora_salida,estado,servicio,minutos_tardanza,activo,usuario_carga)
-            VALUES (${id},${r.fecha},${r.dni},${r.apellido_nombre},${r.hora_entrada||''},${r.hora_salida||''},${r.estado||'PRESENTE'},${r.servicio||''},${r.minutos_tardanza||0},'SI',${auth.u})
+            VALUES (${id},${r.fecha},${r.dni},${r.apellido_nombre},${r.hora_entrada||''},${r.hora_salida||''},${estado},${r.servicio||''},${minutos_tardanza},'SI',${auth.u})
             ON CONFLICT (fecha,dni) DO UPDATE SET
               hora_entrada=EXCLUDED.hora_entrada, hora_salida=EXCLUDED.hora_salida,
               estado=EXCLUDED.estado, servicio=EXCLUDED.servicio,
@@ -766,7 +796,7 @@ module.exports = async function handler(req, res) {
           if (res2[0]?.inserted) insertados++; else actualizados++;
         } catch (e) { errores++; }
       }
-      await log(sql, auth.u, 'IMPORTAR_ASISTENCIAS', 'asistencias', registros[0]?.fecha||'', `${insertados} nuevos, ${actualizados} actualizados, ${errores} errores`);
+      await log(sql, auth.u, 'IMPORTAR_ASISTENCIAS', 'asistencias', fecha0, `${insertados} nuevos, ${actualizados} actualizados, ${errores} errores`);
       return ok(res, { insertados, actualizados, errores });
     }
 
@@ -775,31 +805,119 @@ module.exports = async function handler(req, res) {
       if (!auth) return err(res, 'No autorizado', 401);
       const fecha = body.fecha || query.fecha || '';
       const q = normalizar(body.q || query.q || '');
+      const filtroEstado = body.estado || query.estado || '';
       const limit = Math.min(parseInt(body.limit || query.limit || 200), 500);
       const offset = parseInt(body.offset || query.offset || 0);
       if (!fecha) return ok(res, { asistencias: [], total: 0, ausentes: [] });
 
       const rows = await sql`
-        SELECT * FROM asistencias
-        WHERE fecha=${fecha} AND activo='SI'
-          AND (${q}='' OR LOWER(apellido_nombre) LIKE ${'%'+q+'%'} OR dni LIKE ${'%'+q+'%'})
-        ORDER BY estado DESC, apellido_nombre
+        SELECT a.*, h.hora_entrada AS horario_esperado, h.horario_raw
+        FROM asistencias a
+        LEFT JOIN horarios h ON h.dni = a.dni AND h.activo='SI'
+        WHERE a.fecha=${fecha} AND a.activo='SI'
+          AND (${q}='' OR LOWER(a.apellido_nombre) LIKE ${'%'+q+'%'} OR a.dni LIKE ${'%'+q+'%'})
+          AND (${filtroEstado}='' OR a.estado=${filtroEstado})
+        ORDER BY a.estado DESC, a.apellido_nombre
         LIMIT ${limit} OFFSET ${offset}
       `;
       const tot = await sql`SELECT COUNT(*) as n FROM asistencias WHERE fecha=${fecha} AND activo='SI'`;
 
-      // Agentes del padrón ausentes ese día
-      const presentesDni = rows.map(r=>r.dni);
+      // Ausentes del padrón: cruzar con horarios activos (solo quienes tienen horario asignado) o todos
       const ausentesRows = await sql`
-        SELECT dni, apellido_nombre, establecimiento, sector FROM agentes
-        WHERE activo='SI' AND dni NOT IN (
-          SELECT dni FROM asistencias WHERE fecha=${fecha} AND activo='SI'
-        )
-        ORDER BY apellido_nombre
+        SELECT a.dni, a.apellido_nombre, a.establecimiento, a.sector,
+               h.hora_entrada, h.horario_raw,
+               e.tipo AS excepcion
+        FROM agentes a
+        LEFT JOIN horarios h ON h.dni = a.dni AND h.activo='SI'
+        LEFT JOIN asistencia_excepciones e ON e.dni = a.dni AND e.activo='SI'
+          AND e.fecha_desde <= ${fecha} AND e.fecha_hasta >= ${fecha}
+        WHERE a.activo='SI'
+          AND a.dni NOT IN (SELECT dni FROM asistencias WHERE fecha=${fecha} AND activo='SI')
+        ORDER BY a.apellido_nombre
         LIMIT 500
       `;
 
       return ok(res, { asistencias: rows, total: parseInt(tot[0].n), ausentes: ausentesRows });
+    }
+
+    // ─ HORARIOS ──────────────────────────────────────────────────
+    if (action === 'importarHorarios') {
+      const auth = requireAuth(req, 'user');
+      if (!auth) return err(res, 'No autorizado', 401);
+      const { horarios } = body;
+      if (!Array.isArray(horarios) || !horarios.length) return err(res, 'Sin registros');
+      if (horarios.length > 2000) return err(res, 'Máximo 2000 registros');
+      let insertados = 0, actualizados = 0, errores = 0;
+      for (const h of horarios) {
+        if (!h.dni || !h.apellido_nombre) { errores++; continue; }
+        const id = genId('hor');
+        try {
+          const r2 = await sql`
+            INSERT INTO horarios (id,bio_id,dni,apellido_nombre,sector,servicio,hora_entrada,hora_salida,horario_raw,activo)
+            VALUES (${id},${h.bio_id||''},${h.dni},${h.apellido_nombre},${h.sector||''},${h.servicio||''},${h.hora_entrada||''},${h.hora_salida||''},${h.horario_raw||''},'SI')
+            ON CONFLICT (dni) DO UPDATE SET
+              bio_id=EXCLUDED.bio_id, apellido_nombre=EXCLUDED.apellido_nombre,
+              sector=EXCLUDED.sector, servicio=EXCLUDED.servicio,
+              hora_entrada=EXCLUDED.hora_entrada, hora_salida=EXCLUDED.hora_salida,
+              horario_raw=EXCLUDED.horario_raw, activo='SI', fecha_carga=NOW()
+            RETURNING (xmax=0) AS inserted
+          `;
+          if (r2[0]?.inserted) insertados++; else actualizados++;
+        } catch (e) { errores++; }
+      }
+      await log(sql, auth.u, 'IMPORTAR_HORARIOS', 'horarios', '', `${insertados} nuevos, ${actualizados} actualizados`);
+      return ok(res, { insertados, actualizados, errores });
+    }
+
+    if (action === 'getHorarios') {
+      const auth = requireAuth(req, 'read');
+      if (!auth) return err(res, 'No autorizado', 401);
+      const q = normalizar(body.q || query.q || '');
+      const rows = await sql`
+        SELECT * FROM horarios WHERE activo='SI'
+          AND (${q}='' OR LOWER(apellido_nombre) LIKE ${'%'+q+'%'} OR dni LIKE ${'%'+q+'%'})
+        ORDER BY apellido_nombre LIMIT 500
+      `;
+      const tot = await sql`SELECT COUNT(*) as n FROM horarios WHERE activo='SI'`;
+      return ok(res, { horarios: rows, total: parseInt(tot[0].n) });
+    }
+
+    // ─ EXCEPCIONES DE ASISTENCIA ──────────────────────────────────
+    if (action === 'addExcepcion') {
+      const auth = requireAuth(req, 'user');
+      if (!auth) return err(res, 'No autorizado', 401);
+      const { dni, apellido_nombre, fecha_desde, fecha_hasta, tipo, observaciones } = body;
+      if (!dni || !fecha_desde || !fecha_hasta || !tipo) return err(res, 'Faltan campos');
+      const id = genId('exc');
+      await sql`INSERT INTO asistencia_excepciones (id,dni,apellido_nombre,fecha_desde,fecha_hasta,tipo,observaciones,activo,usuario_carga)
+        VALUES (${id},${dni},${apellido_nombre||''},${fecha_desde},${fecha_hasta},${tipo},${observaciones||''},'SI',${auth.u})`;
+      await log(sql, auth.u, 'ADD_EXCEPCION', 'asistencia_excepciones', id, `${apellido_nombre} ${tipo} ${fecha_desde}→${fecha_hasta}`);
+      return ok(res, { id });
+    }
+
+    if (action === 'getExcepciones') {
+      const auth = requireAuth(req, 'read');
+      if (!auth) return err(res, 'No autorizado', 401);
+      const desde = body.desde || query.desde || '';
+      const hasta = body.hasta || query.hasta || '';
+      const q = normalizar(body.q || query.q || '');
+      const rows = await sql`
+        SELECT * FROM asistencia_excepciones WHERE activo='SI'
+          AND (${desde}='' OR fecha_hasta >= ${desde})
+          AND (${hasta}='' OR fecha_desde <= ${hasta})
+          AND (${q}='' OR LOWER(apellido_nombre) LIKE ${'%'+q+'%'} OR dni LIKE ${'%'+q+'%'})
+        ORDER BY fecha_desde DESC LIMIT 200
+      `;
+      return ok(res, { excepciones: rows });
+    }
+
+    if (action === 'deleteExcepcion') {
+      const auth = requireAuth(req, 'user');
+      if (!auth) return err(res, 'No autorizado', 401);
+      const { id } = body;
+      if (!id) return err(res, 'Falta id');
+      await sql`UPDATE asistencia_excepciones SET activo='NO' WHERE id=${id}`;
+      return ok(res, { ok: true });
     }
 
     // ─ LOGS ───────────────────────────────────────────────────────
