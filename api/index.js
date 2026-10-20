@@ -749,10 +749,13 @@ module.exports = async function handler(req, res) {
       if (!Array.isArray(registros) || !registros.length) return err(res, 'Sin registros');
       if (registros.length > 1000) return err(res, 'Máximo 1000 registros por importación');
 
-      // Cargar horarios individuales (map dni → hora_entrada)
+      // Cargar horarios individuales (map dni → {hora_entrada, turno24})
       const dnis = [...new Set(registros.map(r => r.dni).filter(Boolean))];
-      const horarioRows = dnis.length ? await sql`SELECT dni, hora_entrada FROM horarios WHERE dni = ANY(${dnis}) AND activo='SI'` : [];
-      const horariosMap = Object.fromEntries(horarioRows.map(h => [h.dni, h.hora_entrada]));
+      const horarioRows = dnis.length ? await sql`SELECT dni, hora_entrada, horario_raw FROM horarios WHERE dni = ANY(${dnis}) AND activo='SI'` : [];
+      const horariosMap = Object.fromEntries(horarioRows.map(h => [h.dni, {
+        entrada: h.hora_entrada,
+        turno24: /24\s*hs/i.test(h.horario_raw||'') || (h.hora_entrada && h.hora_entrada === (h.horario_raw||'').match(/\d{1,2}:\d{2}/g)?.[1]?.padStart(5,'0'))
+      }]));
 
       // Cargar excepciones activas para la fecha
       const fecha0 = registros[0]?.fecha || '';
@@ -769,13 +772,14 @@ module.exports = async function handler(req, res) {
         if (excMap[r.dni]) {
           estado = excMap[r.dni]; // VACACIONES, ART, LICENCIA, etc.
         } else if (r.hora_entrada) {
-          const horaLimite = horariosMap[r.dni] || ''; // horario individual
-          if (horaLimite) {
-            const [lh, lm] = horaLimite.split(':').map(Number);
+          const hor = horariosMap[r.dni];
+          // Turno 24hs: no se evalúa tardanza
+          if (hor && hor.entrada && !hor.turno24) {
+            const [lh, lm] = hor.entrada.split(':').map(Number);
             const [eh, em] = r.hora_entrada.split(':').map(Number);
             const limMin = lh * 60 + lm;
             const entMin = eh * 60 + em;
-            if (entMin > limMin + 10) { // 10 min de gracia
+            if (entMin > limMin + 11) { // tolerancia 11 minutos
               minutos_tardanza = entMin - limMin;
               estado = 'TARDANZA';
             }

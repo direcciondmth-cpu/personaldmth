@@ -187,10 +187,18 @@ td.mono{font-family:var(--mono);font-size:12px}
 .doc-estado.vencido{background:var(--red-l);color:var(--red)}
 
 /* ─── ASISTENCIAS ───────────────────────────────────────────────── */
-.asist-import-box{border:2px dashed var(--border);border-radius:var(--r);padding:32px;text-align:center;background:var(--surface);cursor:pointer;transition:border-color .15s;}
+.asist-import-box{border:2px dashed var(--border);border-radius:var(--r);padding:24px;text-align:center;background:var(--surface);cursor:pointer;transition:border-color .15s;}
 .asist-import-box:hover{border-color:var(--blue);background:var(--blue-l)}
 .asist-import-box input[type=file]{display:none}
 .asist-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:20px}
+.pill-btn{padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--txt3);font-size:12px;cursor:pointer;font-weight:500;transition:all .15s}
+.pill-btn:hover{border-color:var(--blue-m);color:var(--blue)}
+.pill-btn.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.pill-btn.tardanza.active{background:var(--amber);border-color:var(--amber);color:#fff}
+.reporte-section{margin-bottom:20px}
+.reporte-section h4{font-size:13px;font-weight:700;color:var(--txt);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.reporte-row{display:flex;align-items:center;padding:8px 12px;border-radius:var(--r2);margin-bottom:4px;font-size:13px;background:var(--surface)}
+.reporte-row:hover{background:var(--surface2)}
 
 /* ─── CONFIGURACIÓN ─────────────────────────────────────────────── */
 .config-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:16px}
@@ -511,13 +519,16 @@ td.mono{font-family:var(--mono);font-size:12px}
               <input type="text" id="search-asist" placeholder="Buscar agente..." oninput="filtrarAsistencias()">
             </div>
             <input type="date" id="asist-fecha" style="padding:7px 10px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px" onchange="cargarAsistencias()">
-            <select id="asist-filtro-estado" onchange="filtrarAsistencias()" style="padding:7px 10px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px">
-              <option value="">Todos</option>
-              <option value="PRESENTE">Presentes</option>
-              <option value="TARDANZA">Tardanzas</option>
-            </select>
+            <div id="asist-filtros" style="display:flex;gap:6px">
+              <button class="pill-btn active" data-estado="" onclick="setPillFiltro(this,'')">Todos</button>
+              <button class="pill-btn" data-estado="PRESENTE" onclick="setPillFiltro(this,'PRESENTE')">Presentes</button>
+              <button class="pill-btn tardanza" data-estado="TARDANZA" onclick="setPillFiltro(this,'TARDANZA')">Tardanzas</button>
+            </div>
             <button class="tbtn" onclick="exportTableCSV('table-asist','asistencias')">
               <svg viewBox="0 0 16 16" fill="none" width="13" height="13"><path d="M8 2v8M5 7l3 3 3-3M3 13h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> CSV
+            </button>
+            <button class="tbtn" onclick="verReporteAsist()" title="Reporte de ausentes y tardanzas">
+              <svg viewBox="0 0 16 16" fill="none" width="13" height="13"><rect x="2" y="1" width="12" height="14" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M5 5h6M5 8h6M5 11h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg> Reporte
             </button>
           </div>
           <div style="overflow-x:auto">
@@ -915,6 +926,23 @@ td.mono{font-family:var(--mono);font-size:12px}
     <div class="modal-footer">
       <button class="tbtn primary" onclick="guardarOS()">Guardar</button>
       <button class="tbtn" onclick="cerrarModal('modal-form-os')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL REPORTE ASISTENCIA ───────────────────────────────────────── -->
+<div class="modal-overlay hidden" id="modal-reporte-asist">
+  <div class="modal" style="max-width:700px;max-height:85vh;overflow-y:auto">
+    <div class="modal-hdr" style="position:sticky;top:0;background:var(--surface);z-index:1">
+      <h3 id="reporte-asist-titulo">Reporte de Asistencia</h3>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="tbtn" onclick="exportarReporteCSV()" style="font-size:12px">
+          <svg viewBox="0 0 16 16" fill="none" width="12" height="12"><path d="M8 2v8M5 7l3 3 3-3M3 13h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> CSV
+        </button>
+        <button class="modal-close" onclick="cerrarModal('modal-reporte-asist')">×</button>
+      </div>
+    </div>
+    <div class="modal-body" id="reporte-asist-body">
     </div>
   </div>
 </div>
@@ -1779,6 +1807,7 @@ function exportCumpleanosCSV(){
 
 // ── ASISTENCIAS ───────────────────────────────────────────────────
 let asistOffset=0;
+let asistFiltroEstado='';
 
 function switchAsistTab(tab){
   ['reg','hor','exc'].forEach(t=>{
@@ -1795,7 +1824,7 @@ async function cargarAsistencias(offset){
   asistOffset=Math.max(0,offset||0);
   const fecha=document.getElementById('asist-fecha').value;
   const q=document.getElementById('search-asist').value.trim();
-  const estado=document.getElementById('asist-filtro-estado').value;
+  const estado=asistFiltroEstado;
   if(!fecha){
     document.getElementById('tbody-asist').innerHTML=`<tr><td colspan="8"><div class="empty"><p>Seleccioná una fecha para ver asistencias.</p></div></td></tr>`;
     return;
@@ -1861,6 +1890,107 @@ async function cargarAsistencias(offset){
   document.getElementById('pag-info-asist').textContent=`${asistOffset+1}–${asistOffset+(r.asistencias.length||0)} de ${r.total}`;
   document.getElementById('pag-asist-prev').disabled=asistOffset===0;
   document.getElementById('pag-asist-next').disabled=(r.asistencias.length||0)<200;
+}
+
+function setPillFiltro(btn, estado){
+  asistFiltroEstado=estado;
+  document.querySelectorAll('#asist-filtros .pill-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  cargarAsistencias(0);
+}
+
+// Datos de la última carga, para usarlos en el reporte sin re-fetch
+let _asistLastData=null;
+
+function verReporteAsist(){
+  const fecha=document.getElementById('asist-fecha').value;
+  if(!fecha){toast('Seleccioná una fecha primero','err');return;}
+
+  // Re-fetch con filtro vacío para tener todos los registros del día
+  const _orig=asistFiltroEstado;
+  asistFiltroEstado='';
+  api('getAsistencias',{fecha,q:'',estado:'',limit:500,offset:0}).then(r=>{
+    asistFiltroEstado=_orig;
+    if(!r.ok){toast(r.error,'err');return;}
+
+    const tardanzas=(r.asistencias||[]).filter(a=>a.estado==='TARDANZA').sort((a,b)=>(b.minutos_tardanza||0)-(a.minutos_tardanza||0));
+    const ausentes=(r.ausentes||[]);
+    _asistLastData={fecha,tardanzas,ausentes};
+
+    let html=`<p style="color:var(--txt3);font-size:13px;margin-bottom:16px">Fecha: <strong>${fecha}</strong></p>`;
+
+    // Tardanzas
+    html+=`<h4 style="margin:0 0 8px;font-size:14px;color:var(--amber)">Tardanzas (${tardanzas.length})</h4>`;
+    if(tardanzas.length){
+      html+=`<table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px">
+        <thead><tr style="background:var(--surface2)">
+          <th style="padding:6px 8px;text-align:left">DNI</th>
+          <th style="padding:6px 8px;text-align:left">Nombre</th>
+          <th style="padding:6px 8px;text-align:left">Horario</th>
+          <th style="padding:6px 8px;text-align:left">Entrada</th>
+          <th style="padding:6px 8px;text-align:right">Demora</th>
+          <th style="padding:6px 8px;text-align:left">Servicio</th>
+        </tr></thead><tbody>`;
+      tardanzas.forEach(a=>{
+        html+=`<tr style="border-bottom:1px solid var(--border)">
+          <td style="padding:5px 8px" class="mono">${xe(a.dni)}</td>
+          <td style="padding:5px 8px"><strong>${xe(a.apellido_nombre)}</strong></td>
+          <td style="padding:5px 8px;color:var(--txt3);font-size:12px">${xe(a.horario_esperado)||'—'}</td>
+          <td style="padding:5px 8px" class="mono">${xe(a.hora_entrada)||'—'}</td>
+          <td style="padding:5px 8px;text-align:right;color:var(--amber);font-weight:600">+${a.minutos_tardanza}min</td>
+          <td style="padding:5px 8px;font-size:12px">${xe(a.servicio)||'—'}</td>
+        </tr>`;
+      });
+      html+=`</tbody></table>`;
+    } else {
+      html+=`<p style="color:var(--txt3);font-size:13px;margin-bottom:20px">Sin tardanzas registradas.</p>`;
+    }
+
+    // Ausentes
+    html+=`<h4 style="margin:0 0 8px;font-size:14px;color:var(--red)">Ausentes (${ausentes.length})</h4>`;
+    if(ausentes.length){
+      html+=`<table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead><tr style="background:var(--surface2)">
+          <th style="padding:6px 8px;text-align:left">DNI</th>
+          <th style="padding:6px 8px;text-align:left">Nombre</th>
+          <th style="padding:6px 8px;text-align:left">Servicio</th>
+          <th style="padding:6px 8px;text-align:left">Excepción</th>
+        </tr></thead><tbody>`;
+      ausentes.forEach(a=>{
+        const excTag=a.excepcion?`<span style="padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;background:var(--blue-l);color:var(--blue);border:1px solid var(--blue-m)">${xe(a.excepcion)}</span>`:'—';
+        html+=`<tr style="border-bottom:1px solid var(--border)">
+          <td style="padding:5px 8px" class="mono">${xe(a.dni)}</td>
+          <td style="padding:5px 8px"><strong>${xe(a.apellido_nombre)}</strong></td>
+          <td style="padding:5px 8px;font-size:12px">${xe(a.establecimiento||a.sector)||'—'}</td>
+          <td style="padding:5px 8px">${excTag}</td>
+        </tr>`;
+      });
+      html+=`</tbody></table>`;
+    } else {
+      html+=`<p style="color:var(--txt3);font-size:13px">Sin ausentes (todos presentes en el padrón).</p>`;
+    }
+
+    document.getElementById('reporte-asist-titulo').textContent=`Reporte ${fecha}`;
+    document.getElementById('reporte-asist-body').innerHTML=html;
+    abrirModal('modal-reporte-asist');
+  });
+}
+
+function exportarReporteCSV(){
+  if(!_asistLastData){return;}
+  const {fecha,tardanzas,ausentes}=_asistLastData;
+  let csv='Tipo,DNI,Nombre,Servicio,Horario Esperado,Hora Entrada,Demora (min),Excepción\n';
+  tardanzas.forEach(a=>{
+    csv+=`TARDANZA,${a.dni},"${a.apellido_nombre}","${a.servicio||''}","${a.horario_esperado||''}","${a.hora_entrada||''}",${a.minutos_tardanza||0},\n`;
+  });
+  ausentes.forEach(a=>{
+    csv+=`AUSENTE,${a.dni},"${a.apellido_nombre}","${a.establecimiento||a.sector||''}","${a.hora_entrada||''}","","","${a.excepcion||''}"\n`;
+  });
+  const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement('a');
+  link.href=url; link.download=`reporte-asistencia-${fecha}.csv`;
+  link.click(); URL.revokeObjectURL(url);
 }
 
 async function procesarArchivoAsist(file){
