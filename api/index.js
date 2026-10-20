@@ -446,6 +446,33 @@ module.exports = async function handler(req, res) {
       return ok(res, { id, numero_orden: numero, mensaje: 'Orden creada' });
     }
 
+    // ─ EDITAR ORDEN DE SALIDA (interna, requiere auth user) ──────
+    if (action === 'editarOrdenAdmin') {
+      const auth = requireAuth(req, 'user');
+      if (!auth) return err(res, 'No autorizado', 401);
+      const { id, motivo, destino, hora_salida, hora_retorno, observaciones } = body;
+      if (!id || !motivo || !hora_salida) return err(res, 'Faltan campos requeridos');
+      const check = await sql`SELECT id, apellido_nombre FROM ordenes_salida WHERE id=${id} AND activo='SI'`;
+      if (!check.length) return err(res, 'Orden no encontrada', 404);
+      const tipo = motivo.startsWith('PARTICULAR') ? 'PARTICULAR' : 'OFICIAL';
+      await sql`UPDATE ordenes_salida SET motivo=${motivo}, destino=${destino||''}, hora_salida=${hora_salida}, hora_retorno=${hora_retorno||''}, tipo=${tipo}, observaciones=${observaciones||''} WHERE id=${id}`;
+      await log(sql, auth.u, 'EDITAR_OS', 'ordenes_salida', id, check[0].apellido_nombre);
+      return ok(res, { ok: true });
+    }
+
+    // ─ BORRAR ORDEN DE SALIDA (interna, requiere auth admin) ────────
+    if (action === 'borrarOrdenAdmin') {
+      const auth = requireAuth(req, 'admin');
+      if (!auth) return err(res, 'No autorizado', 401);
+      const { id } = body;
+      if (!id) return err(res, 'Falta id');
+      const check = await sql`SELECT id, apellido_nombre FROM ordenes_salida WHERE id=${id} AND activo='SI'`;
+      if (!check.length) return err(res, 'Orden no encontrada', 404);
+      await sql`UPDATE ordenes_salida SET activo='NO' WHERE id=${id}`;
+      await log(sql, auth.u, 'BORRAR_OS', 'ordenes_salida', id, check[0].apellido_nombre);
+      return ok(res, { ok: true });
+    }
+
     // ─ BUSCAR AGENTE POR DNI (público, para salida.html) ─────────
     if (action === 'buscarAgentePorDNI') {
       const dni = String(body.dni || query.dni || '').replace(/\D/g, '').trim();

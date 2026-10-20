@@ -449,7 +449,7 @@ td.mono{font-family:var(--mono);font-size:12px}
         </div>
         <div style="overflow-x:auto">
           <table id="table-os">
-            <thead><tr><th>FECHA</th><th>APELLIDO Y NOMBRE</th><th>DNI</th><th>SECTOR</th><th>DESTINO</th><th>SALIDA</th><th>RETORNO</th><th>TIPO</th></tr></thead>
+            <thead><tr><th>FECHA</th><th>APELLIDO Y NOMBRE</th><th>DNI</th><th>SECTOR</th><th>DESTINO</th><th>SALIDA</th><th>RETORNO</th><th>TIPO</th><th></th></tr></thead>
             <tbody id="tbody-os"></tbody>
           </table>
         </div>
@@ -833,6 +833,68 @@ td.mono{font-family:var(--mono);font-size:12px}
   </div>
 </div>
 
+<!-- ── MODAL EDITAR ORDEN DE SALIDA ─────────────────────────────────── -->
+<div class="modal-overlay hidden" id="modal-edit-os">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-hdr">
+      <h3>Editar Orden de Salida</h3>
+      <button class="modal-close" onclick="cerrarModal('modal-edit-os')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="eos-id">
+      <div style="display:grid;gap:14px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-group">
+            <label class="form-label">Apellido y Nombre</label>
+            <input class="form-input" id="eos-nombre" type="text" readonly style="background:var(--surface2)">
+          </div>
+          <div class="form-group">
+            <label class="form-label">DNI</label>
+            <input class="form-input" id="eos-dni" type="text" readonly style="background:var(--surface2)">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Motivo *</label>
+          <select class="form-input" id="eos-motivo" onchange="toggleDestinoEOS()">
+            <option value="">— Seleccioná —</option>
+            <option value="PARTICULAR (1 HORA SEMANAL)">PARTICULAR (1 HORA SEMANAL)</option>
+            <option value="OFICIAL (COMISIÓN DE ENTRADA / SALIDA)">OFICIAL – COMISIÓN ENTRADA/SALIDA</option>
+            <option value="OFICIAL (SALIDA OFICIAL SIN MARCAR SALIDA)">OFICIAL – SIN MARCAR SALIDA</option>
+            <option value="OFICIAL (COMISIÓN DE SERVICIO)">OFICIAL – COMISIÓN DE SERVICIO</option>
+            <option value="OFICIAL (SALIDA GREMIAL)">OFICIAL – SALIDA GREMIAL</option>
+          </select>
+        </div>
+        <div class="form-group" id="eos-destino-wrap">
+          <label class="form-label">Destino</label>
+          <input class="form-input" id="eos-destino" type="text" placeholder="Destino de la comisión">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-group">
+            <label class="form-label">Hora Salida *</label>
+            <input class="form-input" id="eos-desde" type="time">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Hora Retorno</label>
+            <input class="form-input" id="eos-hasta" type="time">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Observaciones</label>
+          <textarea class="form-input" id="eos-obs" rows="2"></textarea>
+        </div>
+        <div id="eos-err" class="login-err"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="tbtn primary" onclick="guardarEditOS()">Guardar</button>
+      <button class="tbtn" onclick="cerrarModal('modal-edit-os')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── ÁREA IMPRESIÓN OS (admin) ─────────────────────────────────────── -->
+<div id="print-area-os" style="display:none"></div>
+
 <!-- ── MODAL OLVIDÉ CONTRASEÑA ─────────────────────────────────────── -->
 <div class="modal-overlay hidden" id="modal-olvide">
   <div class="modal" style="max-width:420px">
@@ -974,6 +1036,7 @@ function setupUI(){
   document.getElementById('sb-rol').textContent=ME.rol;
   document.getElementById('sb-av').textContent=(ME.nombre||ME.usuario).slice(0,2).toUpperCase();
   const isAdmin=['admin','superadmin'].includes(ME.rol);
+  osIsAdmin=isAdmin;
   const isSuperAdmin=ME.rol==='superadmin';
   const canWrite=['user','admin','superadmin'].includes(ME.rol);
   if(isAdmin){
@@ -1411,7 +1474,7 @@ async function guardarAgente(){
 }
 
 // ── ÓRDENES DE SALIDA ─────────────────────────────────────────────
-let osOffset=0,osLoaded=false,osDebounce;
+let osOffset=0,osLoaded=false,osDebounce,osIsAdmin=false;
 function debounceOS(){clearTimeout(osDebounce);osDebounce=setTimeout(()=>loadOS(0),350);}
 
 async function loadOS(offset){
@@ -1426,13 +1489,117 @@ async function loadOS(offset){
     <tr>
       <td class="mono">${xe(o.fecha)}</td><td><strong>${xe(o.apellido_nombre)}</strong></td>
       <td class="mono">${xe(o.dni)}</td><td>${xe(o.sector)}</td>
-      <td>${xe(o.destino)}</td><td class="mono">${xe(o.hora_salida)}</td>
-      <td class="mono">${xe(o.hora_retorno)||'-'}</td>
+      <td>${xe(o.destino)||'—'}</td><td class="mono">${xe(o.hora_salida)}</td>
+      <td class="mono">${xe(o.hora_retorno)||'—'}</td>
       <td><span class="badge si">${xe(o.tipo)||'—'}</span></td>
+      <td style="white-space:nowrap">
+        <button class="tbtn" style="padding:3px 8px;font-size:11px" onclick='abrirEditOS(${JSON.stringify(o)})' title="Editar">✏️</button>
+        <button class="tbtn" style="padding:3px 8px;font-size:11px" onclick='reimprimirOS(${JSON.stringify(o)})' title="Reimprimir">🖨</button>
+        ${osIsAdmin?`<button class="tbtn" style="padding:3px 8px;font-size:11px;color:var(--red)" onclick='borrarOS("${xe(o.id)}","${xe(o.apellido_nombre)}")' title="Borrar">🗑</button>`:''}
+      </td>
     </tr>`).join('');
   document.getElementById('pag-info-os').textContent=`${osOffset+1}–${osOffset+r.ordenes.length} de ${r.total}`;
   document.getElementById('pag-os-prev').disabled=osOffset===0;
   document.getElementById('pag-os-next').disabled=r.ordenes.length<100;
+}
+
+// ── EDITAR / BORRAR / REIMPRIMIR OS (admin) ───────────────────────
+let _editOSData=null;
+function abrirEditOS(o){
+  _editOSData=o;
+  document.getElementById('eos-id').value=o.id;
+  document.getElementById('eos-nombre').value=o.apellido_nombre||'';
+  document.getElementById('eos-dni').value=o.dni||'';
+  const sel=document.getElementById('eos-motivo');
+  sel.value='';
+  for(let i=0;i<sel.options.length;i++){if(sel.options[i].value===o.motivo){sel.value=o.motivo;break;}}
+  if(!sel.value&&o.motivo){const opt=document.createElement('option');opt.value=o.motivo;opt.textContent=o.motivo;sel.appendChild(opt);sel.value=o.motivo;}
+  document.getElementById('eos-destino').value=o.destino||'';
+  document.getElementById('eos-desde').value=o.hora_salida||'';
+  document.getElementById('eos-hasta').value=o.hora_retorno||'';
+  document.getElementById('eos-obs').value=o.observaciones||'';
+  document.getElementById('eos-err').style.display='none';
+  toggleDestinoEOS();
+  abrirModal('modal-edit-os');
+}
+function toggleDestinoEOS(){
+  const m=document.getElementById('eos-motivo').value;
+  document.getElementById('eos-destino-wrap').style.display=m.startsWith('OFICIAL')?'':'none';
+}
+async function guardarEditOS(){
+  const id=document.getElementById('eos-id').value;
+  const motivo=document.getElementById('eos-motivo').value;
+  const destino=document.getElementById('eos-destino').value.trim();
+  const hora_salida=document.getElementById('eos-desde').value;
+  const hora_retorno=document.getElementById('eos-hasta').value;
+  const observaciones=document.getElementById('eos-obs').value.trim();
+  const errEl=document.getElementById('eos-err');
+  errEl.style.display='none';
+  if(!motivo||!hora_salida){errEl.textContent='Completá motivo y hora de salida.';errEl.style.display='';return;}
+  overlay(true,'Guardando...');
+  const r=await api('editarOrdenAdmin',{id,motivo,destino,hora_salida,hora_retorno,observaciones});
+  overlay(false);
+  if(!r.ok){errEl.textContent=r.error||'Error al guardar';errEl.style.display='';return;}
+  cerrarModal('modal-edit-os');
+  toast('Orden actualizada');
+  loadOS(osOffset);
+}
+async function borrarOS(id,nombre){
+  if(!confirm(`¿Borrar la orden de ${nombre}? Esta acción no se puede deshacer.`))return;
+  overlay(true,'Borrando...');
+  const r=await api('borrarOrdenAdmin',{id});
+  overlay(false);
+  if(!r.ok){toast(r.error||'Error al borrar','err');return;}
+  toast('Orden eliminada');
+  loadOS(osOffset);
+}
+function reimprimirOS(o){
+  const fecha=o.fecha||new Date().toISOString().slice(0,10);
+  const now=new Date().toLocaleString('es-AR');
+  const tipo=o.tipo||'OFICIAL';
+  const half=`
+    <div style="width:210mm;height:148.5mm;padding:12mm 14mm 10mm;box-sizing:border-box;font-family:Arial,sans-serif;position:relative">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+        <svg width="36" height="36" viewBox="0 0 36 36"><circle cx="18" cy="18" r="17" fill="#1a3c6b"/><text x="18" y="23" text-anchor="middle" fill="white" font-size="13" font-family="Arial" font-weight="bold">HyS</text></svg>
+        <div><div style="font-size:10px;color:#555;line-height:1.3">DIRECCIÓN GENERAL DE INFRAESTRUCTURA MINISTERIAL Y EQUIPAMIENTO</div>
+        <div style="font-size:8px;color:#777">Higiene y Seguridad en el Trabajo</div></div>
+      </div>
+      <div style="text-align:center;font-size:15px;font-weight:700;letter-spacing:1px;margin-bottom:2px">ORDEN DE SALIDA</div>
+      <div style="text-align:center;font-size:11px;color:#555;margin-bottom:8px">N° ${xe(o.numero_orden||'—')}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;font-size:11px;margin-bottom:8px">
+        <div><b>Apellido y Nombre:</b> ${xe(o.apellido_nombre||'')}</div>
+        <div><b>DNI:</b> ${xe(o.dni||'')}</div>
+        <div><b>Sector:</b> ${xe(o.sector||'')}</div>
+        <div><b>Fecha:</b> ${xe(fecha)}</div>
+        <div><b>Tipo:</b> <span style="background:${tipo==='OFICIAL'?'#1a3c6b':'#7c3aed'};color:#fff;padding:1px 6px;border-radius:3px;font-size:10px">${tipo}</span></div>
+        <div><b>Horario:</b> ${xe(o.hora_salida||'')}${o.hora_retorno?' – '+xe(o.hora_retorno):''}</div>
+      </div>
+      <div style="border:1px solid #ccc;border-radius:3px;padding:6px 8px;font-size:11px;min-height:28px;margin-bottom:8px"><b>Motivo:</b> ${xe(o.motivo||'')}</div>
+      ${o.destino?`<div style="font-size:11px;margin-bottom:8px"><b>Destino:</b> ${xe(o.destino)}</div>`:''}
+      <div style="position:absolute;bottom:10mm;left:14mm;right:14mm;display:flex;justify-content:space-between;align-items:flex-end;font-size:10px;color:#666">
+        <div style="border-top:1px solid #999;padding-top:4px;width:45%;text-align:center">Firma Jefe de Área</div>
+        <div style="color:#aaa;font-size:9px">Generado: ${now}</div>
+      </div>
+    </div>`;
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+    @page{size:A4;margin:0}body{margin:0;padding:0;background:#fff}
+    @media print{body{margin:0}}
+    .page{width:210mm;height:297mm;display:flex;flex-direction:column;page-break-after:always}
+    .cut{border-bottom:1.5px dashed #888;width:calc(100% - 28mm);margin:0 auto;font-size:9px;color:#aaa;text-align:center;line-height:0;height:0;overflow:visible}
+    .cut::after{content:'✂  corte  ✂';background:#fff;padding:0 6px;position:relative;top:-7px}
+    .copy-label{text-align:center;font-size:9px;font-weight:700;letter-spacing:1px;color:#777;padding:4px 0 0}
+  </style></head><body>
+  <div class="page">
+    <div class="copy-label">COPIA TRABAJADOR</div>${half}
+    <div class="cut"></div>
+    <div class="copy-label">COPIA GUARDIA</div>${half}
+  </div>
+  </body></html>`;
+  const w=window.open('','_blank','width=900,height=700');
+  if(!w){toast('Permitir ventanas emergentes para imprimir','err');return;}
+  w.document.write(html);
+  w.document.close();
+  w.onload=()=>w.print();
 }
 
 // ── CUMPLEAÑOS ────────────────────────────────────────────────────
