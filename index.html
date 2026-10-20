@@ -479,18 +479,38 @@ td.mono{font-family:var(--mono);font-size:12px}
 
     <!-- ─── ASISTENCIAS ────────────────────────────────────────── -->
     <div class="section" id="s-asistencias">
-      <div class="asist-stats" id="asist-stats" style="display:none">
-        <div class="stat-card"><div class="stat-label">Presentes</div><div class="stat-val" id="asist-presentes">-</div><div class="stat-sub">hoy</div></div>
-        <div class="stat-card"><div class="stat-label">Ausentes</div><div class="stat-val" id="asist-ausentes">-</div><div class="stat-sub">hoy</div></div>
-        <div class="stat-card"><div class="stat-label">% Asistencia</div><div class="stat-val" id="asist-pct">-</div><div class="stat-sub">del total</div></div>
+      <!-- Tarjetas resumen -->
+      <div id="asist-stats" style="display:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:20px">
+        <div class="stat-card"><div class="stat-label">Presentes</div><div class="stat-val" id="asist-presentes">-</div><div class="stat-sub">marcaron entrada</div></div>
+        <div class="stat-card"><div class="stat-label">Tardanzas</div><div class="stat-val" id="asist-tardanzas">-</div><div class="stat-sub">después de hora</div></div>
+        <div class="stat-card"><div class="stat-label">Ausentes</div><div class="stat-val" id="asist-ausentes">-</div><div class="stat-sub">del padrón</div></div>
+        <div class="stat-card"><div class="stat-label">% Asistencia</div><div class="stat-val" id="asist-pct">-</div><div class="stat-sub">del padrón activo</div></div>
       </div>
+
+      <!-- Importar -->
+      <label class="asist-import-box" id="import-box" ondragover="event.preventDefault();this.style.borderColor='var(--blue)'" ondragleave="this.style.borderColor=''" ondrop="event.preventDefault();this.style.borderColor='';procesarArchivoAsist(event.dataTransfer.files[0])">
+        <input type="file" id="import-file" accept=".xlsx,.xls" onchange="procesarArchivoAsist(this.files[0]);this.value=''">
+        <svg viewBox="0 0 48 48" fill="none" width="40" height="40" style="margin:0 auto 10px;opacity:.4"><rect x="8" y="4" width="32" height="40" rx="3" stroke="currentColor" stroke-width="2"/><path d="M16 16h16M16 22h16M16 28h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M32 34l4-4-4-4M36 30H26" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div style="font-size:14px;font-weight:600;color:var(--txt2);margin-bottom:4px">Importar planilla del biométrico</div>
+        <div style="font-size:12px;color:var(--txt3)">Arrastrá o hacé clic — Excel del reloj biométrico (.xlsx)</div>
+        <div style="font-size:11px;color:var(--txt3);margin-top:6px">Columnas esperadas: ID · Nombre · DNI · Tipo · Fecha · Servicio</div>
+      </label>
+      <div id="asist-import-msg" style="margin-top:12px"></div>
+
+      <!-- Hora límite tardanza -->
+      <div style="display:flex;align-items:center;gap:10px;margin:16px 0 8px;font-size:13px;color:var(--txt3)">
+        <span>Hora límite sin tardanza:</span>
+        <input type="time" id="asist-hora-limite" value="07:00" style="padding:4px 8px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px">
+      </div>
+
+      <!-- Tabla presentes -->
       <div class="table-wrap" style="margin-bottom:20px">
         <div class="table-header">
           <div class="search-box">
             <svg viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 10.5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
             <input type="text" id="search-asist" placeholder="Buscar agente..." oninput="filtrarAsistencias()">
           </div>
-          <input type="date" id="asist-fecha" style="padding:7px 10px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px" onchange="filtrarAsistencias()">
+          <input type="date" id="asist-fecha" style="padding:7px 10px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px" onchange="cargarAsistencias()">
           <button class="tbtn" onclick="exportTableCSV('table-asist','asistencias')">
             <svg viewBox="0 0 16 16" fill="none" width="13" height="13"><path d="M8 2v8M5 7l3 3 3-3M3 13h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
             CSV
@@ -498,20 +518,31 @@ td.mono{font-family:var(--mono);font-size:12px}
         </div>
         <div style="overflow-x:auto">
           <table id="table-asist">
-            <thead><tr><th>FECHA</th><th>DNI</th><th>APELLIDO Y NOMBRE</th><th>HORA ENTRADA</th><th>HORA SALIDA</th><th>ESTABLECIMIENTO</th><th>ESTADO</th></tr></thead>
+            <thead><tr><th>DNI</th><th>APELLIDO Y NOMBRE</th><th>HORA ENTRADA</th><th>HORA SALIDA</th><th>SERVICIO</th><th>TARDANZA</th><th>ESTADO</th></tr></thead>
             <tbody id="tbody-asist">
-              <tr><td colspan="7"><div class="empty"><p>No hay registros de asistencia. Importá la planilla del biométrico.</p></div></td></tr>
+              <tr><td colspan="7"><div class="empty"><p>Importá la planilla del biométrico para ver asistencias.</p></div></td></tr>
             </tbody>
           </table>
         </div>
+        <div class="pagination">
+          <span class="pag-info" id="pag-info-asist">-</span>
+          <div class="pag-btns">
+            <button class="pag-btn" id="pag-asist-prev" onclick="cargarAsistencias(asistOffset-200)" disabled>←</button>
+            <button class="pag-btn" id="pag-asist-next" onclick="cargarAsistencias(asistOffset+200)" disabled>→</button>
+          </div>
+        </div>
       </div>
-      <label class="asist-import-box" id="import-box" onclick="document.getElementById('import-file').click()">
-        <input type="file" id="import-file" accept=".xlsx,.xls,.csv" onchange="importarAsistencias(this)">
-        <svg viewBox="0 0 48 48" fill="none" width="48" height="48" style="margin:0 auto 12px;opacity:.4"><rect x="8" y="4" width="32" height="40" rx="3" stroke="currentColor" stroke-width="2"/><path d="M16 16h16M16 22h16M16 28h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M32 34l4-4-4-4M36 30H26" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <div style="font-size:14px;font-weight:600;color:var(--txt2);margin-bottom:4px">Importar planilla del biométrico</div>
-        <div style="font-size:12px;color:var(--txt3)">Arrastrá o hacé clic para seleccionar el archivo Excel (.xlsx, .xls, .csv)</div>
-      </label>
-      <div id="asist-import-msg" style="margin-top:12px;display:none"></div>
+
+      <!-- Tabla ausentes -->
+      <div id="asist-ausentes-wrap" style="display:none">
+        <h3 style="font-size:14px;font-weight:700;color:var(--txt);margin-bottom:10px">Ausentes del padrón activo</h3>
+        <div style="overflow-x:auto">
+          <table id="table-ausentes">
+            <thead><tr><th>DNI</th><th>APELLIDO Y NOMBRE</th><th>ESTABLECIMIENTO</th><th>SECTOR</th></tr></thead>
+            <tbody id="tbody-ausentes"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <!-- ─── REPORTE POR AGENTE ─────────────────────────────────── -->
@@ -1635,20 +1666,182 @@ function exportCumpleanosCSV(){
 }
 
 // ── ASISTENCIAS ────────────────────────────────────────────────────
-function filtrarAsistencias(){
-  // Placeholder — filtros sobre datos importados
+// ── ASISTENCIAS ───────────────────────────────────────────────────
+let asistOffset=0;
+
+function filtrarAsistencias(){cargarAsistencias(0);}
+
+async function cargarAsistencias(offset){
+  asistOffset=Math.max(0,offset||0);
+  const fecha=document.getElementById('asist-fecha').value;
+  const q=document.getElementById('search-asist').value.trim();
+  if(!fecha){
+    document.getElementById('tbody-asist').innerHTML=`<tr><td colspan="7"><div class="empty"><p>Seleccioná una fecha para ver asistencias.</p></div></td></tr>`;
+    return;
+  }
+  overlay(true,'Cargando asistencias...');
+  const r=await api('getAsistencias',{fecha,q,limit:200,offset:asistOffset});
+  overlay(false);
+  if(!r.ok){toast(r.error,'err');return;}
+
+  const tbody=document.getElementById('tbody-asist');
+  if(!r.asistencias.length){
+    tbody.innerHTML=`<tr><td colspan="7"><div class="empty"><p>Sin asistencias para ${fecha}. ¿Importaste el Excel del biométrico?</p></div></td></tr>`;
+  } else {
+    const limite=document.getElementById('asist-hora-limite').value||'07:00';
+    tbody.innerHTML=r.asistencias.map(a=>{
+      const tardanza=a.minutos_tardanza>0?`+${a.minutos_tardanza}min`:'—';
+      const estadoColor=a.estado==='TARDANZA'?'background:var(--amber-l);color:var(--amber);border:1px solid var(--amber-m)':
+        a.estado==='PRESENTE'?'background:var(--green-l);color:var(--green);border:1px solid var(--green-m)':'background:var(--red-l);color:var(--red);border:1px solid var(--red-m)';
+      return `<tr>
+        <td class="mono">${xe(a.dni)}</td>
+        <td><strong>${xe(a.apellido_nombre)}</strong></td>
+        <td class="mono" style="color:${a.hora_entrada?'inherit':'var(--txt3)'}">${xe(a.hora_entrada)||'—'}</td>
+        <td class="mono" style="color:${a.hora_salida?'inherit':'var(--txt3)'}">${xe(a.hora_salida)||'—'}</td>
+        <td style="font-size:12px">${xe(a.servicio)||'—'}</td>
+        <td class="mono" style="color:var(--amber);font-size:12px">${tardanza}</td>
+        <td><span style="padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;${estadoColor}">${xe(a.estado)}</span></td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Stats
+  const presentes=r.asistencias.filter(a=>a.estado!=='AUSENTE').length;
+  const tardanzas=r.asistencias.filter(a=>a.estado==='TARDANZA').length;
+  const ausentes=r.ausentes?.length||0;
+  const total=presentes+ausentes;
+  document.getElementById('asist-presentes').textContent=presentes;
+  document.getElementById('asist-tardanzas').textContent=tardanzas;
+  document.getElementById('asist-ausentes').textContent=ausentes;
+  document.getElementById('asist-pct').textContent=total?Math.round(presentes/total*100)+'%':'—';
+  document.getElementById('asist-stats').style.display='';
+
+  // Ausentes
+  const aw=document.getElementById('asist-ausentes-wrap');
+  const tba=document.getElementById('tbody-ausentes');
+  if(r.ausentes?.length){
+    tba.innerHTML=r.ausentes.map(a=>`<tr>
+      <td class="mono">${xe(a.dni)}</td>
+      <td>${xe(a.apellido_nombre)}</td>
+      <td style="font-size:12px">${xe(a.establecimiento)}</td>
+      <td style="font-size:12px">${xe(a.sector)}</td>
+    </tr>`).join('');
+    aw.style.display='';
+  } else {
+    aw.style.display='none';
+  }
+
+  document.getElementById('pag-info-asist').textContent=`${asistOffset+1}–${asistOffset+(r.asistencias.length||0)} de ${r.total}`;
+  document.getElementById('pag-asist-prev').disabled=asistOffset===0;
+  document.getElementById('pag-asist-next').disabled=(r.asistencias.length||0)<200;
 }
 
-function importarAsistencias(input){
-  const file=input.files[0];
+async function procesarArchivoAsist(file){
   if(!file)return;
   const msg=document.getElementById('asist-import-msg');
-  msg.style.display='';
-  msg.innerHTML=`<div style="background:var(--amber-l);border:1px solid var(--amber-m);border-radius:var(--r2);padding:12px 14px;font-size:13px;color:var(--amber)">
-    <strong>Archivo recibido:</strong> ${xe(file.name)}<br>
-    <span style="color:var(--txt3);font-size:12px">La importación del biométrico está en desarrollo. El módulo leerá el Excel y cruzará los datos con la nómina de agentes automáticamente.</span>
+  msg.innerHTML=`<div style="background:var(--blue-l);border:1px solid var(--blue-m);border-radius:var(--r2);padding:10px 14px;font-size:13px;color:var(--blue)">⏳ Procesando <strong>${xe(file.name)}</strong>…</div>`;
+
+  // Cargar SheetJS dinámicamente si no está
+  if(!window.XLSX){
+    await new Promise((res,rej)=>{
+      const s=document.createElement('script');
+      s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+      s.onload=res; s.onerror=rej;
+      document.head.appendChild(s);
+    });
+  }
+
+  const buf=await file.arrayBuffer();
+  const wb=window.XLSX.read(buf,{type:'array',cellDates:true});
+  const ws=wb.Sheets[wb.SheetNames[0]];
+  const rows=window.XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+
+  // Encontrar fila de encabezados (buscar fila con 'DNI' o 'Nombre')
+  let headerRow=-1;
+  for(let i=0;i<Math.min(rows.length,5);i++){
+    if(rows[i].some(c=>String(c).trim().toLowerCase()==='dni')){headerRow=i;break;}
+  }
+  if(headerRow<0){msg.innerHTML=`<div style="background:var(--red-l);border:1px solid var(--red-m);border-radius:var(--r2);padding:10px 14px;font-size:13px;color:var(--red)">No se encontró columna DNI en el archivo.</div>`;return;}
+
+  const headers=rows[headerRow].map(h=>String(h).trim().toLowerCase());
+  const col=n=>headers.indexOf(n);
+  const iDni=col('dni'), iNombre=col('nombre'), iTipo=col('tipo'), iFecha=col('fecha'), iServicio=col('servicio');
+
+  if(iDni<0||iFecha<0){msg.innerHTML=`<div style="background:var(--red-l);border:1px solid var(--red-m);border-radius:var(--r2);padding:10px 14px;font-size:13px;color:var(--red)">Columnas requeridas faltantes (DNI, Fecha).</div>`;return;}
+
+  // Agrupar por fecha+DNI
+  const map=new Map();
+  const limite=document.getElementById('asist-hora-limite').value||'07:00';
+  const [lh,lm]=limite.split(':').map(Number);
+
+  for(let i=headerRow+1;i<rows.length;i++){
+    const row=rows[i];
+    const dni=String(row[iDni]||'').replace(/\D/g,'').trim();
+    if(!dni||dni.length<7)continue;
+    const nombre=String(row[iNombre]||'').trim().toUpperCase();
+    const tipo=parseInt(row[iTipo]||0);
+    const fechaRaw=row[iFecha];
+    if(!fechaRaw)continue;
+
+    let dt;
+    if(fechaRaw instanceof Date){dt=fechaRaw;}
+    else{dt=new Date(fechaRaw);}
+    if(isNaN(dt.getTime()))continue;
+
+    const fecha=dt.toISOString().slice(0,10);
+    const horaStr=dt.getHours().toString().padStart(2,'0')+':'+dt.getMinutes().toString().padStart(2,'0');
+    const servicio=String(row[iServicio]||'').trim();
+    const key=`${fecha}_${dni}`;
+
+    if(!map.has(key)) map.set(key,{fecha,dni,apellido_nombre:nombre,hora_entrada:'',hora_salida:'',servicio,_entMin:9999,_salMax:-1});
+    const rec=map.get(key);
+    if(nombre&&!rec.apellido_nombre)rec.apellido_nombre=nombre;
+    if(!rec.servicio&&servicio)rec.servicio=servicio;
+
+    const minutos=dt.getHours()*60+dt.getMinutes();
+    // Tipo 0 = entrada (o cualquier marca: tomamos la primera del día)
+    if(tipo===0||tipo==='0'){
+      if(minutos<rec._entMin){rec._entMin=minutos;rec.hora_entrada=horaStr;}
+    } else {
+      if(minutos>rec._salMax){rec._salMax=minutos;rec.hora_salida=horaStr;}
+    }
+  }
+
+  // Calcular estado
+  const registros=[...map.values()].map(r=>{
+    const [eh,em]=r.hora_entrada.split(':').map(Number);
+    const entMin=eh*60+(em||0);
+    const limMin=lh*60+lm;
+    let minTardanza=0,estado='PRESENTE';
+    if(r.hora_entrada&&entMin>limMin){
+      minTardanza=entMin-limMin;
+      estado='TARDANZA';
+    }
+    return {...r,estado,minutos_tardanza:minTardanza};
+  });
+
+  if(!registros.length){msg.innerHTML=`<div style="background:var(--amber-l);border:1px solid var(--amber-m);border-radius:var(--r2);padding:10px 14px;font-size:13px;color:var(--amber)">No se encontraron registros válidos en el archivo.</div>`;return;}
+
+  // Enviar a API
+  msg.innerHTML=`<div style="background:var(--blue-l);border:1px solid var(--blue-m);border-radius:var(--r2);padding:10px 14px;font-size:13px;color:var(--blue)">⬆️ Guardando ${registros.length} registros…</div>`;
+  overlay(true,'Importando...');
+  const resp=await api('importarAsistencias',{registros});
+  overlay(false);
+
+  if(!resp.ok){
+    msg.innerHTML=`<div style="background:var(--red-l);border:1px solid var(--red-m);border-radius:var(--r2);padding:10px 14px;font-size:13px;color:var(--red)">Error: ${xe(resp.error)}</div>`;
+    return;
+  }
+
+  const {insertados,actualizados,errores}=resp;
+  msg.innerHTML=`<div style="background:var(--green-l);border:1px solid var(--green-m);border-radius:var(--r2);padding:10px 14px;font-size:13px;color:var(--green)">
+    ✅ Importación completada — <strong>${insertados}</strong> nuevos · <strong>${actualizados}</strong> actualizados · <strong>${errores}</strong> errores
   </div>`;
-  input.value='';
+
+  // Establecer fecha en el filtro y cargar
+  const fecha=registros[0].fecha;
+  document.getElementById('asist-fecha').value=fecha;
+  cargarAsistencias(0);
 }
 
 // ── REPORTE POR AGENTE ────────────────────────────────────────────

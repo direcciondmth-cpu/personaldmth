@@ -740,6 +740,68 @@ module.exports = async function handler(req, res) {
       return ok(res, { mensaje: 'Usuario actualizado' });
     }
 
+    // ─ ASISTENCIAS ────────────────────────────────────────────────
+    if (action === 'importarAsistencias') {
+      const auth = requireAuth(req, 'user');
+      if (!auth) return err(res, 'No autorizado', 401);
+      const { registros } = body; // array de {fecha,dni,apellido_nombre,hora_entrada,hora_salida,estado,servicio,minutos_tardanza}
+      if (!Array.isArray(registros) || !registros.length) return err(res, 'Sin registros');
+      if (registros.length > 1000) return err(res, 'Máximo 1000 registros por importación');
+
+      let insertados = 0, actualizados = 0, errores = 0;
+      for (const r of registros) {
+        if (!r.fecha || !r.dni || !r.apellido_nombre) { errores++; continue; }
+        const id = genId('ast');
+        try {
+          const res2 = await sql`
+            INSERT INTO asistencias (id,fecha,dni,apellido_nombre,hora_entrada,hora_salida,estado,servicio,minutos_tardanza,activo,usuario_carga)
+            VALUES (${id},${r.fecha},${r.dni},${r.apellido_nombre},${r.hora_entrada||''},${r.hora_salida||''},${r.estado||'PRESENTE'},${r.servicio||''},${r.minutos_tardanza||0},'SI',${auth.u})
+            ON CONFLICT (fecha,dni) DO UPDATE SET
+              hora_entrada=EXCLUDED.hora_entrada, hora_salida=EXCLUDED.hora_salida,
+              estado=EXCLUDED.estado, servicio=EXCLUDED.servicio,
+              minutos_tardanza=EXCLUDED.minutos_tardanza,
+              fecha_importacion=NOW(), usuario_carga=EXCLUDED.usuario_carga
+            RETURNING (xmax=0) AS inserted
+          `;
+          if (res2[0]?.inserted) insertados++; else actualizados++;
+        } catch (e) { errores++; }
+      }
+      await log(sql, auth.u, 'IMPORTAR_ASISTENCIAS', 'asistencias', registros[0]?.fecha||'', `${insertados} nuevos, ${actualizados} actualizados, ${errores} errores`);
+      return ok(res, { insertados, actualizados, errores });
+    }
+
+    if (action === 'getAsistencias') {
+      const auth = requireAuth(req, 'read');
+      if (!auth) return err(res, 'No autorizado', 401);
+      const fecha = body.fecha || query.fecha || '';
+      const q = normalizar(body.q || query.q || '');
+      const limit = Math.min(parseInt(body.limit || query.limit || 200), 500);
+      const offset = parseInt(body.offset || query.offset || 0);
+      if (!fecha) return ok(res, { asistencias: [], total: 0, ausentes: [] });
+
+      const rows = await sql`
+        SELECT * FROM asistencias
+        WHERE fecha=${fecha} AND activo='SI'
+          AND (${q}='' OR LOWER(apellido_nombre) LIKE ${'%'+q+'%'} OR dni LIKE ${'%'+q+'%'})
+        ORDER BY estado DESC, apellido_nombre
+        LIMIT ${limit} OFFSET ${offset}
+      `;
+      const tot = await sql`SELECT COUNT(*) as n FROM asistencias WHERE fecha=${fecha} AND activo='SI'`;
+
+      // Agentes del padrón ausentes ese día
+      const presentesDni = rows.map(r=>r.dni);
+      const ausentesRows = await sql`
+        SELECT dni, apellido_nombre, establecimiento, sector FROM agentes
+        WHERE activo='SI' AND dni NOT IN (
+          SELECT dni FROM asistencias WHERE fecha=${fecha} AND activo='SI'
+        )
+        ORDER BY apellido_nombre
+        LIMIT 500
+      `;
+
+      return ok(res, { asistencias: rows, total: parseInt(tot[0].n), ausentes: ausentesRows });
+    }
+
     // ─ LOGS ───────────────────────────────────────────────────────
     if (action === 'getLogs') {
       const auth = requireAuth(req, 'admin');
