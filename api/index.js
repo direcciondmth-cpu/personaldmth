@@ -924,6 +924,81 @@ module.exports = async function handler(req, res) {
       return ok(res, { ok: true });
     }
 
+    // ─ NOVEDADES (alias completo de asistencia_excepciones con documento) ──
+    if (action === 'addNovedad') {
+      const auth = requireAuth(req, 'user');
+      if (!auth) return err(res, 'No autorizado', 401);
+      const { dni, apellido_nombre, fecha_desde, fecha_hasta, tipo, observaciones, documento_url, titulo } = body;
+      if (!dni || !fecha_desde || !fecha_hasta || !tipo) return err(res, 'Faltan campos obligatorios');
+      const id = genId('nov');
+      await sql`INSERT INTO asistencia_excepciones
+        (id,dni,apellido_nombre,fecha_desde,fecha_hasta,tipo,observaciones,documento_url,titulo,activo,usuario_carga)
+        VALUES (${id},${dni},${apellido_nombre||''},${fecha_desde},${fecha_hasta},${tipo},
+                ${observaciones||''},${documento_url||''},${titulo||''},'SI',${auth.u})`;
+      await log(sql, auth.u, 'ADD_NOVEDAD', 'asistencia_excepciones', id,
+        `${apellido_nombre} | ${tipo} | ${fecha_desde}→${fecha_hasta}`);
+      return ok(res, { id });
+    }
+
+    if (action === 'getNovedades') {
+      const auth = requireAuth(req, 'read');
+      if (!auth) return err(res, 'No autorizado', 401);
+      const desde = body.desde || query.desde || '';
+      const hasta = body.hasta || query.hasta || '';
+      const q = normalizar(body.q || query.q || '');
+      const tipo = body.tipo || query.tipo || '';
+      const rows = await sql`
+        SELECT e.*, a.establecimiento, a.sector
+        FROM asistencia_excepciones e
+        LEFT JOIN agentes a ON a.dni = e.dni AND a.activo = 'SI'
+        WHERE e.activo='SI'
+          AND (${desde}='' OR e.fecha_hasta >= ${desde})
+          AND (${hasta}='' OR e.fecha_desde <= ${hasta})
+          AND (${q}='' OR LOWER(e.apellido_nombre) LIKE ${'%'+q+'%'} OR e.dni LIKE ${'%'+q+'%'})
+          AND (${tipo}='' OR e.tipo = ${tipo})
+        ORDER BY e.fecha_desde DESC LIMIT 300
+      `;
+      const tot = await sql`SELECT COUNT(*) as n FROM asistencia_excepciones WHERE activo='SI'`;
+      return ok(res, { novedades: rows, total: parseInt(tot[0].n) });
+    }
+
+    if (action === 'editNovedad') {
+      const auth = requireAuth(req, 'user');
+      if (!auth) return err(res, 'No autorizado', 401);
+      const { id, fecha_desde, fecha_hasta, tipo, observaciones, documento_url, titulo } = body;
+      if (!id) return err(res, 'Falta id');
+      await sql`UPDATE asistencia_excepciones SET
+        fecha_desde=${fecha_desde}, fecha_hasta=${fecha_hasta}, tipo=${tipo},
+        observaciones=${observaciones||''}, documento_url=${documento_url||''},
+        titulo=${titulo||''}
+        WHERE id=${id} AND activo='SI'`;
+      await log(sql, auth.u, 'EDIT_NOVEDAD', 'asistencia_excepciones', id, tipo);
+      return ok(res, { ok: true });
+    }
+
+    if (action === 'deleteNovedad') {
+      const auth = requireAuth(req, 'user');
+      if (!auth) return err(res, 'No autorizado', 401);
+      const { id } = body;
+      if (!id) return err(res, 'Falta id');
+      await sql`UPDATE asistencia_excepciones SET activo='NO' WHERE id=${id}`;
+      await log(sql, auth.u, 'DELETE_NOVEDAD', 'asistencia_excepciones', id, '');
+      return ok(res, { ok: true });
+    }
+
+    if (action === 'getNovedadesAgente') {
+      const auth = requireAuth(req, 'read');
+      if (!auth) return err(res, 'No autorizado', 401);
+      const { dni } = body;
+      if (!dni) return err(res, 'Falta DNI');
+      const rows = await sql`
+        SELECT * FROM asistencia_excepciones
+        WHERE dni=${dni} AND activo='SI'
+        ORDER BY fecha_desde DESC
+      `;
+      return ok(res, { novedades: rows });
+    }
+
     // ─ LOGS ───────────────────────────────────────────────────────
     if (action === 'getLogs') {
       const auth = requireAuth(req, 'admin');

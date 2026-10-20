@@ -327,6 +327,11 @@ td.mono{font-family:var(--mono);font-size:12px}
       <svg viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="11" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M1 7h14M5 3V1M11 3V1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M4.5 10.5l2 2 4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Asistencias
     </button>
+    <button class="sb-item" data-section="novedades" onclick="goTo('novedades',this)" id="sb-novedades">
+      <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="1" width="12" height="14" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M5 5h6M5 8h6M5 11h3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="12.5" cy="12.5" r="2.5" fill="var(--amber)" stroke="none"/><path d="M12.5 11.5v1.2l.8.8" stroke="#fff" stroke-width="1.1" stroke-linecap="round"/></svg>
+      Novedades
+      <span class="sb-badge amber" id="badge-novedades" style="display:none">-</span>
+    </button>
 
     <div class="sb-label" style="margin-top:4px">Reportes</div>
     <button class="sb-item" data-section="reporte-agente" onclick="goTo('reporte-agente',this)">
@@ -613,6 +618,49 @@ td.mono{font-family:var(--mono);font-size:12px}
       </div>
     </div>
 
+    <!-- ─── NOVEDADES ────────────────────────────────────────────── -->
+    <div class="section" id="s-novedades">
+      <div class="section-hdr">
+        <div><h2>Novedades</h2><p class="section-sub">Licencias, ART, vacaciones y ausencias justificadas</p></div>
+        <button class="tbtn primary" onclick="abrirAddNovedad()">+ Nueva novedad</button>
+      </div>
+
+      <!-- Filtros -->
+      <div class="table-wrap" style="margin-bottom:16px">
+        <div class="table-header">
+          <div class="search-box">
+            <svg viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 10.5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <input type="text" id="search-nov" placeholder="Buscar agente o DNI..." oninput="filtrarNovedades()">
+          </div>
+          <input type="date" id="nov-desde" style="padding:7px 10px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px" onchange="cargarNovedades()">
+          <input type="date" id="nov-hasta" style="padding:7px 10px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px" onchange="cargarNovedades()">
+          <select id="nov-tipo" style="padding:7px 10px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px" onchange="cargarNovedades()">
+            <option value="">Todos los tipos</option>
+            <option>VACACIONES</option>
+            <option>ART</option>
+            <option>LICENCIA MÉDICA</option>
+            <option>LICENCIA GREMIAL</option>
+            <option>LICENCIA ESPECIAL</option>
+            <option>COMISIÓN</option>
+            <option>ALTO RANGO</option>
+            <option>OTRO</option>
+          </select>
+          <button class="tbtn" onclick="exportTableCSV('table-novedades','novedades')">
+            <svg viewBox="0 0 16 16" fill="none" width="13" height="13"><path d="M8 2v8M5 7l3 3 3-3M3 13h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> CSV
+          </button>
+        </div>
+        <div style="overflow-x:auto">
+          <table id="table-novedades">
+            <thead><tr><th>DNI</th><th>APELLIDO Y NOMBRE</th><th>TIPO</th><th>DESDE</th><th>HASTA</th><th>TÍTULO / OBSERVACIÓN</th><th>DOC.</th><th></th></tr></thead>
+            <tbody id="tbody-novedades"><tr><td colspan="8"><div class="empty"><p>Cargando novedades...</p></div></td></tr></tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <span class="pag-info" id="pag-info-nov">-</span>
+        </div>
+      </div>
+    </div>
+
     <!-- ─── REPORTE POR AGENTE ─────────────────────────────────── -->
     <div class="section" id="s-reporte-agente">
       <div class="table-wrap" style="padding:20px;max-width:600px">
@@ -727,12 +775,14 @@ td.mono{font-family:var(--mono);font-size:12px}
       <button class="modal-tab" onclick="switchTab('tab-historial',this)">Historial</button>
       <button class="modal-tab" onclick="switchTab('tab-docs',this)">Documentación</button>
       <button class="modal-tab" onclick="switchTab('tab-ordenes',this)">Órdenes</button>
+      <button class="modal-tab" onclick="switchTab('tab-novedades',this)">Novedades</button>
     </div>
     <div class="modal-body" id="modal-agente-body">
       <div id="tab-ficha"></div>
       <div id="tab-historial" style="display:none"></div>
       <div id="tab-docs" style="display:none"></div>
       <div id="tab-ordenes" style="display:none"></div>
+      <div id="tab-novedades" style="display:none"></div>
     </div>
     <div class="modal-ftr">
       <button class="tbtn" onclick="exportAgentePDF()">
@@ -1009,6 +1059,74 @@ td.mono{font-family:var(--mono);font-size:12px}
   </div>
 </div>
 
+<!-- ── MODAL NOVEDAD ──────────────────────────────────────────────────── -->
+<div class="modal-overlay hidden" id="modal-novedad">
+  <div class="modal" style="max-width:580px">
+    <div class="modal-hdr">
+      <h3 id="modal-nov-titulo">Nueva Novedad</h3>
+      <button class="modal-close" onclick="cerrarModal('modal-novedad')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="nov-edit-id">
+      <div class="form-row">
+        <label class="form-label">DNI *</label>
+        <div style="display:flex;gap:8px">
+          <input type="text" id="nov-dni" class="form-input" placeholder="Número de DNI" style="flex:1" oninput="buscarAgenteNov()">
+          <button class="tbtn" onclick="buscarAgenteNov()" style="flex-shrink:0">Buscar</button>
+        </div>
+        <div id="nov-nombre-found" style="font-size:12px;color:var(--green);margin-top:4px"></div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Tipo de novedad *</label>
+        <select id="nov-tipo-modal" class="form-input">
+          <option value="">-- Seleccioná --</option>
+          <option>VACACIONES</option>
+          <option>ART</option>
+          <option>LICENCIA MÉDICA</option>
+          <option>LICENCIA GREMIAL</option>
+          <option>LICENCIA ESPECIAL</option>
+          <option>COMISIÓN</option>
+          <option>ALTO RANGO</option>
+          <option>OTRO</option>
+        </select>
+      </div>
+      <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <label class="form-label">Fecha desde *</label>
+          <input type="date" id="nov-desde-modal" class="form-input">
+        </div>
+        <div>
+          <label class="form-label">Fecha hasta *</label>
+          <input type="date" id="nov-hasta-modal" class="form-input">
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Título / Descripción</label>
+        <input type="text" id="nov-titulo-modal" class="form-input" placeholder="Ej: Licencia art. 36 inciso b">
+      </div>
+      <div class="form-row">
+        <label class="form-label">Observaciones</label>
+        <textarea id="nov-obs-modal" class="form-input" rows="2" placeholder="Notas adicionales"></textarea>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Documento adjunto (Google Drive)</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="text" id="nov-doc-url" class="form-input" placeholder="Pegá el enlace de Drive aquí" style="flex:1">
+          <a href="https://drive.google.com/drive/folders/1T9nycGopzkmqLjLFqtpyM7SvBYa01eVK" target="_blank" class="tbtn" style="flex-shrink:0;text-decoration:none">
+            <svg viewBox="0 0 16 16" fill="none" width="12" height="12"><path d="M8 2v9M5 8l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 13h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            Abrir Drive
+          </a>
+        </div>
+        <div style="font-size:11px;color:var(--txt3);margin-top:4px">Subí el archivo a Drive, copiá el enlace y pegalo acá</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="tbtn primary" onclick="guardarNovedad()">Guardar</button>
+      <button class="tbtn" onclick="cerrarModal('modal-novedad')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── MODAL EDITAR ORDEN DE SALIDA ─────────────────────────────────── -->
 <div class="modal-overlay hidden" id="modal-edit-os">
   <div class="modal" style="max-width:520px">
@@ -1265,6 +1383,7 @@ const TITLES={
   'ordenes-salida':['Órdenes de Salida','Registro de movimientos'],
   cumpleanos:['Cumpleaños','Detección automática'],
   asistencias:['Asistencias','Control biométrico'],
+  novedades:['Novedades','Licencias, ART y ausencias justificadas'],
   'reporte-agente':['Reporte por Agente','Cruce por DNI'],
   logs:['Logs','Auditoría del sistema'],
   usuarios:['Usuarios','Gestión de accesos'],
@@ -1284,13 +1403,14 @@ function goTo(section,btn){
   if(section==='cumpleanos')loadCumpleanos();
   if(section==='logs')loadLogs();
   if(section==='usuarios')loadUsuarios();
+  if(section==='novedades')cargarNovedades();
 }
 
 // ── TABS MODAL AGENTE ─────────────────────────────────────────────
 function switchTab(tabId,btn){
   document.querySelectorAll('#modal-agente-tabs .modal-tab').forEach(b=>b.classList.remove('active'));
   if(btn)btn.classList.add('active');
-  ['tab-ficha','tab-historial','tab-docs','tab-ordenes'].forEach(id=>{
+  ['tab-ficha','tab-historial','tab-docs','tab-ordenes','tab-novedades'].forEach(id=>{
     const el=document.getElementById(id);
     if(el)el.style.display=(id===tabId)?'':'none';
   });
@@ -1443,6 +1563,14 @@ async function verAgente(id){
     </div>`;
   cargarOrdenesAgente(a.dni);
 
+  // Tab novedades
+  document.getElementById('tab-novedades').innerHTML=`
+    <div style="padding:16px">
+      <p style="font-size:13px;color:var(--txt3);margin-bottom:12px">Licencias, ART y ausencias justificadas del agente.</p>
+      <div id="novedades-agente-lista" style="color:var(--txt3);font-size:13px">Cargando...</div>
+    </div>`;
+  cargarNovedadesAgente(a.dni);
+
   // Reset tabs
   switchTab('tab-ficha',document.querySelector('#modal-agente-tabs .modal-tab'));
   abrirModal('modal-agente');
@@ -1568,6 +1696,26 @@ async function cargarOrdenesAgente(dni){
   const osList=(ros.ok?ros.ordenes:[]).map(o=>`<tr><td class="mono">${xe(o.fecha)}</td><td>${xe(o.motivo||'Salida')}</td><td>${xe(o.destino)}</td><td>${xe(o.sector)}</td></tr>`);
   if(!osList.length){el.innerHTML='<p style="color:var(--txt3);font-size:13px">Sin órdenes registradas.</p>';return;}
   el.innerHTML=`<div style="overflow-x:auto"><table><thead><tr><th>FECHA</th><th>MOTIVO</th><th>DESTINO</th><th>SECTOR</th></tr></thead><tbody>${osList.join('')}</tbody></table></div>`;
+}
+
+async function cargarNovedadesAgente(dni){
+  if(!dni)return;
+  const r=await api('getNovedadesAgente',{dni});
+  const el=document.getElementById('novedades-agente-lista');
+  if(!el)return;
+  if(!r.ok||!r.novedades?.length){el.innerHTML='<p style="color:var(--txt3);font-size:13px">Sin novedades registradas.</p>';return;}
+  const filas=r.novedades.map(n=>{
+    const col=TIPO_COLOR[n.tipo]||'blue';
+    const docBtn=n.documento_url?`<a href="${xe(n.documento_url)}" target="_blank" style="font-size:11px;color:var(--blue);text-decoration:underline">Ver doc</a>`:'—';
+    return `<tr>
+      <td><span class="badge ${col}" style="font-size:10px">${xe(n.tipo)}</span></td>
+      <td class="mono" style="font-size:12px">${xe(n.fecha_inicio)}</td>
+      <td class="mono" style="font-size:12px">${xe(n.fecha_fin)||'—'}</td>
+      <td>${xe(n.titulo||'')}</td>
+      <td>${docBtn}</td>
+    </tr>`;
+  }).join('');
+  el.innerHTML=`<div style="overflow-x:auto"><table><thead><tr><th>TIPO</th><th>DESDE</th><th>HASTA</th><th>TÍTULO</th><th>DOC</th></tr></thead><tbody>${filas}</tbody></table></div>`;
 }
 
 function exportAgentePDF(){
@@ -2449,6 +2597,149 @@ function exportTableCSV(tableId,filename){
   const headers=[...table.querySelectorAll('thead th')].map(th=>th.textContent.trim()).filter(Boolean);
   const rows=[...table.querySelectorAll('tbody tr')].map(tr=>[...tr.querySelectorAll('td')].map(td=>td.textContent.trim()));
   exportCSV(headers,rows,`${filename}_${new Date().toISOString().slice(0,10)}.csv`);
+}
+
+// ── NOVEDADES ──────────────────────────────────────────────────────
+const TIPOS_NOV=['VACACIONES','ART','LICENCIA MÉDICA','LICENCIA GREMIAL','LICENCIA ESPECIAL','COMISIÓN','ALTO RANGO','OTRO'];
+const TIPO_COLOR={
+  'VACACIONES':'background:var(--blue-l);color:var(--blue);border:1px solid var(--blue-m)',
+  'ART':'background:var(--red-l);color:var(--red);border:1px solid var(--red-m)',
+  'LICENCIA MÉDICA':'background:var(--amber-l);color:var(--amber);border:1px solid var(--amber-m)',
+  'LICENCIA GREMIAL':'background:var(--blue-l);color:var(--blue);border:1px solid var(--blue-m)',
+  'LICENCIA ESPECIAL':'background:var(--blue-l);color:var(--blue);border:1px solid var(--blue-m)',
+  'COMISIÓN':'background:var(--green-l);color:var(--green);border:1px solid var(--green-m)',
+  'ALTO RANGO':'background:var(--green-l);color:var(--green);border:1px solid var(--green-m)',
+};
+
+let novDebounce;
+function filtrarNovedades(){clearTimeout(novDebounce);novDebounce=setTimeout(cargarNovedades,300);}
+
+async function cargarNovedades(){
+  const q=document.getElementById('search-nov').value.trim();
+  const desde=document.getElementById('nov-desde').value;
+  const hasta=document.getElementById('nov-hasta').value;
+  const tipo=document.getElementById('nov-tipo').value;
+  const r=await api('getNovedades',{q,desde,hasta,tipo});
+  if(!r.ok){toast(r.error,'err');return;}
+  const tbody=document.getElementById('tbody-novedades');
+  if(!r.novedades.length){
+    tbody.innerHTML=`<tr><td colspan="8"><div class="empty"><p>Sin novedades para los filtros seleccionados.</p></div></td></tr>`;
+    document.getElementById('pag-info-nov').textContent='0 registros';
+    return;
+  }
+  const fmt=s=>s?s.slice(0,10).split('-').reverse().join('/'):'—';
+  tbody.innerHTML=r.novedades.map(n=>{
+    const estilo=TIPO_COLOR[n.tipo]||'background:var(--blue-l);color:var(--blue);border:1px solid var(--blue-m)';
+    const docBtn=n.documento_url?`<a href="${xe(n.documento_url)}" target="_blank" class="tbtn" style="font-size:11px;padding:2px 8px;text-decoration:none" title="Ver documento">
+      <svg viewBox="0 0 14 14" fill="none" width="11" height="11"><path d="M2 2h7l3 3v7H2V2z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M9 2v3h3" stroke="currentColor" stroke-width="1.3"/></svg> Ver</a>`:'—';
+    return `<tr>
+      <td class="mono">${xe(n.dni)}</td>
+      <td><strong>${xe(n.apellido_nombre)}</strong></td>
+      <td><span style="padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;${estilo}">${xe(n.tipo)}</span></td>
+      <td class="mono" style="font-size:12px">${fmt(n.fecha_desde)}</td>
+      <td class="mono" style="font-size:12px">${fmt(n.fecha_hasta)}</td>
+      <td style="font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${xe(n.titulo||n.observaciones)||'—'}</td>
+      <td>${docBtn}</td>
+      <td style="white-space:nowrap">
+        <button class="tbtn" style="font-size:11px;padding:2px 8px" onclick='editarNovedad(${JSON.stringify(n)})'>Editar</button>
+        <button class="tbtn" style="font-size:11px;padding:2px 8px;color:var(--red)" onclick="eliminarNovedad('${xe(n.id)}','${xe(n.apellido_nombre)}')">Borrar</button>
+      </td>
+    </tr>`;
+  }).join('');
+  document.getElementById('pag-info-nov').textContent=`${r.novedades.length} de ${r.total} registros`;
+  // Badge sidebar con vigentes hoy
+  const hoy=new Date().toISOString().slice(0,10);
+  const vigentes=r.novedades.filter(n=>n.fecha_desde<=hoy&&n.fecha_hasta>=hoy).length;
+  const badge=document.getElementById('badge-novedades');
+  badge.textContent=vigentes;
+  badge.style.display=vigentes?'':'none';
+}
+
+function abrirAddNovedad(){
+  document.getElementById('nov-edit-id').value='';
+  document.getElementById('modal-nov-titulo').textContent='Nueva Novedad';
+  document.getElementById('nov-dni').value='';
+  document.getElementById('nov-nombre-found').textContent='';
+  document.getElementById('nov-tipo-modal').value='';
+  document.getElementById('nov-desde-modal').value='';
+  document.getElementById('nov-hasta-modal').value='';
+  document.getElementById('nov-titulo-modal').value='';
+  document.getElementById('nov-obs-modal').value='';
+  document.getElementById('nov-doc-url').value='';
+  document.getElementById('nov-dni').removeAttribute('readonly');
+  abrirModal('modal-novedad');
+}
+
+function editarNovedad(n){
+  document.getElementById('nov-edit-id').value=n.id;
+  document.getElementById('modal-nov-titulo').textContent='Editar Novedad';
+  document.getElementById('nov-dni').value=n.dni;
+  document.getElementById('nov-dni').setAttribute('readonly','true');
+  document.getElementById('nov-nombre-found').textContent=n.apellido_nombre;
+  document.getElementById('nov-tipo-modal').value=n.tipo;
+  document.getElementById('nov-desde-modal').value=n.fecha_desde?n.fecha_desde.slice(0,10):'';
+  document.getElementById('nov-hasta-modal').value=n.fecha_hasta?n.fecha_hasta.slice(0,10):'';
+  document.getElementById('nov-titulo-modal').value=n.titulo||'';
+  document.getElementById('nov-obs-modal').value=n.observaciones||'';
+  document.getElementById('nov-doc-url').value=n.documento_url||'';
+  abrirModal('modal-novedad');
+}
+
+let novAgtDebounce;
+function buscarAgenteNov(){
+  clearTimeout(novAgtDebounce);
+  const dni=document.getElementById('nov-dni').value.replace(/\D/g,'');
+  const el=document.getElementById('nov-nombre-found');
+  if(dni.length<7){el.textContent='';return;}
+  novAgtDebounce=setTimeout(async()=>{
+    const r=await api('buscarAgentes',{q:dni,limit:1,offset:0});
+    if(r.ok&&r.agentes.length){
+      const a=r.agentes[0];
+      el.textContent=a.apellido_nombre;
+      el.style.color='var(--green)';
+    } else {
+      el.textContent='DNI no encontrado en el padrón';
+      el.style.color='var(--red)';
+    }
+  },400);
+}
+
+async function guardarNovedad(){
+  const id=document.getElementById('nov-edit-id').value;
+  const dni=document.getElementById('nov-dni').value.replace(/\D/g,'');
+  const apellido_nombre=document.getElementById('nov-nombre-found').textContent;
+  const tipo=document.getElementById('nov-tipo-modal').value;
+  const fecha_desde=document.getElementById('nov-desde-modal').value;
+  const fecha_hasta=document.getElementById('nov-hasta-modal').value;
+  const titulo=document.getElementById('nov-titulo-modal').value.trim();
+  const observaciones=document.getElementById('nov-obs-modal').value.trim();
+  const documento_url=document.getElementById('nov-doc-url').value.trim();
+
+  if(!dni||!tipo||!fecha_desde||!fecha_hasta){toast('Completá DNI, tipo y fechas','err');return;}
+  if(fecha_hasta<fecha_desde){toast('Fecha hasta debe ser igual o posterior a desde','err');return;}
+
+  overlay(true,'Guardando...');
+  let r;
+  if(id){
+    r=await api('editNovedad',{id,fecha_desde,fecha_hasta,tipo,observaciones,documento_url,titulo});
+  } else {
+    r=await api('addNovedad',{dni,apellido_nombre,fecha_desde,fecha_hasta,tipo,observaciones,documento_url,titulo});
+  }
+  overlay(false);
+  if(!r.ok){toast(r.error,'err');return;}
+  toast(id?'Novedad actualizada':'Novedad registrada','ok');
+  cerrarModal('modal-novedad');
+  cargarNovedades();
+}
+
+async function eliminarNovedad(id,nombre){
+  if(!confirm(`¿Eliminar la novedad de ${nombre}?`))return;
+  overlay(true,'Eliminando...');
+  const r=await api('deleteNovedad',{id});
+  overlay(false);
+  if(!r.ok){toast(r.error,'err');return;}
+  toast('Novedad eliminada','ok');
+  cargarNovedades();
 }
 
 // ── INICIALIZAR ────────────────────────────────────────────────────
