@@ -2094,10 +2094,14 @@ async function procesarArchivoAsist(file){
     if(nombre&&!rec.apellido_nombre)rec.apellido_nombre=nombre;
     if(!rec.servicio&&servicio)rec.servicio=servicio;
 
-    // Todos los registros del biométrico tienen tipo=0; inferir entrada (mínima) y salida (máxima) por hora
+    // tipo 0 = entrada, tipo 1 = salida; tomar la primera entrada y última salida del día
     const minutos=dt.getHours()*60+dt.getMinutes();
-    if(minutos<rec._entMin){rec._entMin=minutos;rec.hora_entrada=horaStr;}
-    if(minutos>rec._salMax){rec._salMax=minutos;rec.hora_salida=horaStr;}
+    if(tipo===1){
+      if(minutos>rec._salMax){rec._salMax=minutos;rec.hora_salida=horaStr;}
+    } else {
+      // tipo 0 (entrada) o cualquier otro: tomar la más temprana
+      if(minutos<rec._entMin){rec._entMin=minutos;rec.hora_entrada=horaStr;}
+    }
   }
 
   // Estado se calcula server-side usando horarios individuales
