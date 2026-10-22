@@ -576,6 +576,12 @@ td.mono{font-family:var(--mono);font-size:12px}
             <button class="tbtn" onclick="verReporteAsist()" title="Reporte de ausentes y tardanzas">
               <svg viewBox="0 0 16 16" fill="none" width="13" height="13"><rect x="2" y="1" width="12" height="14" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M5 5h6M5 8h6M5 11h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg> Reporte
             </button>
+            <button class="tbtn" onclick="pdfReporteCompleto()" title="Reporte completo día hábil anterior">
+              <svg viewBox="0 0 16 16" fill="none" width="13" height="13"><rect x="2" y="1" width="12" height="14" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M5 5h6M5 8h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M10 11l1.5 1.5L14 10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg> PDF día ant.
+            </button>
+            <button class="tbtn" onclick="pdfReporteHoy()" title="Reporte asistencias y novedades del día">
+              <svg viewBox="0 0 16 16" fill="none" width="13" height="13"><rect x="2" y="1" width="12" height="14" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M5 5h6M5 8h6M5 11h6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg> PDF hoy
+            </button>
           </div>
           <div style="overflow-x:auto">
             <table id="table-asist">
@@ -2244,6 +2250,206 @@ function imprimirReportePDF(){
   ${body}
   <script>window.onload=function(){window.print();}<\/script>
   </body></html>`);
+  w.document.close();
+}
+
+function _htmlPDF(titulo,subtitulo,fecha,contenido){
+  const hoy=new Date();
+  const fechaEmision=hoy.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const horaEmision=hoy.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+  return `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
+  <title>${titulo}</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#111;background:#fff}
+    @page{margin:18mm 15mm 22mm 15mm}
+    .header{border-bottom:2px solid #1a3a6b;padding-bottom:10px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:flex-end}
+    .header-left .org{font-size:9px;color:#555;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+    .header-left .titulo{font-size:15px;font-weight:700;color:#1a3a6b;line-height:1.2}
+    .header-left .subtitulo{font-size:11px;color:#555;margin-top:3px}
+    .header-right{text-align:right;font-size:10px;color:#777;line-height:1.5}
+    h4{font-size:12px;color:#1a3a6b;margin:14px 0 6px;text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid #dde4f0;padding-bottom:3px}
+    table{width:100%;border-collapse:collapse;margin-bottom:14px;font-size:11px}
+    th{background:#1a3a6b;color:#fff;padding:5px 7px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.3px}
+    td{padding:4px 7px;border-bottom:1px solid #e8ecf2}
+    tr:nth-child(even) td{background:#f5f7fb}
+    .badge{display:inline-block;padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700;text-transform:uppercase}
+    .badge-tardanza{background:#fef3c7;color:#92400e}
+    .badge-ausente{background:#fee2e2;color:#991b1b}
+    .badge-presente{background:#d1fae5;color:#065f46}
+    .badge-nov{background:#dbeafe;color:#1e40af}
+    .resumen{display:flex;gap:20px;margin-bottom:14px;padding:10px 12px;background:#f5f7fb;border-radius:4px;border:1px solid #dde4f0}
+    .res-item{text-align:center}
+    .res-num{font-size:22px;font-weight:700;color:#1a3a6b;line-height:1}
+    .res-lbl{font-size:9px;text-transform:uppercase;color:#777;margin-top:2px}
+    .footer{position:fixed;bottom:0;left:0;right:0;border-top:1px solid #ccc;padding:5px 15mm;font-size:9px;color:#999;display:flex;justify-content:space-between;background:#fff}
+    p.empty{color:#999;font-style:italic;margin-bottom:10px}
+    @media print{.footer{position:fixed}}
+  </style></head><body>
+  <div class="header">
+    <div class="header-left">
+      <div class="org">Dirección General de Infraestructura y Mantenimiento del Estado — DGIME</div>
+      <div class="titulo">${titulo}</div>
+      <div class="subtitulo">${subtitulo}</div>
+    </div>
+    <div class="header-right">
+      <div>Emisión: ${fechaEmision} ${horaEmision}</div>
+      <div>Sistema Personal DMTH</div>
+    </div>
+  </div>
+  ${contenido}
+  <div class="footer">
+    <span>DGIME — Sistema de Gestión de Personal DMTH</span>
+    <span>Documento generado el ${fechaEmision} a las ${horaEmision}</span>
+    <span>Pág. <span class="page"></span></span>
+  </div>
+  <script>window.onload=function(){window.print();}<\/script>
+  </body></html>`;
+}
+
+function _diasHabilesAtras(n){
+  const d=new Date();
+  let restantes=n;
+  while(restantes>0){
+    d.setDate(d.getDate()-1);
+    const dow=d.getDay();
+    if(dow!==0&&dow!==6)restantes--;
+  }
+  return d.toISOString().slice(0,10);
+}
+
+async function pdfReporteCompleto(){
+  const fechaReporte=_diasHabilesAtras(1);
+  overlay(true,'Generando reporte…');
+  const r=await api('getAsistencias',{fecha:fechaReporte,q:'',estado:'',limit:500,offset:0});
+  overlay(false);
+  if(!r.ok){toast('Error al obtener asistencias','err');return;}
+  const agentes=r.asistencias||[];
+  const novedR=await api('getNovedades',{desde:fechaReporte,hasta:fechaReporte,q:'',tipo:''});
+  const novedades=(novedR.ok&&novedR.novedades)||[];
+
+  const presentes=agentes.filter(a=>!a._ausente&&a.estado!=='TARDANZA');
+  const tardanzas=agentes.filter(a=>a.estado==='TARDANZA');
+  const ausentes=agentes.filter(a=>a._ausente);
+  const total=agentes.length;
+  const pct=total?Math.round((presentes.length+tardanzas.length)/total*100):0;
+
+  const fechaFmt=new Date(fechaReporte+'T12:00:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+  let html=`<div class="resumen">
+    <div class="res-item"><div class="res-num">${presentes.length+tardanzas.length}</div><div class="res-lbl">Presentes</div></div>
+    <div class="res-item"><div class="res-num">${tardanzas.length}</div><div class="res-lbl">Tardanzas</div></div>
+    <div class="res-item"><div class="res-num">${ausentes.length}</div><div class="res-lbl">Ausentes</div></div>
+    <div class="res-item"><div class="res-num">${pct}%</div><div class="res-lbl">Asistencia</div></div>
+    <div class="res-item"><div class="res-num">${novedades.length}</div><div class="res-lbl">Novedades</div></div>
+  </div>`;
+
+  // Tardanzas
+  html+=`<h4>Tardanzas (${tardanzas.length})</h4>`;
+  if(tardanzas.length){
+    html+=`<table><thead><tr><th>DNI</th><th>Apellido y Nombre</th><th>Turno</th><th>Entrada</th><th>Demora</th><th>Servicio</th></tr></thead><tbody>`;
+    tardanzas.sort((a,b)=>(b.minutos_tardanza||0)-(a.minutos_tardanza||0)).forEach(a=>{
+      html+=`<tr><td>${xe(a.dni)}</td><td>${xe(a.apellido_nombre)}</td><td>${xe(a.horario_esperado||a.horario_raw||'—')}</td><td>${xe(a.hora_entrada||'—')}</td><td><span class="badge badge-tardanza">+${a.minutos_tardanza}min</span></td><td>${xe(a.establecimiento||a.sector||'—')}</td></tr>`;
+    });
+    html+=`</tbody></table>`;
+  } else html+=`<p class="empty">Sin tardanzas registradas.</p>`;
+
+  // Ausentes
+  html+=`<h4>Ausentes (${ausentes.length})</h4>`;
+  if(ausentes.length){
+    html+=`<table><thead><tr><th>DNI</th><th>Apellido y Nombre</th><th>Establecimiento</th><th>Sector</th><th>Excepción</th></tr></thead><tbody>`;
+    ausentes.forEach(a=>{
+      html+=`<tr><td>${xe(a.dni)}</td><td>${xe(a.apellido_nombre)}</td><td>${xe(a.establecimiento||'—')}</td><td>${xe(a.sector||'—')}</td><td>${a.excepcion?`<span class="badge badge-nov">${xe(a.excepcion)}</span>`:'—'}</td></tr>`;
+    });
+    html+=`</tbody></table>`;
+  } else html+=`<p class="empty">Sin ausentes.</p>`;
+
+  // Presentes
+  html+=`<h4>Presentes (${presentes.length})</h4>`;
+  if(presentes.length){
+    html+=`<table><thead><tr><th>DNI</th><th>Apellido y Nombre</th><th>Turno</th><th>Entrada</th><th>Salida</th><th>Servicio</th></tr></thead><tbody>`;
+    presentes.forEach(a=>{
+      html+=`<tr><td>${xe(a.dni)}</td><td>${xe(a.apellido_nombre)}</td><td>${xe(a.horario_esperado||a.horario_raw||'—')}</td><td>${xe(a.hora_entrada||'—')}</td><td>${xe(a.hora_salida||'—')}</td><td>${xe(a.establecimiento||a.sector||'—')}</td></tr>`;
+    });
+    html+=`</tbody></table>`;
+  } else html+=`<p class="empty">Sin presentes.</p>`;
+
+  // Novedades
+  html+=`<h4>Novedades vigentes (${novedades.length})</h4>`;
+  if(novedades.length){
+    html+=`<table><thead><tr><th>DNI</th><th>Apellido y Nombre</th><th>Tipo</th><th>Desde</th><th>Hasta</th><th>Título</th></tr></thead><tbody>`;
+    novedades.forEach(n=>{
+      html+=`<tr><td>${xe(n.dni)}</td><td>${xe(n.apellido_nombre)}</td><td><span class="badge badge-nov">${xe(n.tipo)}</span></td><td>${xe(n.fecha_desde||'—')}</td><td>${xe(n.fecha_hasta||'—')}</td><td>${xe(n.titulo||'—')}</td></tr>`;
+    });
+    html+=`</tbody></table>`;
+  } else html+=`<p class="empty">Sin novedades.</p>`;
+
+  const w=window.open('','_blank','width=900,height=700');
+  w.document.write(_htmlPDF(
+    'Reporte Completo — Día Hábil Anterior',
+    `Correspondiente al ${fechaFmt}`,
+    fechaReporte,
+    html
+  ));
+  w.document.close();
+}
+
+async function pdfReporteHoy(){
+  const fechaHoy=new Date().toISOString().slice(0,10);
+  const fechaFmt=new Date(fechaHoy+'T12:00:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  overlay(true,'Generando reporte…');
+  const r=await api('getAsistencias',{fecha:fechaHoy,q:'',estado:'',limit:500,offset:0});
+  const novedR=await api('getNovedades',{desde:fechaHoy,hasta:fechaHoy,q:'',tipo:''});
+  overlay(false);
+
+  const agentes=r.ok?(r.asistencias||[]):[];
+  const novedades=(novedR.ok&&novedR.novedades)||[];
+  const presentes=agentes.filter(a=>!a._ausente);
+  const ausentes=agentes.filter(a=>a._ausente);
+  const tardanzas=agentes.filter(a=>a.estado==='TARDANZA');
+
+  let html=`<div class="resumen">
+    <div class="res-item"><div class="res-num">${presentes.length}</div><div class="res-lbl">Presentes</div></div>
+    <div class="res-item"><div class="res-num">${tardanzas.length}</div><div class="res-lbl">Tardanzas</div></div>
+    <div class="res-item"><div class="res-num">${ausentes.length}</div><div class="res-lbl">Ausentes</div></div>
+    <div class="res-item"><div class="res-num">${novedades.length}</div><div class="res-lbl">Novedades</div></div>
+  </div>`;
+
+  html+=`<h4>Asistencias del día — Presentes y tardanzas (${presentes.length})</h4>`;
+  if(presentes.length){
+    html+=`<table><thead><tr><th>DNI</th><th>Apellido y Nombre</th><th>Turno</th><th>Entrada</th><th>Salida</th><th>Estado</th><th>Servicio</th></tr></thead><tbody>`;
+    presentes.forEach(a=>{
+      const badge=a.estado==='TARDANZA'?`<span class="badge badge-tardanza">TARDANZA +${a.minutos_tardanza}min</span>`:`<span class="badge badge-presente">PRESENTE</span>`;
+      html+=`<tr><td>${xe(a.dni)}</td><td>${xe(a.apellido_nombre)}</td><td>${xe(a.horario_esperado||a.horario_raw||'—')}</td><td>${xe(a.hora_entrada||'—')}</td><td>${xe(a.hora_salida||'—')}</td><td>${badge}</td><td>${xe(a.establecimiento||a.sector||'—')}</td></tr>`;
+    });
+    html+=`</tbody></table>`;
+  } else html+=`<p class="empty">Sin asistencias registradas para hoy. Importá el Excel del biométrico.</p>`;
+
+  html+=`<h4>Ausentes del día (${ausentes.length})</h4>`;
+  if(ausentes.length){
+    html+=`<table><thead><tr><th>DNI</th><th>Apellido y Nombre</th><th>Establecimiento</th><th>Sector</th><th>Excepción</th></tr></thead><tbody>`;
+    ausentes.forEach(a=>{
+      html+=`<tr><td>${xe(a.dni)}</td><td>${xe(a.apellido_nombre)}</td><td>${xe(a.establecimiento||'—')}</td><td>${xe(a.sector||'—')}</td><td>${a.excepcion?`<span class="badge badge-nov">${xe(a.excepcion)}</span>`:'—'}</td></tr>`;
+    });
+    html+=`</tbody></table>`;
+  } else html+=`<p class="empty">Sin ausentes.</p>`;
+
+  html+=`<h4>Novedades vigentes al día de hoy (${novedades.length})</h4>`;
+  if(novedades.length){
+    html+=`<table><thead><tr><th>DNI</th><th>Apellido y Nombre</th><th>Tipo</th><th>Desde</th><th>Hasta</th><th>Título</th><th>Observaciones</th></tr></thead><tbody>`;
+    novedades.forEach(n=>{
+      html+=`<tr><td>${xe(n.dni)}</td><td>${xe(n.apellido_nombre)}</td><td><span class="badge badge-nov">${xe(n.tipo)}</span></td><td>${xe(n.fecha_desde||'—')}</td><td>${xe(n.fecha_hasta||'—')}</td><td>${xe(n.titulo||'—')}</td><td>${xe(n.observaciones||'—')}</td></tr>`;
+    });
+    html+=`</tbody></table>`;
+  } else html+=`<p class="empty">Sin novedades vigentes.</p>`;
+
+  const w=window.open('','_blank','width=900,height=700');
+  w.document.write(_htmlPDF(
+    'Reporte de Asistencias y Novedades del Día',
+    `Correspondiente al ${fechaFmt}`,
+    fechaHoy,
+    html
+  ));
   w.document.close();
 }
 
