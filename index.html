@@ -576,11 +576,11 @@ td.mono{font-family:var(--mono);font-size:12px}
             <button class="tbtn" onclick="verReporteAsist()" title="Reporte de ausentes y tardanzas">
               <svg viewBox="0 0 16 16" fill="none" width="13" height="13"><rect x="2" y="1" width="12" height="14" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M5 5h6M5 8h6M5 11h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg> Reporte
             </button>
-            <button class="tbtn" onclick="pdfReporteCompleto()" title="Reporte completo día hábil anterior">
-              <svg viewBox="0 0 16 16" fill="none" width="13" height="13"><rect x="2" y="1" width="12" height="14" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M5 5h6M5 8h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M10 11l1.5 1.5L14 10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg> PDF día ant.
+            <button class="tbtn" onclick="pdfReporteCompleto()" title="Asistencias, inasistencias, tardanzas y novedades vigentes del día">
+              <svg viewBox="0 0 16 16" fill="none" width="13" height="13"><rect x="2" y="1" width="12" height="14" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M5 5h6M5 8h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M10 11l1.5 1.5L14 10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg> Reporte completo
             </button>
-            <button class="tbtn" onclick="pdfReporteHoy()" title="Reporte asistencias y novedades del día">
-              <svg viewBox="0 0 16 16" fill="none" width="13" height="13"><rect x="2" y="1" width="12" height="14" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M5 5h6M5 8h6M5 11h6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg> PDF hoy
+            <button class="tbtn" onclick="pdfReporteHoy()" title="Solo inasistencias y novedades vigentes del día">
+              <svg viewBox="0 0 16 16" fill="none" width="13" height="13"><rect x="2" y="1" width="12" height="14" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M5 5h6M5 8h6M5 11h6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg> Inasist. y novedades
             </button>
           </div>
           <div style="overflow-x:auto">
@@ -2446,137 +2446,109 @@ function _diasHabilesAtras(n){
 }
 
 async function pdfReporteCompleto(){
-  const fechaReporte=_diasHabilesAtras(1);
+  const fecha=new Date().toISOString().slice(0,10);
+  const fechaFmt=new Date(fecha+'T12:00:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   overlay(true,'Generando reporte…');
-  const r=await api('getAsistencias',{fecha:fechaReporte,q:'',estado:'',limit:500,offset:0});
+  const [r,novedR]=await Promise.all([
+    api('getAsistencias',{fecha,q:'',estado:'',limit:500,offset:0}),
+    api('getNovedades',{desde:fecha,hasta:fecha,q:'',tipo:''})
+  ]);
   overlay(false);
   if(!r.ok){toast('Error al obtener asistencias','err');return;}
   const agentes=r.asistencias||[];
-  const novedR=await api('getNovedades',{desde:fechaReporte,hasta:fechaReporte,q:'',tipo:''});
   const novedades=(novedR.ok&&novedR.novedades)||[];
-
   const presentes=agentes.filter(a=>!a._ausente&&a.estado!=='TARDANZA');
   const tardanzas=agentes.filter(a=>a.estado==='TARDANZA');
   const ausentes=agentes.filter(a=>a._ausente);
   const total=agentes.length;
   const pct=total?Math.round((presentes.length+tardanzas.length)/total*100):0;
 
-  const fechaFmt=new Date(fechaReporte+'T12:00:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-
   let html=`<div class="resumen">
     <div class="res-item"><div class="res-num">${presentes.length+tardanzas.length}</div><div class="res-lbl">Presentes</div></div>
     <div class="res-item"><div class="res-num">${tardanzas.length}</div><div class="res-lbl">Tardanzas</div></div>
-    <div class="res-item"><div class="res-num">${ausentes.length}</div><div class="res-lbl">Ausentes</div></div>
-    <div class="res-item"><div class="res-num">${pct}%</div><div class="res-lbl">Asistencia</div></div>
+    <div class="res-item"><div class="res-num">${ausentes.length}</div><div class="res-lbl">Inasistencias</div></div>
+    <div class="res-item"><div class="res-num">${pct}%</div><div class="res-lbl">% Asistencia</div></div>
     <div class="res-item"><div class="res-num">${novedades.length}</div><div class="res-lbl">Novedades</div></div>
   </div>`;
 
-  // Tardanzas
   html+=`<h4>Tardanzas (${tardanzas.length})</h4>`;
   if(tardanzas.length){
-    html+=`<table><thead><tr><th>DNI</th><th>Apellido y Nombre</th><th>Turno</th><th>Entrada</th><th>Demora</th><th>Servicio</th></tr></thead><tbody>`;
+    html+=`<table><thead><tr><th>DNI</th><th>Apellido y Nombre</th><th>Turno</th><th>Entrada</th><th>Demora</th><th>Establecimiento / Sector</th></tr></thead><tbody>`;
     tardanzas.sort((a,b)=>(b.minutos_tardanza||0)-(a.minutos_tardanza||0)).forEach(a=>{
-      html+=`<tr><td>${xe(a.dni)}</td><td>${xe(a.apellido_nombre)}</td><td>${xe(a.horario_esperado||a.horario_raw||'—')}</td><td>${xe(a.hora_entrada||'—')}</td><td><span class="badge badge-tardanza">+${a.minutos_tardanza}min</span></td><td>${xe(a.establecimiento||a.sector||'—')}</td></tr>`;
+      html+=`<tr><td>${xe(a.dni)}</td><td>${xe(a.apellido_nombre)}</td><td>${xe(a.horario_esperado||a.horario_raw||'—')}</td><td>${xe(a.hora_entrada||'—')}</td><td><span class="badge badge-tardanza">+${a.minutos_tardanza}min</span></td><td>${xe(a.establecimiento||'')} ${xe(a.sector||'')}</td></tr>`;
     });
     html+=`</tbody></table>`;
   } else html+=`<p class="empty">Sin tardanzas registradas.</p>`;
 
-  // Ausentes
-  html+=`<h4>Ausentes (${ausentes.length})</h4>`;
+  html+=`<h4>Inasistencias (${ausentes.length})</h4>`;
   if(ausentes.length){
-    html+=`<table><thead><tr><th>DNI</th><th>Apellido y Nombre</th><th>Establecimiento</th><th>Sector</th><th>Excepción</th></tr></thead><tbody>`;
+    html+=`<table><thead><tr><th>DNI</th><th>Apellido y Nombre</th><th>Establecimiento</th><th>Sector</th><th>Novedad / Excepción</th></tr></thead><tbody>`;
     ausentes.forEach(a=>{
       html+=`<tr><td>${xe(a.dni)}</td><td>${xe(a.apellido_nombre)}</td><td>${xe(a.establecimiento||'—')}</td><td>${xe(a.sector||'—')}</td><td>${a.excepcion?`<span class="badge badge-nov">${xe(a.excepcion)}</span>`:'—'}</td></tr>`;
     });
     html+=`</tbody></table>`;
-  } else html+=`<p class="empty">Sin ausentes.</p>`;
+  } else html+=`<p class="empty">Sin inasistencias.</p>`;
 
-  // Presentes
   html+=`<h4>Presentes (${presentes.length})</h4>`;
   if(presentes.length){
-    html+=`<table><thead><tr><th>DNI</th><th>Apellido y Nombre</th><th>Turno</th><th>Entrada</th><th>Salida</th><th>Servicio</th></tr></thead><tbody>`;
+    html+=`<table><thead><tr><th>DNI</th><th>Apellido y Nombre</th><th>Turno</th><th>Entrada</th><th>Salida</th><th>Establecimiento / Sector</th></tr></thead><tbody>`;
     presentes.forEach(a=>{
-      html+=`<tr><td>${xe(a.dni)}</td><td>${xe(a.apellido_nombre)}</td><td>${xe(a.horario_esperado||a.horario_raw||'—')}</td><td>${xe(a.hora_entrada||'—')}</td><td>${xe(a.hora_salida||'—')}</td><td>${xe(a.establecimiento||a.sector||'—')}</td></tr>`;
+      html+=`<tr><td>${xe(a.dni)}</td><td>${xe(a.apellido_nombre)}</td><td>${xe(a.horario_esperado||a.horario_raw||'—')}</td><td>${xe(a.hora_entrada||'—')}</td><td>${xe(a.hora_salida||'—')}</td><td>${xe(a.establecimiento||'')} ${xe(a.sector||'')}</td></tr>`;
     });
     html+=`</tbody></table>`;
-  } else html+=`<p class="empty">Sin presentes.</p>`;
+  } else html+=`<p class="empty">Sin presentes. Importá el Excel del biométrico.</p>`;
 
-  // Novedades
   html+=`<h4>Novedades vigentes (${novedades.length})</h4>`;
   if(novedades.length){
-    html+=`<table><thead><tr><th>DNI</th><th>Apellido y Nombre</th><th>Tipo</th><th>Desde</th><th>Hasta</th><th>Título</th></tr></thead><tbody>`;
+    html+=`<table><thead><tr><th>DNI</th><th>Apellido y Nombre</th><th>Tipo</th><th>Desde</th><th>Hasta</th><th>Título / Observaciones</th></tr></thead><tbody>`;
     novedades.forEach(n=>{
-      html+=`<tr><td>${xe(n.dni)}</td><td>${xe(n.apellido_nombre)}</td><td><span class="badge badge-nov">${xe(n.tipo)}</span></td><td>${xe(n.fecha_desde||'—')}</td><td>${xe(n.fecha_hasta||'—')}</td><td>${xe(n.titulo||'—')}</td></tr>`;
-    });
-    html+=`</tbody></table>`;
-  } else html+=`<p class="empty">Sin novedades.</p>`;
-
-  const w=window.open('','_blank','width=900,height=700');
-  w.document.write(_htmlPDF(
-    'Reporte Completo — Día Hábil Anterior',
-    `Correspondiente al ${fechaFmt}`,
-    fechaReporte,
-    html
-  ));
-  w.document.close();
-}
-
-async function pdfReporteHoy(){
-  const fechaHoy=new Date().toISOString().slice(0,10);
-  const fechaFmt=new Date(fechaHoy+'T12:00:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  overlay(true,'Generando reporte…');
-  const r=await api('getAsistencias',{fecha:fechaHoy,q:'',estado:'',limit:500,offset:0});
-  const novedR=await api('getNovedades',{desde:fechaHoy,hasta:fechaHoy,q:'',tipo:''});
-  overlay(false);
-
-  const agentes=r.ok?(r.asistencias||[]):[];
-  const novedades=(novedR.ok&&novedR.novedades)||[];
-  const presentes=agentes.filter(a=>!a._ausente);
-  const ausentes=agentes.filter(a=>a._ausente);
-  const tardanzas=agentes.filter(a=>a.estado==='TARDANZA');
-
-  let html=`<div class="resumen">
-    <div class="res-item"><div class="res-num">${presentes.length}</div><div class="res-lbl">Presentes</div></div>
-    <div class="res-item"><div class="res-num">${tardanzas.length}</div><div class="res-lbl">Tardanzas</div></div>
-    <div class="res-item"><div class="res-num">${ausentes.length}</div><div class="res-lbl">Ausentes</div></div>
-    <div class="res-item"><div class="res-num">${novedades.length}</div><div class="res-lbl">Novedades</div></div>
-  </div>`;
-
-  html+=`<h4>Asistencias del día — Presentes y tardanzas (${presentes.length})</h4>`;
-  if(presentes.length){
-    html+=`<table><thead><tr><th>DNI</th><th>Apellido y Nombre</th><th>Turno</th><th>Entrada</th><th>Salida</th><th>Estado</th><th>Servicio</th></tr></thead><tbody>`;
-    presentes.forEach(a=>{
-      const badge=a.estado==='TARDANZA'?`<span class="badge badge-tardanza">TARDANZA +${a.minutos_tardanza}min</span>`:`<span class="badge badge-presente">PRESENTE</span>`;
-      html+=`<tr><td>${xe(a.dni)}</td><td>${xe(a.apellido_nombre)}</td><td>${xe(a.horario_esperado||a.horario_raw||'—')}</td><td>${xe(a.hora_entrada||'—')}</td><td>${xe(a.hora_salida||'—')}</td><td>${badge}</td><td>${xe(a.establecimiento||a.sector||'—')}</td></tr>`;
-    });
-    html+=`</tbody></table>`;
-  } else html+=`<p class="empty">Sin asistencias registradas para hoy. Importá el Excel del biométrico.</p>`;
-
-  html+=`<h4>Ausentes del día (${ausentes.length})</h4>`;
-  if(ausentes.length){
-    html+=`<table><thead><tr><th>DNI</th><th>Apellido y Nombre</th><th>Establecimiento</th><th>Sector</th><th>Excepción</th></tr></thead><tbody>`;
-    ausentes.forEach(a=>{
-      html+=`<tr><td>${xe(a.dni)}</td><td>${xe(a.apellido_nombre)}</td><td>${xe(a.establecimiento||'—')}</td><td>${xe(a.sector||'—')}</td><td>${a.excepcion?`<span class="badge badge-nov">${xe(a.excepcion)}</span>`:'—'}</td></tr>`;
-    });
-    html+=`</tbody></table>`;
-  } else html+=`<p class="empty">Sin ausentes.</p>`;
-
-  html+=`<h4>Novedades vigentes al día de hoy (${novedades.length})</h4>`;
-  if(novedades.length){
-    html+=`<table><thead><tr><th>DNI</th><th>Apellido y Nombre</th><th>Tipo</th><th>Desde</th><th>Hasta</th><th>Título</th><th>Observaciones</th></tr></thead><tbody>`;
-    novedades.forEach(n=>{
-      html+=`<tr><td>${xe(n.dni)}</td><td>${xe(n.apellido_nombre)}</td><td><span class="badge badge-nov">${xe(n.tipo)}</span></td><td>${xe(n.fecha_desde||'—')}</td><td>${xe(n.fecha_hasta||'—')}</td><td>${xe(n.titulo||'—')}</td><td>${xe(n.observaciones||'—')}</td></tr>`;
+      html+=`<tr><td>${xe(n.dni)}</td><td>${xe(n.apellido_nombre)}</td><td><span class="badge badge-nov">${xe(n.tipo)}</span></td><td>${xe(n.fecha_desde||'—')}</td><td>${xe(n.fecha_hasta||'—')}</td><td>${xe(n.titulo||'')}${n.observaciones?' — '+xe(n.observaciones):''}</td></tr>`;
     });
     html+=`</tbody></table>`;
   } else html+=`<p class="empty">Sin novedades vigentes.</p>`;
 
   const w=window.open('','_blank','width=900,height=700');
-  w.document.write(_htmlPDF(
-    'Reporte de Asistencias y Novedades del Día',
-    `Correspondiente al ${fechaFmt}`,
-    fechaHoy,
-    html
-  ));
+  w.document.write(_htmlPDF('Reporte Completo del Día',`Asistencias, inasistencias, tardanzas y novedades vigentes — ${fechaFmt}`,fecha,html));
+  w.document.close();
+}
+
+async function pdfReporteHoy(){
+  const fecha=new Date().toISOString().slice(0,10);
+  const fechaFmt=new Date(fecha+'T12:00:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  overlay(true,'Generando reporte…');
+  const [r,novedR]=await Promise.all([
+    api('getAsistencias',{fecha,q:'',estado:'',limit:500,offset:0}),
+    api('getNovedades',{desde:fecha,hasta:fecha,q:'',tipo:''})
+  ]);
+  overlay(false);
+  const ausentes=(r.ok?(r.asistencias||[]):[]).filter(a=>a._ausente);
+  const novedades=(novedR.ok&&novedR.novedades)||[];
+
+  let html=`<div class="resumen">
+    <div class="res-item"><div class="res-num">${ausentes.length}</div><div class="res-lbl">Inasistencias</div></div>
+    <div class="res-item"><div class="res-num">${novedades.length}</div><div class="res-lbl">Novedades vigentes</div></div>
+  </div>`;
+
+  html+=`<h4>Inasistencias del día (${ausentes.length})</h4>`;
+  if(ausentes.length){
+    html+=`<table><thead><tr><th>DNI</th><th>Apellido y Nombre</th><th>Establecimiento</th><th>Sector</th><th>Novedad / Excepción</th></tr></thead><tbody>`;
+    ausentes.forEach(a=>{
+      html+=`<tr><td>${xe(a.dni)}</td><td>${xe(a.apellido_nombre)}</td><td>${xe(a.establecimiento||'—')}</td><td>${xe(a.sector||'—')}</td><td>${a.excepcion?`<span class="badge badge-nov">${xe(a.excepcion)}</span>`:'—'}</td></tr>`;
+    });
+    html+=`</tbody></table>`;
+  } else html+=`<p class="empty">Sin inasistencias.</p>`;
+
+  html+=`<h4>Novedades vigentes (${novedades.length})</h4>`;
+  if(novedades.length){
+    html+=`<table><thead><tr><th>DNI</th><th>Apellido y Nombre</th><th>Tipo</th><th>Desde</th><th>Hasta</th><th>Título / Observaciones</th></tr></thead><tbody>`;
+    novedades.forEach(n=>{
+      html+=`<tr><td>${xe(n.dni)}</td><td>${xe(n.apellido_nombre)}</td><td><span class="badge badge-nov">${xe(n.tipo)}</span></td><td>${xe(n.fecha_desde||'—')}</td><td>${xe(n.fecha_hasta||'—')}</td><td>${xe(n.titulo||'')}${n.observaciones?' — '+xe(n.observaciones):''}</td></tr>`;
+    });
+    html+=`</tbody></table>`;
+  } else html+=`<p class="empty">Sin novedades vigentes.</p>`;
+
+  const w=window.open('','_blank','width=900,height=700');
+  w.document.write(_htmlPDF('Inasistencias y Novedades del Día',`${fechaFmt}`,fecha,html));
   w.document.close();
 }
 
