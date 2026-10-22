@@ -169,11 +169,12 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fn);font-size:14px;
 .tk-motivo-label{font-size:7pt;font-weight:600;color:#5C6B85;text-transform:uppercase;letter-spacing:.05em}
 .tk-motivo-val{font-size:9pt;font-weight:600;color:#1A2332;margin-top:0.5mm}
 
-.tk-footer{margin-top:auto;border-top:1px solid #eee;padding-top:3mm;display:flex;justify-content:space-between;align-items:flex-end}
-.tk-firma-box{width:52mm}
-.tk-firma-line{border-bottom:1px solid #888;height:8mm;margin-bottom:1.5mm}
-.tk-firma-label{font-size:7pt;color:#666;text-align:center}
-.tk-date{font-size:7.5pt;color:#666;text-align:right}
+.tk-footer{margin-top:auto;padding-top:3mm}
+.tk-firmas{display:flex;justify-content:space-between;gap:4mm;margin-bottom:2mm}
+.tk-firma-box{flex:1;text-align:center}
+.tk-firma-line{border-bottom:1px solid #888;height:10mm;margin-bottom:1.5mm}
+.tk-firma-label{font-size:7pt;color:#444;text-align:center;font-weight:600}
+.tk-date{font-size:7pt;color:#999;text-align:right}
 </style>
 </head>
 <body>
@@ -793,9 +794,19 @@ function buildTicketHTML(o){
       </div>
 
       <div class="tk-footer">
-        <div class="tk-firma-box">
-          <div class="tk-firma-line"></div>
-          <div class="tk-firma-label">Firma Inspector de Guardia</div>
+        <div class="tk-firmas">
+          <div class="tk-firma-box">
+            <div class="tk-firma-line"></div>
+            <div class="tk-firma-label">Firma del Agente</div>
+          </div>
+          <div class="tk-firma-box">
+            <div class="tk-firma-line"></div>
+            <div class="tk-firma-label">Firma Jefe a Cargo</div>
+          </div>
+          <div class="tk-firma-box">
+            <div class="tk-firma-line"></div>
+            <div class="tk-firma-label">Firma del Director</div>
+          </div>
         </div>
         <div class="tk-date">Generado: ${today()} ${nowHM()}</div>
       </div>
