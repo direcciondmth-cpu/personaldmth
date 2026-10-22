@@ -1801,12 +1801,11 @@ function abrirNovedadDeAgente(){
   document.getElementById('nov-nombre-found').textContent=agenteActual.apellido_nombre||'';
   document.getElementById('nov-nombre-found').style.color='var(--green)';
   document.getElementById('nov-tipo-modal').value='';
-  document.getElementById('nov-desde').value='';
-  document.getElementById('nov-hasta').value='';
-  document.getElementById('nov-titulo').value='';
-  document.getElementById('nov-obs').value='';
+  document.getElementById('nov-desde-modal').value='';
+  document.getElementById('nov-hasta-modal').value='';
+  document.getElementById('nov-titulo-modal').value='';
+  document.getElementById('nov-obs-modal').value='';
   document.getElementById('nov-doc-url').value='';
-  document.getElementById('nov-err').classList.remove('show');
   goTo('novedades',document.querySelector('[data-section=novedades]'));
   abrirModal('modal-novedad');
 }
