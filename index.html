@@ -1776,8 +1776,125 @@ async function cargarNovedadesAgente(dni){
   el.innerHTML=`<div style="overflow-x:auto"><table><thead><tr><th>TIPO</th><th>DESDE</th><th>HASTA</th><th>TÍTULO</th><th>DOC</th></tr></thead><tbody>${filas}</tbody></table></div>`;
 }
 
-function exportAgentePDF(){
-  window.print();
+async function exportAgentePDF(){
+  if(!agenteActual)return;
+  const a=agenteActual;
+  overlay(true,'Generando ficha…');
+  const [novR,osR]=await Promise.all([
+    api('getNovedadesAgente',{dni:a.dni}),
+    api('getOrdenesSalida',{q:a.dni,limit:50,offset:0})
+  ]);
+  overlay(false);
+  const novedades=(novR.ok&&novR.novedades)||[];
+  const ordenes=(osR.ok&&(osR.ordenes||osR.data))||[];
+
+  const nombre=xe(a.apellido_nombre||`${a.apellido||''} ${a.nombre||''}`);
+  const fechaEmision=new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const horaEmision=new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+
+  const fila=(lbl,val)=>`<tr><td class="lbl">${lbl}</td><td>${val||'—'}</td></tr>`;
+
+  // Novedades
+  let novHTML='<p class="empty">Sin novedades registradas.</p>';
+  if(novedades.length){
+    novHTML=`<table class="tbl"><thead><tr><th>Tipo</th><th>Desde</th><th>Hasta</th><th>Título</th><th>Observaciones</th></tr></thead><tbody>`;
+    novedades.forEach(n=>{
+      novHTML+=`<tr><td><span class="badge-tipo">${xe(n.tipo)}</span></td><td>${xe(n.fecha_desde||'—')}</td><td>${xe(n.fecha_hasta||'—')}</td><td>${xe(n.titulo||'—')}</td><td>${xe(n.observaciones||'—')}</td></tr>`;
+    });
+    novHTML+=`</tbody></table>`;
+  }
+
+  // Órdenes de salida
+  let osHTML='<p class="empty">Sin órdenes de salida registradas.</p>';
+  if(ordenes.length){
+    osHTML=`<table class="tbl"><thead><tr><th>Fecha</th><th>Motivo</th><th>Destino</th><th>Sector</th></tr></thead><tbody>`;
+    ordenes.forEach(o=>{
+      osHTML+=`<tr><td>${xe(o.fecha||'—')}</td><td>${xe(o.motivo||'—')}</td><td>${xe(o.destino||'—')}</td><td>${xe(o.sector||'—')}</td></tr>`;
+    });
+    osHTML+=`</tbody></table>`;
+  }
+
+  const html=`<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>Ficha — ${nombre}</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#111;background:#fff;padding:0 0 30px}
+    @page{margin:18mm 15mm 22mm 15mm}
+    .header{border-bottom:2px solid #1a3a6b;padding-bottom:10px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:flex-end}
+    .header-left .org{font-size:9px;color:#555;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+    .header-left .titulo{font-size:15px;font-weight:700;color:#1a3a6b;line-height:1.2}
+    .header-left .sub{font-size:11px;color:#555;margin-top:3px}
+    .header-right{text-align:right;font-size:10px;color:#777;line-height:1.6}
+    .nombre-bloque{background:#1a3a6b;color:#fff;padding:12px 16px;border-radius:4px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+    .nombre-bloque .nm{font-size:16px;font-weight:700;letter-spacing:.2px}
+    .nombre-bloque .meta{font-size:10px;opacity:.8;margin-top:3px}
+    .nombre-bloque .estado{font-size:10px;font-weight:700;padding:3px 10px;border-radius:12px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3)}
+    h4{font-size:11px;color:#1a3a6b;margin:14px 0 6px;text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid #dde4f0;padding-bottom:3px}
+    table.datos{width:100%;border-collapse:collapse;margin-bottom:14px}
+    table.datos td{padding:4px 8px;border-bottom:1px solid #eef0f4;font-size:11px;vertical-align:top}
+    table.datos td.lbl{font-weight:600;color:#555;width:35%;background:#f8f9fc}
+    table.tbl{width:100%;border-collapse:collapse;margin-bottom:12px;font-size:10px}
+    table.tbl th{background:#1a3a6b;color:#fff;padding:4px 7px;text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:.3px}
+    table.tbl td{padding:4px 7px;border-bottom:1px solid #e8ecf2}
+    table.tbl tr:nth-child(even) td{background:#f5f7fb}
+    .badge-tipo{display:inline-block;padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700;background:#dbeafe;color:#1e40af;border:1px solid #bfdbfe}
+    p.empty{color:#999;font-style:italic;margin-bottom:10px;font-size:11px}
+    .footer{position:fixed;bottom:0;left:0;right:0;border-top:1px solid #ccc;padding:5px 15mm;font-size:9px;color:#999;display:flex;justify-content:space-between;background:#fff}
+    @media print{.footer{position:fixed}}
+  </style></head><body>
+  <div class="header">
+    <div class="header-left">
+      <div class="org">Dirección General de Infraestructura y Mantenimiento del Estado — DGIME</div>
+      <div class="titulo">Ficha del Agente</div>
+      <div class="sub">Sistema de Gestión de Personal DMTH</div>
+    </div>
+    <div class="header-right">
+      <div>Emisión: ${fechaEmision} ${horaEmision}</div>
+    </div>
+  </div>
+
+  <div class="nombre-bloque">
+    <div>
+      <div class="nm">${nombre}</div>
+      <div class="meta">DNI: ${xe(a.dni)} &nbsp;·&nbsp; CUIL: ${xe(a.cuil)}</div>
+    </div>
+    <div class="estado">${a.activo==='SI'||a.activo===true?'ACTIVO':'INACTIVO'}</div>
+  </div>
+
+  <h4>Datos del agente</h4>
+  <table class="datos">
+    ${fila('Establecimiento',a.establecimiento)}
+    ${fila('Sector',a.sector)}
+    ${fila('Tarea / Puesto',a.tarea_puesto)}
+    ${fila('Categoría',a.categoria)}
+    ${fila('Tipo de contratación',a.tipo_contratacion)}
+    ${fila('Fecha de ingreso',a.fecha_ingreso)}
+    ${fila('Fecha de nacimiento',a.fecha_nacimiento)}
+    ${fila('Localidad',a.localidad)}
+    ${fila('Nivel educativo',a.nivel_educativo)}
+    ${fila('Teléfono',a.telefono)}
+    ${fila('Email',a.email)}
+    ${a.fecha_baja?fila('Fecha de baja',a.fecha_baja):''}
+    ${a.motivo_baja?fila('Motivo de baja',a.motivo_baja):''}
+    ${a.observaciones?fila('Observaciones',a.observaciones):''}
+  </table>
+
+  <h4>Novedades (${novedades.length})</h4>
+  ${novHTML}
+
+  <h4>Órdenes de Salida (${ordenes.length})</h4>
+  ${osHTML}
+
+  <div class="footer">
+    <span>DGIME — Sistema de Gestión de Personal DMTH</span>
+    <span>Documento generado el ${fechaEmision} a las ${horaEmision}</span>
+  </div>
+  <script>window.onload=function(){window.print();}<\/script>
+  </body></html>`;
+
+  const w=window.open('','_blank','width=900,height=700');
+  if(!w){toast('Permitir ventanas emergentes para imprimir','err');return;}
+  w.document.write(html);
+  w.document.close();
 }
 
 function editarAgente(){
