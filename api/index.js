@@ -376,6 +376,18 @@ module.exports = async function handler(req, res) {
       return ok(res, { mensaje: 'Agente actualizado', cambios: cambios.length });
     }
 
+    if (action === 'deleteAgente') {
+      const auth = requireAuth(req, 'admin');
+      if (!auth) return err(res, 'No autorizado', 401);
+      const { id_agente } = body;
+      if (!id_agente) return err(res, 'id_agente requerido');
+      await sql`DELETE FROM agente_documentos WHERE agente_id = ${id_agente}`;
+      await sql`DELETE FROM historial_agente WHERE id_agente = ${id_agente}`;
+      await sql`DELETE FROM agentes WHERE id_agente = ${id_agente}`;
+      await log(sql, auth.u, 'DELETE_AGENTE', 'agentes', id_agente, '');
+      return ok(res, { mensaje: 'Agente eliminado' });
+    }
+
     // ─ LISTAS MAESTRAS ────────────────────────────────────────────
     if (action === 'getListasMaestras') {
       const auth = requireAuth(req, 'read');
@@ -815,9 +827,10 @@ module.exports = async function handler(req, res) {
       if (!fecha) return ok(res, { asistencias: [], total: 0, ausentes: [] });
 
       const rows = await sql`
-        SELECT a.*, h.hora_entrada AS horario_esperado, h.horario_raw
+        SELECT a.*, h.hora_entrada AS horario_esperado, h.horario_raw, ag.id_agente
         FROM asistencias a
         LEFT JOIN horarios h ON h.dni = a.dni AND h.activo='SI'
+        LEFT JOIN agentes ag ON ag.dni = a.dni AND ag.activo='SI'
         WHERE a.fecha=${fecha} AND a.activo='SI'
           AND (${q}='' OR LOWER(a.apellido_nombre) LIKE ${'%'+q+'%'} OR a.dni LIKE ${'%'+q+'%'})
           AND (${filtroEstado}='' OR a.estado=${filtroEstado})
@@ -828,7 +841,7 @@ module.exports = async function handler(req, res) {
 
       // Ausentes del padrón: cruzar con horarios activos (solo quienes tienen horario asignado) o todos
       const ausentesRows = await sql`
-        SELECT a.dni, a.apellido_nombre, a.establecimiento, a.sector,
+        SELECT a.id_agente, a.dni, a.apellido_nombre, a.establecimiento, a.sector,
                h.hora_entrada, h.horario_raw,
                e.tipo AS excepcion
         FROM agentes a
