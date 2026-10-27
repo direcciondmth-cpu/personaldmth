@@ -683,6 +683,7 @@ td.mono{font-family:var(--mono);font-size:12px}
             <option>LICENCIA ESPECIAL</option>
             <option>COMISIÓN</option>
             <option>ALTO RANGO</option>
+            <option>RETIRO VOLUNTARIO</option>
             <option>OTRO</option>
           </select>
           <button class="tbtn" onclick="exportTableCSV('table-novedades','novedades')">
@@ -1135,6 +1136,7 @@ td.mono{font-family:var(--mono);font-size:12px}
           <option>LICENCIA ESPECIAL</option>
           <option>COMISIÓN</option>
           <option>ALTO RANGO</option>
+          <option>RETIRO VOLUNTARIO</option>
           <option>OTRO</option>
         </select>
       </div>
@@ -1144,7 +1146,12 @@ td.mono{font-family:var(--mono);font-size:12px}
           <input type="date" id="nov-desde-modal" class="form-input">
         </div>
         <div>
-          <label class="form-label">Fecha hasta *</label>
+          <label class="form-label" style="display:flex;align-items:center;gap:8px">
+            Fecha hasta *
+            <label style="font-size:11px;font-weight:400;color:var(--txt3);display:flex;align-items:center;gap:4px;cursor:pointer">
+              <input type="checkbox" id="nov-indeterminado" onchange="toggleIndeterminado(this)"> Tiempo indeterminado
+            </label>
+          </label>
           <input type="date" id="nov-hasta-modal" class="form-input">
         </div>
       </div>
@@ -1929,6 +1936,8 @@ function abrirNovedadDeAgente(){
   document.getElementById('nov-titulo-modal').value='';
   document.getElementById('nov-obs-modal').value='';
   document.getElementById('nov-doc-url').value='';
+  const cb=document.getElementById('nov-indeterminado');
+  if(cb){cb.checked=false;toggleIndeterminado(cb);}
   goTo('novedades',document.querySelector('[data-section=novedades]'));
   abrirModal('modal-novedad');
 }
@@ -2988,7 +2997,7 @@ function exportTableCSV(tableId,filename){
 }
 
 // ── NOVEDADES ──────────────────────────────────────────────────────
-const TIPOS_NOV=['VACACIONES','ART','LICENCIA MÉDICA','LICENCIA GREMIAL','LICENCIA ESPECIAL','COMISIÓN','ALTO RANGO','OTRO'];
+const TIPOS_NOV=['VACACIONES','ART','LICENCIA MÉDICA','LICENCIA GREMIAL','LICENCIA ESPECIAL','COMISIÓN','ALTO RANGO','RETIRO VOLUNTARIO','OTRO'];
 const TIPO_COLOR={
   'VACACIONES':'background:var(--blue-l);color:var(--blue);border:1px solid var(--blue-m)',
   'ART':'background:var(--red-l);color:var(--red);border:1px solid var(--red-m)',
@@ -2997,7 +3006,21 @@ const TIPO_COLOR={
   'LICENCIA ESPECIAL':'background:var(--blue-l);color:var(--blue);border:1px solid var(--blue-m)',
   'COMISIÓN':'background:var(--green-l);color:var(--green);border:1px solid var(--green-m)',
   'ALTO RANGO':'background:var(--green-l);color:var(--green);border:1px solid var(--green-m)',
+  'RETIRO VOLUNTARIO':'background:#fce7f3;color:#9d174d;border:1px solid #fbcfe8',
 };
+
+function toggleIndeterminado(cb){
+  const input=document.getElementById('nov-hasta-modal');
+  if(cb.checked){
+    input.value='9999-12-31';
+    input.disabled=true;
+    input.style.opacity='.4';
+  } else {
+    input.value='';
+    input.disabled=false;
+    input.style.opacity='1';
+  }
+}
 
 let novDebounce;
 function filtrarNovedades(){clearTimeout(novDebounce);novDebounce=setTimeout(cargarNovedades,300);}
@@ -3015,7 +3038,7 @@ async function cargarNovedades(){
     document.getElementById('pag-info-nov').textContent='0 registros';
     return;
   }
-  const fmt=s=>s?s.slice(0,10).split('-').reverse().join('/'):'—';
+  const fmt=s=>!s?'—':s.startsWith('9999')?'Indeterminado':s.slice(0,10).split('-').reverse().join('/');
   tbody.innerHTML=r.novedades.map(n=>{
     const estilo=TIPO_COLOR[n.tipo]||'background:var(--blue-l);color:var(--blue);border:1px solid var(--blue-m)';
     const docBtn=n.documento_url?`<a href="${xe(n.documento_url)}" target="_blank" class="tbtn" style="font-size:11px;padding:2px 8px;text-decoration:none" title="Ver documento">
@@ -3055,6 +3078,8 @@ function abrirAddNovedad(){
   document.getElementById('nov-obs-modal').value='';
   document.getElementById('nov-doc-url').value='';
   document.getElementById('nov-dni').removeAttribute('readonly');
+  const cb=document.getElementById('nov-indeterminado');
+  if(cb){cb.checked=false;toggleIndeterminado(cb);}
   abrirModal('modal-novedad');
 }
 
