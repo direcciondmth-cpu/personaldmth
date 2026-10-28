@@ -541,6 +541,7 @@ td.mono{font-family:var(--mono);font-size:12px}
           <div class="stat-card"><div class="stat-label">Presentes</div><div class="stat-val" id="asist-presentes">-</div><div class="stat-sub">con entrada</div></div>
           <div class="stat-card"><div class="stat-label">Tardanzas</div><div class="stat-val" id="asist-tardanzas">-</div><div class="stat-sub">excedieron horario</div></div>
           <div class="stat-card"><div class="stat-label">Ausentes</div><div class="stat-val" id="asist-ausentes">-</div><div class="stat-sub">del padrón</div></div>
+          <div class="stat-card"><div class="stat-label">Francos</div><div class="stat-val" id="asist-francos">-</div><div class="stat-sub">guardia rotativa</div></div>
           <div class="stat-card"><div class="stat-label">% Asistencia</div><div class="stat-val" id="asist-pct">-</div><div class="stat-sub">del padrón activo</div></div>
         </div>
         <!-- Importar biométrico — barra compacta -->
@@ -569,6 +570,7 @@ td.mono{font-family:var(--mono);font-size:12px}
               <button class="pill-btn" data-estado="PRESENTE" onclick="setPillFiltro(this,'PRESENTE')">Presentes</button>
               <button class="pill-btn tardanza" data-estado="TARDANZA" onclick="setPillFiltro(this,'TARDANZA')">Tardanzas</button>
               <button class="pill-btn ausente" data-estado="AUSENTE" onclick="setPillFiltro(this,'AUSENTE')">Ausentes</button>
+              <button class="pill-btn" data-estado="GUARDIA ROTATIVA" onclick="setPillFiltro(this,'GUARDIA ROTATIVA')" style="background:#f0fdf4;color:#166534;border-color:#bbf7d0">Francos</button>
             </div>
             <button class="tbtn" onclick="exportTableCSV('table-asist','asistencias')">
               <svg viewBox="0 0 16 16" fill="none" width="13" height="13"><path d="M8 2v8M5 7l3 3 3-3M3 13h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> CSV
@@ -684,6 +686,7 @@ td.mono{font-family:var(--mono);font-size:12px}
             <option>COMISIÓN</option>
             <option>ALTO RANGO</option>
             <option>RETIRO VOLUNTARIO</option>
+            <option>GUARDIA ROTATIVA</option>
             <option>OTRO</option>
           </select>
           <button class="tbtn" onclick="exportTableCSV('table-novedades','novedades')">
@@ -1137,6 +1140,7 @@ td.mono{font-family:var(--mono);font-size:12px}
           <option>COMISIÓN</option>
           <option>ALTO RANGO</option>
           <option>RETIRO VOLUNTARIO</option>
+          <option>GUARDIA ROTATIVA</option>
           <option>OTRO</option>
         </select>
       </div>
@@ -2227,14 +2231,15 @@ async function cargarAsistencias(offset){
       minutos_tardanza:0,
       servicio:a.establecimiento||a.sector||'',
       estado:a.excepcion||'AUSENTE',
-      _ausente:true
+      _ausente:a.excepcion!=='GUARDIA ROTATIVA',
+      _franco:a.excepcion==='GUARDIA ROTATIVA'
     }));
 
     // Combinar y ordenar por nombre
     _asistTodos=[...(r.asistencias||[]),...ausentesNorm]
       .sort((a,b)=>a.apellido_nombre.localeCompare(b.apellido_nombre,'es'));
 
-    // Stats con datos completos
+    // Stats con datos completos (GUARDIA ROTATIVA excluida del padrón efectivo)
     const nPresentes=_asistTodos.filter(a=>a.estado==='PRESENTE').length;
     const nTardanzas=_asistTodos.filter(a=>a.estado==='TARDANZA').length;
     const nAusentes=_asistTodos.filter(a=>a._ausente).length;
@@ -2243,6 +2248,10 @@ async function cargarAsistencias(offset){
     document.getElementById('asist-tardanzas').textContent=nTardanzas;
     document.getElementById('asist-ausentes').textContent=nAusentes;
     document.getElementById('asist-pct').textContent=nTotal?Math.round((nPresentes+nTardanzas)/nTotal*100)+'%':'—';
+    // Francos (guardia rotativa) — no se cuentan como ausentes
+    const nFrancos=_asistTodos.filter(a=>a._franco).length;
+    const elFrancos=document.getElementById('asist-francos');
+    if(elFrancos) elFrancos.textContent=nFrancos;
     document.getElementById('asist-stats').style.display='';
   }
 
@@ -2251,6 +2260,8 @@ async function cargarAsistencias(offset){
   if(q) lista=lista.filter(a=>a.apellido_nombre.toLowerCase().includes(q)||a.dni.includes(q));
   if(asistFiltroEstado==='AUSENTE'){
     lista=lista.filter(a=>a._ausente);
+  } else if(asistFiltroEstado==='GUARDIA ROTATIVA'){
+    lista=lista.filter(a=>a._franco);
   } else if(asistFiltroEstado){
     lista=lista.filter(a=>a.estado===asistFiltroEstado);
   }
@@ -2263,7 +2274,8 @@ async function cargarAsistencias(offset){
     const estadoStyles={
       'TARDANZA':'background:var(--amber-l);color:var(--amber);border:1px solid var(--amber-m)',
       'PRESENTE':'background:var(--green-l);color:var(--green);border:1px solid var(--green-m)',
-      'AUSENTE':'background:var(--red-l);color:var(--red);border:1px solid var(--red-m)'
+      'AUSENTE':'background:var(--red-l);color:var(--red);border:1px solid var(--red-m)',
+      'GUARDIA ROTATIVA':'background:#f0fdf4;color:#166534;border:1px solid #bbf7d0'
     };
     tbody.innerHTML=lista.map(a=>{
       const tardanza=a.minutos_tardanza>0?`+${a.minutos_tardanza}min`:'—';
@@ -2464,18 +2476,19 @@ async function pdfReporteCompleto(){
   ]);
   overlay(false);
   if(!r.ok){toast('Error al obtener asistencias','err');return;}
-  const agentes=r.asistencias||[];
   const novedades=(novedR.ok&&novedR.novedades)||[];
-  const presentes=agentes.filter(a=>!a._ausente&&a.estado!=='TARDANZA');
-  const tardanzas=agentes.filter(a=>a.estado==='TARDANZA');
-  const ausentes=agentes.filter(a=>a._ausente);
-  const total=agentes.length;
+  const presentes=(r.asistencias||[]).filter(a=>a.estado!=='TARDANZA');
+  const tardanzas=(r.asistencias||[]).filter(a=>a.estado==='TARDANZA');
+  const ausentesRaw=(r.ausentes||[]).filter(a=>a.excepcion!=='GUARDIA ROTATIVA');
+  const francos=(r.ausentes||[]).filter(a=>a.excepcion==='GUARDIA ROTATIVA');
+  const total=presentes.length+tardanzas.length+ausentesRaw.length;
   const pct=total?Math.round((presentes.length+tardanzas.length)/total*100):0;
 
   let html=`<div class="resumen">
     <div class="res-item"><div class="res-num">${presentes.length+tardanzas.length}</div><div class="res-lbl">Presentes</div></div>
     <div class="res-item"><div class="res-num">${tardanzas.length}</div><div class="res-lbl">Tardanzas</div></div>
-    <div class="res-item"><div class="res-num">${ausentes.length}</div><div class="res-lbl">Inasistencias</div></div>
+    <div class="res-item"><div class="res-num">${ausentesRaw.length}</div><div class="res-lbl">Inasistencias</div></div>
+    <div class="res-item"><div class="res-num">${francos.length}</div><div class="res-lbl">Francos</div></div>
     <div class="res-item"><div class="res-num">${pct}%</div><div class="res-lbl">% Asistencia</div></div>
     <div class="res-item"><div class="res-num">${novedades.length}</div><div class="res-lbl">Novedades</div></div>
   </div>`;
@@ -2489,14 +2502,23 @@ async function pdfReporteCompleto(){
     html+=`</tbody></table>`;
   } else html+=`<p class="empty">Sin tardanzas registradas.</p>`;
 
-  html+=`<h4>Inasistencias (${ausentes.length})</h4>`;
-  if(ausentes.length){
+  html+=`<h4>Inasistencias (${ausentesRaw.length})</h4>`;
+  if(ausentesRaw.length){
     html+=`<table><thead><tr><th>DNI</th><th>Apellido y Nombre</th><th>Establecimiento</th><th>Sector</th><th>Novedad / Excepción</th></tr></thead><tbody>`;
-    ausentes.forEach(a=>{
+    ausentesRaw.forEach(a=>{
       html+=`<tr><td>${xe(a.dni)}</td><td>${xe(a.apellido_nombre)}</td><td>${xe(a.establecimiento||'—')}</td><td>${xe(a.sector||'—')}</td><td>${a.excepcion?`<span class="badge badge-nov">${xe(a.excepcion)}</span>`:'—'}</td></tr>`;
     });
     html+=`</tbody></table>`;
   } else html+=`<p class="empty">Sin inasistencias.</p>`;
+
+  html+=`<h4>Francos — Guardia Rotativa (${francos.length})</h4>`;
+  if(francos.length){
+    html+=`<table><thead><tr><th>DNI</th><th>Apellido y Nombre</th><th>Establecimiento</th><th>Sector</th></tr></thead><tbody>`;
+    francos.forEach(a=>{
+      html+=`<tr><td>${xe(a.dni)}</td><td>${xe(a.apellido_nombre)}</td><td>${xe(a.establecimiento||'—')}</td><td>${xe(a.sector||'—')}</td></tr>`;
+    });
+    html+=`</tbody></table>`;
+  } else html+=`<p class="empty">Sin agentes con guardia rotativa.</p>`;
 
   html+=`<h4>Presentes (${presentes.length})</h4>`;
   if(presentes.length){
@@ -2530,22 +2552,33 @@ async function pdfReporteHoy(){
     api('getNovedades',{desde:fecha,hasta:fecha,q:'',tipo:''})
   ]);
   overlay(false);
-  const ausentes=(r.ok?(r.asistencias||[]):[]).filter(a=>a._ausente);
+  const ausentesHoy=(r.ok?(r.ausentes||[]):[]).filter(a=>a.excepcion!=='GUARDIA ROTATIVA');
+  const francosHoy=(r.ok?(r.ausentes||[]):[]).filter(a=>a.excepcion==='GUARDIA ROTATIVA');
   const novedades=(novedR.ok&&novedR.novedades)||[];
 
   let html=`<div class="resumen">
-    <div class="res-item"><div class="res-num">${ausentes.length}</div><div class="res-lbl">Inasistencias</div></div>
+    <div class="res-item"><div class="res-num">${ausentesHoy.length}</div><div class="res-lbl">Inasistencias</div></div>
+    <div class="res-item"><div class="res-num">${francosHoy.length}</div><div class="res-lbl">Francos</div></div>
     <div class="res-item"><div class="res-num">${novedades.length}</div><div class="res-lbl">Novedades vigentes</div></div>
   </div>`;
 
-  html+=`<h4>Inasistencias del día (${ausentes.length})</h4>`;
-  if(ausentes.length){
+  html+=`<h4>Inasistencias del día (${ausentesHoy.length})</h4>`;
+  if(ausentesHoy.length){
     html+=`<table><thead><tr><th>DNI</th><th>Apellido y Nombre</th><th>Establecimiento</th><th>Sector</th><th>Novedad / Excepción</th></tr></thead><tbody>`;
-    ausentes.forEach(a=>{
+    ausentesHoy.forEach(a=>{
       html+=`<tr><td>${xe(a.dni)}</td><td>${xe(a.apellido_nombre)}</td><td>${xe(a.establecimiento||'—')}</td><td>${xe(a.sector||'—')}</td><td>${a.excepcion?`<span class="badge badge-nov">${xe(a.excepcion)}</span>`:'—'}</td></tr>`;
     });
     html+=`</tbody></table>`;
   } else html+=`<p class="empty">Sin inasistencias.</p>`;
+
+  html+=`<h4>Francos — Guardia Rotativa (${francosHoy.length})</h4>`;
+  if(francosHoy.length){
+    html+=`<table><thead><tr><th>DNI</th><th>Apellido y Nombre</th><th>Establecimiento</th><th>Sector</th></tr></thead><tbody>`;
+    francosHoy.forEach(a=>{
+      html+=`<tr><td>${xe(a.dni)}</td><td>${xe(a.apellido_nombre)}</td><td>${xe(a.establecimiento||'—')}</td><td>${xe(a.sector||'—')}</td></tr>`;
+    });
+    html+=`</tbody></table>`;
+  } else html+=`<p class="empty">Sin agentes con guardia rotativa.</p>`;
 
   html+=`<h4>Novedades vigentes (${novedades.length})</h4>`;
   if(novedades.length){
@@ -2997,7 +3030,7 @@ function exportTableCSV(tableId,filename){
 }
 
 // ── NOVEDADES ──────────────────────────────────────────────────────
-const TIPOS_NOV=['VACACIONES','ART','LICENCIA MÉDICA','LICENCIA GREMIAL','LICENCIA ESPECIAL','COMISIÓN','ALTO RANGO','RETIRO VOLUNTARIO','OTRO'];
+const TIPOS_NOV=['VACACIONES','ART','LICENCIA MÉDICA','LICENCIA GREMIAL','LICENCIA ESPECIAL','COMISIÓN','ALTO RANGO','RETIRO VOLUNTARIO','GUARDIA ROTATIVA','OTRO'];
 const TIPO_COLOR={
   'VACACIONES':'background:var(--blue-l);color:var(--blue);border:1px solid var(--blue-m)',
   'ART':'background:var(--red-l);color:var(--red);border:1px solid var(--red-m)',
@@ -3007,6 +3040,7 @@ const TIPO_COLOR={
   'COMISIÓN':'background:var(--green-l);color:var(--green);border:1px solid var(--green-m)',
   'ALTO RANGO':'background:var(--green-l);color:var(--green);border:1px solid var(--green-m)',
   'RETIRO VOLUNTARIO':'background:#fce7f3;color:#9d174d;border:1px solid #fbcfe8',
+  'GUARDIA ROTATIVA':'background:#f0fdf4;color:#166534;border:1px solid #bbf7d0',
 };
 
 function toggleIndeterminado(cb){
