@@ -943,6 +943,8 @@ module.exports = async function handler(req, res) {
       if (!auth) return err(res, 'No autorizado', 401);
       const { dni, apellido_nombre, fecha_desde, fecha_hasta, tipo, observaciones, documento_url, titulo } = body;
       if (!dni || !fecha_desde || !fecha_hasta || !tipo) return err(res, 'Faltan campos obligatorios');
+      const agtCheck = await sql`SELECT id_agente FROM agentes WHERE dni=${dni} AND activo='SI' LIMIT 1`;
+      if (!agtCheck.length) return err(res, 'El DNI no corresponde a ningún agente activo en el padrón');
       const id = genId('nov');
       await sql`INSERT INTO asistencia_excepciones
         (id,dni,apellido_nombre,fecha_desde,fecha_hasta,tipo,observaciones,documento_url,titulo,activo,usuario_carga)

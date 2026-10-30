@@ -3164,6 +3164,8 @@ async function guardarNovedad(){
 
   if(!dni||!tipo||!fecha_desde||!fecha_hasta){toast('Completá DNI, tipo y fechas','err');return;}
   if(fecha_hasta<fecha_desde){toast('Fecha hasta debe ser igual o posterior a desde','err');return;}
+  if(!id&&!apellido_nombre){toast('El DNI no fue encontrado en el padrón','err');return;}
+  if(!id&&document.getElementById('nov-nombre-found').style.color==='var(--red)'){toast('El DNI no existe en el padrón de agentes','err');return;}
 
   overlay(true,'Guardando...');
   let r;
