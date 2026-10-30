@@ -964,13 +964,13 @@ module.exports = async function handler(req, res) {
       const tipo = body.tipo || query.tipo || '';
       let rows;
       if (desde && hasta) {
-        rows = await sql`SELECT e.*, a.establecimiento, a.sector FROM asistencia_excepciones e LEFT JOIN agentes a ON a.dni = e.dni AND a.activo='SI' WHERE e.activo='SI' AND e.fecha_hasta >= ${desde} AND e.fecha_desde <= ${hasta} AND (${q}='' OR LOWER(e.apellido_nombre) LIKE ${'%'+q+'%'} OR e.dni LIKE ${'%'+q+'%'}) AND (${tipo}='' OR e.tipo=${tipo}) ORDER BY e.fecha_desde DESC LIMIT 300`;
+        rows = await sql`SELECT e.*, a.establecimiento, a.sector, a.id_agente FROM asistencia_excepciones e LEFT JOIN agentes a ON a.dni = e.dni AND a.activo='SI' WHERE e.activo='SI' AND e.fecha_hasta >= ${desde} AND e.fecha_desde <= ${hasta} AND (${q}='' OR LOWER(e.apellido_nombre) LIKE ${'%'+q+'%'} OR e.dni LIKE ${'%'+q+'%'}) AND (${tipo}='' OR e.tipo=${tipo}) ORDER BY e.fecha_desde DESC LIMIT 300`;
       } else if (desde) {
-        rows = await sql`SELECT e.*, a.establecimiento, a.sector FROM asistencia_excepciones e LEFT JOIN agentes a ON a.dni = e.dni AND a.activo='SI' WHERE e.activo='SI' AND e.fecha_hasta >= ${desde} AND (${q}='' OR LOWER(e.apellido_nombre) LIKE ${'%'+q+'%'} OR e.dni LIKE ${'%'+q+'%'}) AND (${tipo}='' OR e.tipo=${tipo}) ORDER BY e.fecha_desde DESC LIMIT 300`;
+        rows = await sql`SELECT e.*, a.establecimiento, a.sector, a.id_agente FROM asistencia_excepciones e LEFT JOIN agentes a ON a.dni = e.dni AND a.activo='SI' WHERE e.activo='SI' AND e.fecha_hasta >= ${desde} AND (${q}='' OR LOWER(e.apellido_nombre) LIKE ${'%'+q+'%'} OR e.dni LIKE ${'%'+q+'%'}) AND (${tipo}='' OR e.tipo=${tipo}) ORDER BY e.fecha_desde DESC LIMIT 300`;
       } else if (hasta) {
-        rows = await sql`SELECT e.*, a.establecimiento, a.sector FROM asistencia_excepciones e LEFT JOIN agentes a ON a.dni = e.dni AND a.activo='SI' WHERE e.activo='SI' AND e.fecha_desde <= ${hasta} AND (${q}='' OR LOWER(e.apellido_nombre) LIKE ${'%'+q+'%'} OR e.dni LIKE ${'%'+q+'%'}) AND (${tipo}='' OR e.tipo=${tipo}) ORDER BY e.fecha_desde DESC LIMIT 300`;
+        rows = await sql`SELECT e.*, a.establecimiento, a.sector, a.id_agente FROM asistencia_excepciones e LEFT JOIN agentes a ON a.dni = e.dni AND a.activo='SI' WHERE e.activo='SI' AND e.fecha_desde <= ${hasta} AND (${q}='' OR LOWER(e.apellido_nombre) LIKE ${'%'+q+'%'} OR e.dni LIKE ${'%'+q+'%'}) AND (${tipo}='' OR e.tipo=${tipo}) ORDER BY e.fecha_desde DESC LIMIT 300`;
       } else {
-        rows = await sql`SELECT e.*, a.establecimiento, a.sector FROM asistencia_excepciones e LEFT JOIN agentes a ON a.dni = e.dni AND a.activo='SI' WHERE e.activo='SI' AND (${q}='' OR LOWER(e.apellido_nombre) LIKE ${'%'+q+'%'} OR e.dni LIKE ${'%'+q+'%'}) AND (${tipo}='' OR e.tipo=${tipo}) ORDER BY e.fecha_desde DESC LIMIT 300`;
+        rows = await sql`SELECT e.*, a.establecimiento, a.sector, a.id_agente FROM asistencia_excepciones e LEFT JOIN agentes a ON a.dni = e.dni AND a.activo='SI' WHERE e.activo='SI' AND (${q}='' OR LOWER(e.apellido_nombre) LIKE ${'%'+q+'%'} OR e.dni LIKE ${'%'+q+'%'}) AND (${tipo}='' OR e.tipo=${tipo}) ORDER BY e.fecha_desde DESC LIMIT 300`;
       }
       const tot = await sql`SELECT COUNT(*) as n FROM asistencia_excepciones WHERE activo='SI'`;
       return ok(res, { novedades: rows, total: parseInt(tot[0].n) });

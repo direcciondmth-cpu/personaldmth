@@ -3075,9 +3075,10 @@ async function cargarNovedades(){
   const fmt=s=>!s?'—':s.startsWith('9999')?'Indeterminado':s.slice(0,10).split('-').reverse().join('/');
   tbody.innerHTML=r.novedades.map(n=>{
     const estilo=TIPO_COLOR[n.tipo]||'background:var(--blue-l);color:var(--blue);border:1px solid var(--blue-m)';
-    const docBtn=n.documento_url?`<a href="${xe(n.documento_url)}" target="_blank" class="tbtn" style="font-size:11px;padding:2px 8px;text-decoration:none" title="Ver documento">
+    const docBtn=n.documento_url?`<a href="${xe(n.documento_url)}" target="_blank" class="tbtn" onclick="event.stopPropagation()" style="font-size:11px;padding:2px 8px;text-decoration:none" title="Ver documento">
       <svg viewBox="0 0 14 14" fill="none" width="11" height="11"><path d="M2 2h7l3 3v7H2V2z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M9 2v3h3" stroke="currentColor" stroke-width="1.3"/></svg> Ver</a>`:'—';
-    return `<tr>
+    const clickNov=n.id_agente?`onclick="verAgente('${xe(n.id_agente)}')" style="cursor:pointer"`:`onclick="verAgentePorDNI('${xe(n.dni)}')" style="cursor:pointer"`;
+    return `<tr ${clickNov}>
       <td class="mono">${xe(n.dni)}</td>
       <td><strong>${xe(n.apellido_nombre)}</strong></td>
       <td><span style="padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;${estilo}">${xe(n.tipo)}</span></td>
@@ -3086,8 +3087,8 @@ async function cargarNovedades(){
       <td style="font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${xe(n.titulo||n.observaciones)||'—'}</td>
       <td>${docBtn}</td>
       <td style="white-space:nowrap">
-        <button class="tbtn" style="font-size:11px;padding:2px 8px" onclick='editarNovedad(${JSON.stringify(n)})'>Editar</button>
-        <button class="tbtn" style="font-size:11px;padding:2px 8px;color:var(--red)" onclick="eliminarNovedad('${xe(n.id)}','${xe(n.apellido_nombre)}')">Borrar</button>
+        <button class="tbtn" style="font-size:11px;padding:2px 8px" onclick='event.stopPropagation();editarNovedad(${JSON.stringify(n)})'>Editar</button>
+        <button class="tbtn" style="font-size:11px;padding:2px 8px;color:var(--red)" onclick="event.stopPropagation();eliminarNovedad('${xe(n.id)}','${xe(n.apellido_nombre)}')">Borrar</button>
       </td>
     </tr>`;
   }).join('');
