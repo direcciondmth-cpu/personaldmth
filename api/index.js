@@ -501,13 +501,15 @@ module.exports = async function handler(req, res) {
 
     // ─ CREAR ORDEN DE SALIDA (pública, sin auth) ──────────────────
     if (action === 'crearOrdenSalidaPublica') {
-      const { dni, apellido_nombre, sector, motivo, destino, hora_salida, hora_retorno, observaciones } = body;
+      const { dni, apellido_nombre, sector, motivo, destino, hora_salida, hora_retorno, fecha: fechaBody, observaciones } = body;
       if (!dni || !apellido_nombre || !sector || !motivo || !hora_salida)
         return err(res, 'Faltan campos requeridos');
 
-      // Limitar: max 5 envíos por DNI por día (anti-spam básico)
       const hoy = new Date().toISOString().slice(0, 10);
-      const prev = await sql`SELECT COUNT(*) as n FROM ordenes_salida WHERE dni=${dni} AND fecha=${hoy}`;
+      const fechaUso = (fechaBody && /^\d{4}-\d{2}-\d{2}$/.test(fechaBody) && fechaBody >= hoy) ? fechaBody : hoy;
+
+      // Limitar: max 5 envíos por DNI por día (anti-spam básico)
+      const prev = await sql`SELECT COUNT(*) as n FROM ordenes_salida WHERE dni=${dni} AND fecha=${fechaUso}`;
       if (parseInt(prev[0].n) >= 5) return err(res, 'Límite de envíos diarios alcanzado para este DNI', 429);
 
       const id = genId('os');
@@ -519,7 +521,7 @@ module.exports = async function handler(req, res) {
           (id, numero_orden, fecha, hora_salida, hora_retorno, dni, apellido_nombre,
            sector, destino, motivo, vehiculo, tipo, autorizado_por, observaciones, activo, usuario_carga)
         VALUES
-          (${id}, ${numero}, ${hoy}, ${hora_salida}, ${hora_retorno||''}, ${dni}, ${apellido_nombre},
+          (${id}, ${numero}, ${fechaUso}, ${hora_salida}, ${hora_retorno||''}, ${dni}, ${apellido_nombre},
            ${sector}, ${destino||''}, ${motivo}, '', ${tipo}, 'web_publica', ${observaciones||''}, 'SI', 'web_publica')
       `;
       return ok(res, { id, numero_orden: numero, mensaje: 'Solicitud enviada. Presentate al inspector para la firma.' });
@@ -527,12 +529,13 @@ module.exports = async function handler(req, res) {
 
     // ─ CREAR CUADRILLA (múltiples agentes, sin auth) ───────────────
     if (action === 'crearCuadrillaPublica') {
-      const { agentes, motivo, destino, hora_salida, hora_retorno, observaciones } = body;
+      const { agentes, motivo, destino, hora_salida, hora_retorno, fecha: fechaBody, observaciones } = body;
       if (!Array.isArray(agentes) || agentes.length === 0) return err(res, 'Falta lista de agentes');
       if (!motivo || !hora_salida) return err(res, 'Faltan campos requeridos');
       if (agentes.length > 30) return err(res, 'Máximo 30 agentes por cuadrilla');
 
       const hoy = new Date().toISOString().slice(0, 10);
+      const fechaUso = (fechaBody && /^\d{4}-\d{2}-\d{2}$/.test(fechaBody) && fechaBody >= hoy) ? fechaBody : hoy;
       const tipo = motivo.startsWith('PARTICULAR') ? 'PARTICULAR' : 'OFICIAL';
       const resultados = [];
 
@@ -546,7 +549,7 @@ module.exports = async function handler(req, res) {
             (id, numero_orden, fecha, hora_salida, hora_retorno, dni, apellido_nombre,
              sector, destino, motivo, vehiculo, tipo, autorizado_por, observaciones, activo, usuario_carga)
           VALUES
-            (${id}, ${numero}, ${hoy}, ${hora_salida}, ${hora_retorno||''}, ${dni}, ${apellido_nombre},
+            (${id}, ${numero}, ${fechaUso}, ${hora_salida}, ${hora_retorno||''}, ${dni}, ${apellido_nombre},
              ${sector}, ${destino||''}, ${motivo}, '', ${tipo}, 'web_publica', ${observaciones||''}, 'SI', 'web_publica')
         `;
         resultados.push({ dni, apellido_nombre, numero_orden: numero });

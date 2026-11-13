@@ -241,6 +241,11 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fn);font-size:14px;
     <input type="text" id="ind-destino" placeholder="Lugar de destino">
   </div>
 
+  <div class="field">
+    <label>Fecha de salida <span class="req">*</span></label>
+    <input type="date" id="ind-fecha">
+  </div>
+
   <div class="field-row">
     <div class="field">
       <label>Hora salida (desde) <span class="req">*</span></label>
@@ -297,6 +302,10 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fn);font-size:14px;
 
   <div style="border-top:1px solid var(--border);padding-top:14px">
     <div style="font-size:12px;font-weight:600;color:var(--txt2);margin-bottom:10px">Datos de la salida (para todos)</div>
+    <div class="field">
+      <label>Fecha de salida <span class="req">*</span></label>
+      <input type="date" id="cuad-fecha">
+    </div>
     <div class="field">
       <label>Motivo <span class="req">*</span></label>
       <select id="cuad-motivo" onchange="toggleDestino('cuad')">
@@ -522,6 +531,15 @@ const xe=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/
 const fmtFecha=d=>d?d.slice(0,10).split('-').reverse().join('/'):'';
 const today=()=>new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'});
 const nowHM=()=>new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+const todayISO=()=>new Date().toISOString().slice(0,10);
+
+(function initFechas(){
+  const hoy=todayISO();
+  ['ind-fecha','cuad-fecha'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.value=hoy;el.min=hoy;}
+  });
+})();
 
 // ── MODO ────────────────────────────────────────────────────────────
 function setMode(m){
@@ -764,6 +782,7 @@ async function enviarIndividual(){
   const sector=document.getElementById('ind-sector').value.trim();
   const motivo=document.getElementById('ind-motivo').value;
   const destino=document.getElementById('ind-destino').value.trim();
+  const fecha=document.getElementById('ind-fecha').value;
   const desde=document.getElementById('ind-desde').value;
   const hasta=document.getElementById('ind-hasta').value;
   const obs=document.getElementById('ind-obs').value.trim();
@@ -772,18 +791,19 @@ async function enviarIndividual(){
   if(!sector){showErr('err-ind','Completá tu sector.');return;}
   if(!motivo){showErr('err-ind','Seleccioná el motivo.');return;}
   if(motivo.startsWith('OFICIAL')&&!destino){showErr('err-ind','Ingresá el destino.');return;}
+  if(!fecha){showErr('err-ind','Indicá la fecha de salida.');return;}
   if(!desde){showErr('err-ind','Indicá la hora de salida.');return;}
   const btn=document.getElementById('ind-btn');
   btn.disabled=true;btn.textContent='Enviando…';
   try{
     const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({action:'crearOrdenSalidaPublica',dni,apellido_nombre:nombre.toUpperCase(),sector:sector.toUpperCase(),motivo,destino,hora_salida:desde,hora_retorno:hasta,observaciones:obs})
+      body:JSON.stringify({action:'crearOrdenSalidaPublica',dni,apellido_nombre:nombre.toUpperCase(),sector:sector.toUpperCase(),motivo,destino,hora_salida:desde,hora_retorno:hasta,fecha,observaciones:obs})
     }).then(r=>r.json());
     if(!r.ok){showErr('err-ind',r.error||'Error al enviar.');btn.disabled=false;btn.textContent='Enviar solicitud';return;}
     lastOrders=[{
       numero_orden:r.numero_orden,apellido_nombre:nombre.toUpperCase(),
       dni,sector:sector.toUpperCase(),motivo,destino,
-      hora_salida:desde,hora_retorno:hasta,fecha:new Date().toISOString().slice(0,10)
+      hora_salida:desde,hora_retorno:hasta,fecha
     }];
     mostrarExito([{apellido_nombre:nombre.toUpperCase(),numero_orden:r.numero_orden}],'individual');
   }catch(e){
@@ -795,11 +815,13 @@ async function enviarIndividual(){
 async function enviarCuadrilla(){
   hideErr('err-cuad');
   if(!cuadrilla.length){showErr('err-cuad','Agregá al menos un integrante.');return;}
+  const fecha=document.getElementById('cuad-fecha').value;
   const motivo=document.getElementById('cuad-motivo').value;
   const destino=document.getElementById('cuad-destino').value.trim();
   const desde=document.getElementById('cuad-desde').value;
   const hasta=document.getElementById('cuad-hasta').value;
   const obs=document.getElementById('cuad-obs').value.trim();
+  if(!fecha){showErr('err-cuad','Indicá la fecha de salida.');return;}
   if(!motivo){showErr('err-cuad','Seleccioná el motivo.');return;}
   if(motivo.startsWith('OFICIAL')&&!destino){showErr('err-cuad','Ingresá el destino.');return;}
   if(!desde){showErr('err-cuad','Indicá la hora de salida.');return;}
@@ -807,13 +829,12 @@ async function enviarCuadrilla(){
   btn.disabled=true;btn.textContent='Enviando…';
   try{
     const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({action:'crearCuadrillaPublica',agentes:cuadrilla,motivo,destino,hora_salida:desde,hora_retorno:hasta,observaciones:obs})
+      body:JSON.stringify({action:'crearCuadrillaPublica',agentes:cuadrilla,motivo,destino,hora_salida:desde,hora_retorno:hasta,fecha,observaciones:obs})
     }).then(r=>r.json());
     if(!r.ok){showErr('err-cuad',r.error||'Error al enviar.');btn.disabled=false;btn.textContent='Enviar cuadrilla';return;}
     // enriquecer resultados con datos completos para imprimir
     lastOrders=r.resultados.map((res,i)=>({
-      ...cuadrilla[i],...res,motivo,destino,hora_salida:desde,hora_retorno:hasta,
-      fecha:new Date().toISOString().slice(0,10)
+      ...cuadrilla[i],...res,motivo,destino,hora_salida:desde,hora_retorno:hasta,fecha
     }));
     mostrarExito(r.resultados,'cuadrilla');
   }catch(e){
@@ -944,6 +965,8 @@ function nueva(){
   ['ind-dni','ind-nombre','ind-sector','ind-destino','ind-desde','ind-hasta','ind-obs'].forEach(id=>{
     const e=document.getElementById(id);if(e){e.value='';e.readOnly=false;}
   });
+  const hoy=todayISO();
+  ['ind-fecha','cuad-fecha'].forEach(id=>{const el=document.getElementById(id);if(el){el.value=hoy;el.min=hoy;}});
   document.getElementById('ind-destino-row').style.display='none';
   document.getElementById('ind-motivo').value='';
   document.getElementById('ind-btn').disabled=false;document.getElementById('ind-btn').textContent='Enviar solicitud';
