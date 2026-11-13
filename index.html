@@ -3542,7 +3542,7 @@ async function guardarSemana(){
 }
 
 function imprimirMenuDia(){
-  const semana_id=document.getElementById('menu-semana-sel').value;
+  const semana_id=_menuSemanaSelId;
   const semana=_menuSemanas.find(s=>s.id===semana_id);
   if(!semana||!_menuPedidos.length){toast('No hay pedidos para imprimir','err');return;}
   const fecha=new Date().toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
