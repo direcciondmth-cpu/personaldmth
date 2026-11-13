@@ -405,21 +405,29 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fn);font-size:14px;
 <!-- MENÚ SEMANAL -->
 <div class="card" id="card-menu">
   <div class="card-title">Pedido de Menú Semanal</div>
-  <div class="card-sub" id="menu-semana-info">Cargando semana activa…</div>
 
-  <!-- Alerta sin semana activa -->
+  <!-- Selector de semana -->
+  <div class="field" style="margin-bottom:14px">
+    <label>Semana <span class="req">*</span></label>
+    <select id="menu-semana-sel-ext" style="width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px;font-family:var(--fn)" onchange="menuSeleccionarSemana()">
+      <option value="">Cargando…</option>
+    </select>
+  </div>
+  <div id="menu-semana-info" style="font-size:12px;color:var(--txt3);margin-top:-8px;margin-bottom:12px"></div>
+
+  <!-- Alerta sin semanas -->
   <div id="menu-no-semana" style="display:none;background:var(--amber-l);border:1px solid var(--amber-m);border-radius:var(--r2);padding:12px;font-size:13px;color:var(--txt2);margin-bottom:12px">
-    No hay una semana activa configurada. Consultá con el área de Personal.
+    No hay semanas configuradas. Consultá con el área de Personal.
   </div>
 
   <!-- Sub-pestañas individual / cuadrilla -->
-  <div id="menu-subtabs" style="display:flex;gap:6px;margin-bottom:16px">
+  <div id="menu-subtabs" style="display:none;gap:6px;margin-bottom:16px">
     <button class="mode-tab active" id="mtab-ind" onclick="setMenuSubtab('ind')" style="flex:1;padding:7px;font-size:12px">👤 Individual</button>
     <button class="mode-tab" id="mtab-cuad" onclick="setMenuSubtab('cuad')" style="flex:1;padding:7px;font-size:12px">👥 Cuadrilla</button>
   </div>
 
   <!-- ── INDIVIDUAL ── -->
-  <div id="menu-panel-ind">
+  <div id="menu-panel-ind" style="display:none">
     <div id="menu-form-wrap">
       <div class="field">
         <label>DNI <span class="req">*</span></label>
@@ -959,41 +967,70 @@ function nueva(){
 // ══════════════════════════════════════════════════════════════════
 // MÓDULO MENÚ SEMANAL
 // ══════════════════════════════════════════════════════════════════
-let _menuSemanaActiva=undefined;
+let _menuSemanaActiva=null;   // semana seleccionada actualmente
+let _menuSemanas=[];
 let _menuDniTimer=null;
 let _menuAgente=null;
+let _menuTabInited=false;
 
 async function initMenuTab(){
-  if(_menuSemanaActiva!==undefined)return; // ya cargado
+  if(_menuTabInited)return;
+  _menuTabInited=true;
   try{
-    const r=await fetch(API+'?action=getMenuSemanaActiva',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})});
+    const r=await fetch(API+'?action=getMenuSemanasDisponibles',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})});
     const d=await r.json();
-    _menuSemanaActiva=d.semana||null;
-  }catch{_menuSemanaActiva=null;}
-  renderMenuSemanaInfo();
+    _menuSemanas=d.semanas||[];
+  }catch{_menuSemanas=[];}
+  renderSelectorSemana();
 }
 
-function renderMenuSemanaInfo(){
-  const infoEl=document.getElementById('menu-semana-info');
+function renderSelectorSemana(){
+  const sel=document.getElementById('menu-semana-sel-ext');
   const noSemana=document.getElementById('menu-no-semana');
-  const formWrap=document.getElementById('menu-form-wrap');
-  if(!_menuSemanaActiva){
-    infoEl.textContent='';
+  const subtabs=document.getElementById('menu-subtabs');
+  const panelInd=document.getElementById('menu-panel-ind');
+  const panelCuad=document.getElementById('menu-panel-cuad');
+  if(!_menuSemanas.length){
+    sel.innerHTML='<option value="">Sin semanas disponibles</option>';
     noSemana.style.display='';
-    formWrap.style.display='none';
+    subtabs.style.display='none';
+    panelInd.style.display='none';panelCuad.style.display='none';
     return;
   }
   noSemana.style.display='none';
-  formWrap.style.display='';
+  sel.innerHTML='<option value="">— Elegí la semana —</option>'+
+    _menuSemanas.map(s=>`<option value="${xe(s.id)}">${xe(s.label)}${s.activo==='SI'?' ✓':''}` ).join('');
+  // Auto-seleccionar la activa
+  const activa=_menuSemanas.find(s=>s.activo==='SI');
+  if(activa){sel.value=activa.id;menuSeleccionarSemana();}
+}
+
+function menuSeleccionarSemana(){
+  const selId=document.getElementById('menu-semana-sel-ext').value;
+  const semana=_menuSemanas.find(s=>s.id===selId)||null;
+  _menuSemanaActiva=semana;
+  const infoEl=document.getElementById('menu-semana-info');
+  const subtabs=document.getElementById('menu-subtabs');
+  const panelInd=document.getElementById('menu-panel-ind');
+  const panelCuad=document.getElementById('menu-panel-cuad');
+  // Resetear formularios
+  menuNuevoPedido();
+  mcuadReset();
+  if(!semana){
+    infoEl.textContent='';
+    subtabs.style.display='none';
+    panelInd.style.display='none';panelCuad.style.display='none';
+    return;
+  }
+  subtabs.style.display='';
+  panelInd.style.display='';panelCuad.style.display='none';
   try{
-    const dias=JSON.parse(_menuSemanaActiva.dias||'[]');
-    if(dias.length){
-      const fmtDia=d=>{const dt=new Date(d+'T12:00:00');return dt.toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'numeric'});};
-      infoEl.textContent=`${_menuSemanaActiva.label} — Días: ${dias.map(fmtDia).join(', ')}`;
-    } else {
-      infoEl.textContent=_menuSemanaActiva.label;
-    }
-  }catch{infoEl.textContent=_menuSemanaActiva.label||'';}
+    const dias=typeof semana.dias==='string'?JSON.parse(semana.dias):semana.dias;
+    if(dias&&dias.length){
+      const fmtDia=d=>new Date(d+'T12:00:00').toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'numeric'});
+      infoEl.textContent='Días: '+dias.map(fmtDia).join(', ');
+    } else infoEl.textContent='';
+  }catch{infoEl.textContent='';}
 }
 
 function menuLookupDNI(val){
@@ -1132,6 +1169,7 @@ function menuNuevoPedido(){
 
 // ── SUBTABS MENÚ ────────────────────────────────────────────────────
 function setMenuSubtab(t){
+  if(!_menuSemanaActiva)return;
   document.getElementById('menu-panel-ind').style.display=t==='ind'?'':'none';
   document.getElementById('menu-panel-cuad').style.display=t==='cuad'?'':'none';
   document.getElementById('mtab-ind').classList.toggle('active',t==='ind');

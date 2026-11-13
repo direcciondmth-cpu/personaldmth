@@ -1051,6 +1051,12 @@ module.exports = async function handler(req, res) {
       return ok(res, { semana: { ...s, dias: JSON.parse(s.dias) } });
     }
 
+    if (action === 'getMenuSemanasDisponibles') {
+      // Sin auth — para selector en app externa
+      const rows = await sql`SELECT id, label, dias, activo FROM menu_semanas ORDER BY fecha_carga DESC LIMIT 10`;
+      return ok(res, { semanas: rows });
+    }
+
     if (action === 'getMenuPedidosPorDNI') {
       // Sin auth — historial del agente en app externa
       const { dni } = body;
@@ -1093,12 +1099,14 @@ module.exports = async function handler(req, res) {
       const { semana_id, dni, apellido_nombre, tipo_menu } = body;
       if (!semana_id || !dni || !tipo_menu) return err(res, 'Faltan campos');
       if (!['NORMAL','SALUDABLE'].includes(tipo_menu)) return err(res, 'Tipo inválido');
-      const semCheck = await sql`SELECT id FROM menu_semanas WHERE id=${semana_id} AND activo='SI' LIMIT 1`;
-      if (!semCheck.length) return err(res, 'La semana no está activa');
+      const semCheck = await sql`SELECT id FROM menu_semanas WHERE id=${semana_id} LIMIT 1`;
+      if (!semCheck.length) return err(res, 'Semana no encontrada');
+      // Bloquear duplicados — una sola carga por DNI por semana
+      const dup = await sql`SELECT id FROM menu_pedidos WHERE semana_id=${semana_id} AND dni=${dni} AND activo='SI' LIMIT 1`;
+      if (dup.length) return err(res, 'Este DNI ya tiene un pedido registrado para esta semana');
       const id = genId('mpedido');
       await sql`INSERT INTO menu_pedidos (id,semana_id,dni,apellido_nombre,tipo_menu,activo,usuario_carga)
-        VALUES (${id},${semana_id},${dni},${apellido_nombre||''},${tipo_menu},'SI','ext')
-        ON CONFLICT (semana_id,dni) DO UPDATE SET tipo_menu=EXCLUDED.tipo_menu, activo='SI'`;
+        VALUES (${id},${semana_id},${dni},${apellido_nombre||''},${tipo_menu},'SI','ext')`;
       return ok(res, { id });
     }
 
