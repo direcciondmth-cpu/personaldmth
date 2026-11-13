@@ -785,6 +785,46 @@ td.mono{font-family:var(--mono);font-size:12px}
       </div>
     </div>
 
+    <!-- Modal vista previa impresión menú -->
+    <div class="modal-overlay" id="modal-prev-menu">
+      <div class="modal-box" style="max-width:700px;max-height:85vh;display:flex;flex-direction:column">
+        <div class="modal-hdr" style="flex-shrink:0">
+          <h3>Vista previa — Lista del día</h3>
+          <button class="modal-close" onclick="cerrarModal('modal-prev-menu')">×</button>
+        </div>
+        <div style="font-size:12px;color:var(--txt3);margin-bottom:10px;flex-shrink:0">
+          Quitá los que faltan hoy antes de imprimir.
+        </div>
+        <!-- Stats rápidos -->
+        <div style="display:flex;gap:10px;margin-bottom:12px;flex-shrink:0">
+          <span id="prev-stat-total" style="font-size:12px;font-weight:600;color:var(--txt)"></span>
+          <span style="color:var(--border)">|</span>
+          <span id="prev-stat-normal" style="font-size:12px;color:var(--blue)"></span>
+          <span style="color:var(--border)">|</span>
+          <span id="prev-stat-salu" style="font-size:12px;color:var(--green)"></span>
+        </div>
+        <!-- Lista editable -->
+        <div style="overflow-y:auto;flex:1;border:1px solid var(--border);border-radius:var(--r2)">
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead style="position:sticky;top:0;z-index:1">
+              <tr>
+                <th style="padding:8px 10px;background:var(--bg);border-bottom:1px solid var(--border);text-align:left">Apellido y Nombre</th>
+                <th style="padding:8px 10px;background:var(--bg);border-bottom:1px solid var(--border);text-align:left">Establ./Sector</th>
+                <th style="padding:8px 10px;background:var(--bg);border-bottom:1px solid var(--border);text-align:center;width:90px">Menú</th>
+                <th style="padding:8px 10px;background:var(--bg);border-bottom:1px solid var(--border);width:40px"></th>
+              </tr>
+            </thead>
+            <tbody id="prev-tbody"></tbody>
+          </table>
+        </div>
+        <div style="margin-top:10px;font-size:11px;color:var(--txt3);flex-shrink:0">Los cambios que hacés acá son solo para esta impresión — no modifican los pedidos guardados.</div>
+        <div class="modal-ftr" style="flex-shrink:0">
+          <button class="tbtn" onclick="cerrarModal('modal-prev-menu')">Cancelar</button>
+          <button class="tbtn primary" onclick="generarImpresionMenu()">Imprimir / PDF</button>
+        </div>
+      </div>
+    </div>
+
     <div class="section" id="s-reporte-agente">
       <div class="table-wrap" style="padding:20px;max-width:600px">
         <p style="font-size:13px;color:var(--txt3);margin-bottom:16px">Buscá un agente para ver su historial completo de órdenes de salida, trabajo y movimientos de personal.</p>
@@ -3541,38 +3581,93 @@ async function guardarSemana(){
   if(nuevaId){_menuSemanaSelId=nuevaId;renderMenuSemanaLista();cargarMenuPedidos();}
 }
 
+let _prevLista=[];  // copia editable para la vista previa
+
 function imprimirMenuDia(){
-  const semana_id=_menuSemanaSelId;
-  const semana=_menuSemanas.find(s=>s.id===semana_id);
+  const semana=_menuSemanas.find(s=>s.id===_menuSemanaSelId);
   if(!semana||!_menuPedidos.length){toast('No hay pedidos para imprimir','err');return;}
+  // Copia editable ordenada: primero NORMAL, luego SALUDABLE, dentro de cada grupo alfabético
+  _prevLista=[..._menuPedidos].sort((a,b)=>{
+    if(a.tipo_menu!==b.tipo_menu)return a.tipo_menu==='NORMAL'?-1:1;
+    return a.apellido_nombre.localeCompare(b.apellido_nombre,'es');
+  });
+  renderPrevMenu();
+  abrirModal('modal-prev-menu');
+}
+
+function renderPrevMenu(){
+  const nTotal=_prevLista.length;
+  const nN=_prevLista.filter(p=>p.tipo_menu==='NORMAL').length;
+  const nS=_prevLista.filter(p=>p.tipo_menu==='SALUDABLE').length;
+  document.getElementById('prev-stat-total').textContent=`Total: ${nTotal}`;
+  document.getElementById('prev-stat-normal').textContent=`Normal: ${nN}`;
+  document.getElementById('prev-stat-salu').textContent=`Saludable: ${nS}`;
+
+  document.getElementById('prev-tbody').innerHTML=_prevLista.map((p,i)=>{
+    const badge=p.tipo_menu==='SALUDABLE'
+      ?'background:var(--green-l);color:var(--green)'
+      :'background:var(--blue-l);color:var(--blue)';
+    return `<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:7px 10px">${xe(p.apellido_nombre)}</td>
+      <td style="padding:7px 10px;color:var(--txt3);font-size:11px">${xe(p.establecimiento||p.sector||'')}</td>
+      <td style="padding:7px 10px;text-align:center">
+        <span style="padding:2px 8px;border-radius:12px;font-size:10px;font-weight:600;${badge}">${xe(p.tipo_menu)}</span>
+      </td>
+      <td style="padding:4px 6px;text-align:center">
+        <button onclick="prevQuitarItem(${i})" title="Quitar de la lista"
+          style="border:none;background:var(--red-l);color:var(--red);border-radius:4px;width:22px;height:22px;cursor:pointer;font-size:14px;line-height:1;font-weight:700">×</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function prevQuitarItem(idx){
+  _prevLista.splice(idx,1);
+  renderPrevMenu();
+}
+
+function generarImpresionMenu(){
+  const semana=_menuSemanas.find(s=>s.id===_menuSemanaSelId);
+  if(!semana||!_prevLista.length){toast('La lista está vacía','err');return;}
   const fecha=new Date().toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  const normales=_menuPedidos.filter(p=>p.tipo_menu==='NORMAL');
-  const saludables=_menuPedidos.filter(p=>p.tipo_menu==='SALUDABLE');
-  const filaTabla=(p,i)=>`<tr><td>${i+1}</td><td>${xe(p.apellido_nombre)}</td><td>${xe(p.establecimiento||p.sector||'')}</td><td>${xe(p.tipo_menu)}</td><td style="width:40mm"></td></tr>`;
-  const tabla=(titulo,arr)=>arr.length?`<h3 style="margin:8mm 0 3mm;font-size:11pt;color:#004D99">${titulo}</h3>
+  const normales=_prevLista.filter(p=>p.tipo_menu==='NORMAL');
+  const saludables=_prevLista.filter(p=>p.tipo_menu==='SALUDABLE');
+  const filaTabla=(p,i)=>`<tr><td style="width:8mm">${i+1}</td><td>${xe(p.apellido_nombre)}</td><td>${xe(p.establecimiento||p.sector||'')}</td><td style="width:22mm;text-align:center">${xe(p.tipo_menu)}</td><td style="width:40mm"></td></tr>`;
+  const tabla=(titulo,arr)=>arr.length?`
+    <h3 style="margin:7mm 0 2mm;font-size:11pt;color:#004D99;border-bottom:1.5px solid #004D99;padding-bottom:2mm">${titulo}</h3>
     <table style="width:100%;border-collapse:collapse;font-size:9pt">
-      <thead><tr style="background:#004D99;color:#fff"><th style="padding:4px 6px">N°</th><th>Apellido y Nombre</th><th>Establecimiento/Sector</th><th>Menú</th><th>Firma</th></tr></thead>
+      <thead><tr style="background:#004D99;color:#fff">
+        <th style="padding:4px 6px">N°</th><th>Apellido y Nombre</th><th>Establecimiento/Sector</th><th>Menú</th><th>Firma</th>
+      </tr></thead>
       <tbody>${arr.map(filaTabla).join('')}</tbody>
-    </table>`:'' ;
-  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8">
-    <title>Pedido de Comida</title>
-    <style>body{font-family:Arial,sans-serif;margin:15mm 12mm;color:#222}
-    table{border-collapse:collapse;width:100%}td,th{border:1px solid #ccc;padding:4px 6px;text-align:left}
-    @media print{button{display:none}}</style>
+    </table>`:''
+  ;
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Pedido de Comida</title>
+    <style>
+      body{font-family:Arial,sans-serif;margin:12mm 14mm;color:#222;font-size:10pt}
+      table{border-collapse:collapse;width:100%}
+      td,th{border:1px solid #bbb;padding:4px 6px;text-align:left;vertical-align:middle}
+      @media print{.no-print{display:none!important}}
+    </style>
   </head><body>
-    <div style="text-align:center;margin-bottom:6mm">
-      <h2 style="color:#004D99;margin:0">PEDIDO DE COMIDA</h2>
-      <p style="margin:2mm 0;color:#555;font-size:10pt">DIRECCIÓN DE MANTENIMIENTO TÉCNICO HOSPITALARIO</p>
-      <p style="margin:2mm 0;font-size:10pt">${xe(semana.label)} — Generado: ${fecha}</p>
+    <div style="text-align:center;margin-bottom:5mm">
+      <div style="font-size:14pt;font-weight:700;color:#004D99">PEDIDO DE COMIDA</div>
+      <div style="font-size:9pt;color:#555;margin-top:1mm">DIRECCIÓN DE MANTENIMIENTO TÉCNICO HOSPITALARIO</div>
+      <div style="font-size:9pt;margin-top:1mm">${xe(semana.label)} — ${fecha}</div>
     </div>
-    ${tabla('MENÚ NORMAL ('+normales.length+')',normales)}
-    ${tabla('MENÚ SALUDABLE ('+saludables.length+')',saludables)}
-    <div style="margin-top:8mm;font-size:9pt;font-weight:600">TOTAL DE BANDEJAS: ${_menuPedidos.length} (Normal: ${normales.length} / Saludable: ${saludables.length})</div>
-    <button onclick="window.print()" style="margin-top:10mm;padding:8px 20px;background:#004D99;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px">Imprimir / Guardar PDF</button>
+    ${tabla('MENÚ NORMAL — '+normales.length+' bandejas',normales)}
+    ${tabla('MENÚ SALUDABLE — '+saludables.length+' bandejas',saludables)}
+    <div style="margin-top:6mm;font-size:9pt;font-weight:700;border-top:1px solid #bbb;padding-top:3mm">
+      TOTAL DE BANDEJAS: ${_prevLista.length} &nbsp;·&nbsp; Normal: ${normales.length} &nbsp;·&nbsp; Saludable: ${saludables.length}
+    </div>
+    <div class="no-print" style="margin-top:10mm">
+      <button onclick="window.print()" style="padding:9px 22px;background:#004D99;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-family:Arial">Imprimir / Guardar PDF</button>
+    </div>
   </body></html>`;
-  const w=window.open('','_blank','width=900,height=700');
+  const w=window.open('','_blank','width=940,height=720');
   w.document.write(html);
   w.document.close();
+  cerrarModal('modal-prev-menu');
 }
 
 // ── INICIALIZAR ────────────────────────────────────────────────────
