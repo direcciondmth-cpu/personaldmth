@@ -713,82 +713,75 @@ td.mono{font-family:var(--mono);font-size:12px}
     <!-- ─── REPORTE POR AGENTE ─────────────────────────────────── -->
     <!-- ═══════════════════════════════════ MENÚ SEMANAL ══════════════════════════════════ -->
     <div class="section" id="s-menu">
-      <div class="table-wrap" style="padding:20px">
+      <div style="display:grid;grid-template-columns:300px 1fr;gap:0;min-height:400px">
 
-        <!-- Cabecera + acciones -->
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px">
-          <div>
-            <div style="font-size:15px;font-weight:600;color:var(--txt)">Menú Semanal</div>
-            <div style="font-size:12px;color:var(--txt3);margin-top:2px">Configurá semanas y gestioná los pedidos de comida</div>
-          </div>
-          <div style="display:flex;gap:8px">
-            <button class="tbtn" id="btn-imprimir-menu" onclick="imprimirMenuDia()">Imprimir lista</button>
-            <button class="tbtn primary" id="btn-nueva-semana" onclick="abrirModalSemana()">+ Nueva semana</button>
-          </div>
-        </div>
+        <!-- PANEL IZQUIERDO: configuración de semana -->
+        <div style="border-right:1px solid var(--border);padding:20px;display:flex;flex-direction:column;gap:14px">
+          <div style="font-size:13px;font-weight:600;color:var(--txt)">Semanas</div>
 
-        <!-- Selector de semana -->
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
-          <select id="menu-semana-sel" style="padding:7px 10px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px;min-width:260px" onchange="cargarMenuPedidos()">
-            <option value="">— Seleccioná una semana —</option>
-          </select>
-          <span id="menu-semana-estado" style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:12px;display:none"></span>
-          <button class="tbtn" id="btn-activar-semana" onclick="activarSemana()" style="display:none">Activar</button>
-          <button class="tbtn" style="color:var(--red)" id="btn-eliminar-semana" onclick="eliminarSemana()" style="display:none">Eliminar</button>
-        </div>
+          <!-- Lista de semanas existentes -->
+          <div id="menu-semanas-lista" style="display:flex;flex-direction:column;gap:6px"></div>
 
-        <!-- Stats rápidos -->
-        <div id="menu-stats" style="display:none;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:14px">
-          <div class="stat-card"><div class="stat-label">Total pedidos</div><div class="stat-val" id="menu-stat-total">-</div></div>
-          <div class="stat-card"><div class="stat-label">Menú Normal</div><div class="stat-val" id="menu-stat-normal">-</div></div>
-          <div class="stat-card"><div class="stat-label">Menú Saludable</div><div class="stat-val" id="menu-stat-salu">-</div></div>
-        </div>
-
-        <!-- Tabla pedidos -->
-        <table id="table-menu" style="display:none">
-          <thead><tr>
-            <th>DNI</th><th>Apellido y Nombre</th><th>Establecimiento / Sector</th><th>Menú</th><th>Acciones</th>
-          </tr></thead>
-          <tbody id="tbody-menu"><tr><td colspan="5"><div class="empty"><p>Seleccioná una semana para ver los pedidos.</p></div></td></tr></tbody>
-        </table>
-
-        <div id="menu-empty" style="display:none;padding:20px;text-align:center;color:var(--txt3);font-size:13px">
-          Sin pedidos para esta semana.
-        </div>
-
-      </div>
-    </div>
-
-    <!-- Modal nueva/editar semana -->
-    <div class="modal-overlay" id="modal-semana">
-      <div class="modal-box" style="max-width:420px">
-        <div class="modal-hdr">
-          <h3 id="modal-semana-titulo">Nueva Semana</h3>
-          <button class="modal-close" onclick="cerrarModal('modal-semana')">×</button>
-        </div>
-        <input type="hidden" id="semana-edit-id">
-        <div class="form-group">
-          <label class="form-label">Etiqueta <span style="color:var(--red)">*</span></label>
-          <input type="text" id="semana-label" class="form-input" placeholder="Ej: Semana del 17/11 al 20/11">
-        </div>
-        <div class="form-group" style="margin-top:12px">
-          <label class="form-label">Días laborables <span style="color:var(--red)">*</span></label>
-          <div id="semana-dias-wrap" style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
-            <!-- Se generan dinámicamente -->
-          </div>
-          <div style="margin-top:8px">
-            <button class="tbtn" style="font-size:11px" onclick="generarDiasSemana()">Auto-completar próxima semana lun–vie</button>
+          <!-- Formulario nueva/editar semana -->
+          <div id="menu-form-semana" style="border:1px solid var(--border);border-radius:var(--r2);padding:14px;background:var(--surface2,var(--bg))">
+            <div style="font-size:12px;font-weight:600;color:var(--txt);margin-bottom:10px" id="semana-form-titulo">Nueva semana</div>
+            <input type="hidden" id="semana-edit-id">
+            <div class="form-group">
+              <label class="form-label">Etiqueta <span style="color:var(--red)">*</span></label>
+              <input type="text" id="semana-label" class="form-input" placeholder="Ej: Semana 17/11 al 20/11">
+            </div>
+            <div class="form-group" style="margin-top:10px">
+              <label class="form-label">Días laborables <span style="color:var(--red)">*</span></label>
+              <div id="semana-dias-wrap" style="display:flex;flex-direction:column;gap:5px;margin-top:6px"></div>
+              <button class="tbtn" style="font-size:11px;margin-top:6px;width:100%" onclick="generarDiasSemana()">Auto-completar próxima semana lun–vie</button>
+            </div>
+            <div class="form-group" style="margin-top:10px">
+              <label class="form-label" style="display:flex;align-items:center;gap:6px;cursor:pointer">
+                <input type="checkbox" id="semana-activa"> Activar esta semana
+              </label>
+            </div>
+            <div style="display:flex;gap:6px;margin-top:12px">
+              <button class="tbtn" style="flex:1;font-size:12px" id="btn-cancelar-semana" onclick="cancelarFormSemana()" style="display:none">Cancelar</button>
+              <button class="tbtn primary" style="flex:1;font-size:12px" onclick="guardarSemana()">Guardar</button>
+            </div>
           </div>
         </div>
-        <div class="form-group" style="margin-top:12px">
-          <label class="form-label" style="display:flex;align-items:center;gap:6px;cursor:pointer">
-            <input type="checkbox" id="semana-activa"> Activar esta semana (desactiva la actual)
-          </label>
+
+        <!-- PANEL DERECHO: pedidos de la semana seleccionada -->
+        <div style="padding:20px;display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+            <div>
+              <div style="font-size:14px;font-weight:600;color:var(--txt)" id="menu-pedidos-titulo">Pedidos</div>
+              <div style="font-size:12px;color:var(--txt3);margin-top:2px" id="menu-pedidos-sub">Seleccioná una semana del panel izquierdo</div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <span id="menu-semana-estado" style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:12px;display:none"></span>
+              <button class="tbtn" id="btn-activar-semana" onclick="activarSemana()" style="display:none">Activar</button>
+              <button class="tbtn" id="btn-imprimir-menu" onclick="imprimirMenuDia()" style="display:none">Imprimir lista</button>
+              <button class="tbtn" style="color:var(--red)" id="btn-eliminar-semana" onclick="eliminarSemana()" style="display:none">Eliminar</button>
+            </div>
+          </div>
+
+          <!-- Stats rápidos -->
+          <div id="menu-stats" style="display:none;grid-template-columns:repeat(3,1fr);gap:10px">
+            <div class="stat-card"><div class="stat-label">Total</div><div class="stat-val" id="menu-stat-total">-</div></div>
+            <div class="stat-card"><div class="stat-label">Normal</div><div class="stat-val" id="menu-stat-normal">-</div></div>
+            <div class="stat-card"><div class="stat-label">Saludable</div><div class="stat-val" id="menu-stat-salu">-</div></div>
+          </div>
+
+          <!-- Tabla pedidos -->
+          <table id="table-menu" style="display:none">
+            <thead><tr>
+              <th>DNI</th><th>Apellido y Nombre</th><th>Establecimiento / Sector</th><th>Menú</th><th>Acciones</th>
+            </tr></thead>
+            <tbody id="tbody-menu"></tbody>
+          </table>
+
+          <div id="menu-empty" style="display:none;padding:30px;text-align:center;color:var(--txt3);font-size:13px;border:1.5px dashed var(--border);border-radius:var(--r2)">
+            Sin pedidos para esta semana.
+          </div>
         </div>
-        <div class="modal-ftr">
-          <button class="tbtn" onclick="cerrarModal('modal-semana')">Cancelar</button>
-          <button class="tbtn primary" onclick="guardarSemana()">Guardar</button>
-        </div>
+
       </div>
     </div>
 
@@ -3286,29 +3279,86 @@ async function eliminarNovedad(id,nombre){
 let _menuSemanas=[];
 let _menuPedidos=[];
 
+let _menuSemanaSelId=null;
+
 async function cargarMenuSemanas(){
   const r=await api('getMenuSemanas',{});
   if(!r.ok)return;
   _menuSemanas=r.semanas||[];
-  const sel=document.getElementById('menu-semana-sel');
-  sel.innerHTML='<option value="">— Seleccioná una semana —</option>';
-  _menuSemanas.forEach(s=>{
-    const opt=document.createElement('option');
-    opt.value=s.id;
-    opt.textContent=s.label+(s.activo==='SI'?' ✓ ACTIVA':'');
-    sel.appendChild(opt);
-  });
+  renderMenuSemanaLista();
+  // Inicializar form vacío la primera vez
+  if(!document.getElementById('semana-dias-wrap').children.length)_renderDiasForm([]);
   // Auto-seleccionar la activa
   const activa=_menuSemanas.find(s=>s.activo==='SI');
-  if(activa){sel.value=activa.id;cargarMenuPedidos();}
+  if(activa&&_menuSemanaSelId===null){
+    _menuSemanaSelId=activa.id;
+    renderMenuSemanaLista();
+    cargarMenuPedidos();
+  }
+}
+
+function renderMenuSemanaLista(){
+  const lista=document.getElementById('menu-semanas-lista');
+  if(!_menuSemanas.length){
+    lista.innerHTML='<div style="font-size:12px;color:var(--txt3);font-style:italic">No hay semanas creadas.</div>';
+    return;
+  }
+  lista.innerHTML=_menuSemanas.map(s=>{
+    const activa=s.activo==='SI';
+    const sel=s.id===_menuSemanaSelId;
+    return `<div onclick="selMenuSemana('${xe(s.id)}')" style="cursor:pointer;padding:8px 10px;border-radius:var(--r2);border:1.5px solid ${sel?'var(--blue)':'var(--border)'};background:${sel?'var(--blue-l)':'var(--surface)'};display:flex;align-items:center;justify-content:space-between;gap:8px">
+      <div>
+        <div style="font-size:12px;font-weight:600;color:${sel?'var(--blue)':'var(--txt)'}">${xe(s.label)}</div>
+        ${activa?`<div style="font-size:10px;font-weight:600;color:var(--green);margin-top:1px">✓ ACTIVA</div>`:''}
+      </div>
+      <button class="tbtn" style="font-size:11px;padding:2px 7px;flex-shrink:0" onclick="event.stopPropagation();editarSemana('${xe(s.id)}')">Editar</button>
+    </div>`;
+  }).join('');
+}
+
+function selMenuSemana(id){
+  _menuSemanaSelId=id;
+  renderMenuSemanaLista();
+  cargarMenuPedidos();
+  cancelarFormSemana();
+}
+
+function editarSemana(id){
+  const s=_menuSemanas.find(x=>x.id===id);
+  if(!s)return;
+  abrirModalSemana(s);
+}
+
+function cancelarFormSemana(){
+  document.getElementById('semana-edit-id').value='';
+  document.getElementById('semana-form-titulo').textContent='Nueva semana';
+  document.getElementById('semana-label').value='';
+  document.getElementById('semana-activa').checked=false;
+  document.getElementById('btn-cancelar-semana').style.display='none';
+  // Renderizar 5 días vacíos
+  _renderDiasForm([]);
+}
+
+function _renderDiasForm(diasGuardados){
+  const diasNombres=['Lunes','Martes','Miércoles','Jueves','Viernes'];
+  const wrap=document.getElementById('semana-dias-wrap');
+  wrap.innerHTML=diasNombres.map((nombre,i)=>{
+    const val=diasGuardados[i]||'';
+    return `<label style="display:flex;align-items:center;gap:8px;font-size:12px">
+      <input type="checkbox" data-dia="${i}" ${val?'checked':''}>
+      <span style="width:70px">${nombre}</span>
+      <input type="date" data-fecha="${i}" value="${val}" style="padding:3px 7px;border:1px solid var(--border);border-radius:var(--r2);font-size:12px;flex:1">
+    </label>`;
+  }).join('');
 }
 
 async function cargarMenuPedidos(){
-  const semana_id=document.getElementById('menu-semana-sel').value;
+  const semana_id=_menuSemanaSelId;
   const semana=_menuSemanas.find(s=>s.id===semana_id);
   const estadoEl=document.getElementById('menu-semana-estado');
   const btnActivar=document.getElementById('btn-activar-semana');
   const btnEliminar=document.getElementById('btn-eliminar-semana');
+  const btnImprimir=document.getElementById('btn-imprimir-menu');
 
   if(!semana_id||!semana){
     document.getElementById('table-menu').style.display='none';
@@ -3317,9 +3367,14 @@ async function cargarMenuPedidos(){
     estadoEl.style.display='none';
     btnActivar.style.display='none';
     btnEliminar.style.display='none';
+    if(btnImprimir)btnImprimir.style.display='none';
+    document.getElementById('menu-pedidos-titulo').textContent='Pedidos';
+    document.getElementById('menu-pedidos-sub').textContent='Seleccioná una semana del panel izquierdo';
     return;
   }
 
+  document.getElementById('menu-pedidos-titulo').textContent=semana.label;
+  document.getElementById('menu-pedidos-sub').textContent='';
   if(semana.activo==='SI'){
     estadoEl.textContent='ACTIVA';
     estadoEl.style.cssText='font-size:11px;font-weight:600;padding:2px 8px;border-radius:12px;background:var(--green-l);color:var(--green);border:1px solid var(--green-m)';
@@ -3331,6 +3386,7 @@ async function cargarMenuPedidos(){
   }
   estadoEl.style.display='';
   btnEliminar.style.display='';
+  if(btnImprimir)btnImprimir.style.display='';
 
   overlay(true,'Cargando pedidos…');
   const r=await api('getMenuPedidos',{semana_id});
@@ -3400,26 +3456,27 @@ async function borrarMenuPedido(id,nombre){
 }
 
 async function activarSemana(){
-  const semana_id=document.getElementById('menu-semana-sel').value;
-  if(!semana_id)return;
+  if(!_menuSemanaSelId)return;
   overlay(true);
-  const r=await api('editMenuSemana',{id:semana_id,activo:'SI'});
+  const r=await api('editMenuSemana',{id:_menuSemanaSelId,activo:'SI'});
   overlay(false);
   if(!r.ok){toast(r.error,'err');return;}
   toast('Semana activada','ok');
-  cargarMenuSemanas();
+  await cargarMenuSemanas();
+  cargarMenuPedidos();
 }
 
 async function eliminarSemana(){
-  const semana_id=document.getElementById('menu-semana-sel').value;
-  const semana=_menuSemanas.find(s=>s.id===semana_id);
+  const semana=_menuSemanas.find(s=>s.id===_menuSemanaSelId);
   if(!semana||!confirm(`¿Eliminar la semana "${semana.label}" y todos sus pedidos?`))return;
   overlay(true);
-  const r=await api('deleteMenuSemana',{id:semana_id});
+  const r=await api('deleteMenuSemana',{id:_menuSemanaSelId});
   overlay(false);
   if(!r.ok){toast(r.error,'err');return;}
   toast('Semana eliminada','ok');
-  cargarMenuSemanas();
+  _menuSemanaSelId=null;
+  await cargarMenuSemanas();
+  cargarMenuPedidos();
 }
 
 function generarDiasSemana(){
@@ -3442,23 +3499,14 @@ function generarDiasSemana(){
 
 function abrirModalSemana(s=null){
   document.getElementById('semana-edit-id').value=s?s.id:'';
-  document.getElementById('modal-semana-titulo').textContent=s?'Editar Semana':'Nueva Semana';
+  document.getElementById('semana-form-titulo').textContent=s?'Editar semana':'Nueva semana';
   document.getElementById('semana-label').value=s?s.label:'';
   document.getElementById('semana-activa').checked=s?s.activo==='SI':false;
-
-  // Renderizar 5 checkboxes de días
-  const diasGuardados=s?JSON.parse(s.dias):[];
-  const diasNombres=['Lunes','Martes','Miércoles','Jueves','Viernes'];
-  const wrap=document.getElementById('semana-dias-wrap');
-  wrap.innerHTML=diasNombres.map((nombre,i)=>{
-    const val=diasGuardados[i]||'';
-    return `<label style="display:flex;align-items:center;gap:8px;font-size:13px">
-      <input type="checkbox" data-dia="${i}" ${val?'checked':''}>
-      <span style="width:70px">${nombre}</span>
-      <input type="date" data-fecha="${i}" value="${val}" style="padding:4px 8px;border:1px solid var(--border);border-radius:var(--r2);font-size:12px;flex:1">
-    </label>`;
-  }).join('');
-  abrirModal('modal-semana');
+  document.getElementById('btn-cancelar-semana').style.display=s?'':'none';
+  const diasGuardados=s?(typeof s.dias==='string'?JSON.parse(s.dias):s.dias):[];
+  _renderDiasForm(diasGuardados);
+  // Scroll al form
+  document.getElementById('menu-form-semana').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
 async function guardarSemana(){
@@ -3487,8 +3535,10 @@ async function guardarSemana(){
   overlay(false);
   if(!r.ok){toast(r.error,'err');return;}
   toast(id?'Semana actualizada':'Semana creada','ok');
-  cerrarModal('modal-semana');
-  cargarMenuSemanas();
+  const nuevaId=id||r.id;
+  cancelarFormSemana();
+  await cargarMenuSemanas();
+  if(nuevaId){_menuSemanaSelId=nuevaId;renderMenuSemanaLista();cargarMenuPedidos();}
 }
 
 function imprimirMenuDia(){
