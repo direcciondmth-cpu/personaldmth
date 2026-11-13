@@ -197,6 +197,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fn);font-size:14px;
 <div class="mode-tabs no-print">
   <button class="mode-tab active" id="tab-individual" onclick="setMode('individual')">👤 Salida individual</button>
   <button class="mode-tab" id="tab-cuadrilla" onclick="setMode('cuadrilla')">👥 Salida de cuadrilla</button>
+  <button class="mode-tab" id="tab-menu" onclick="setMode('menu')">🍽️ Menú semanal</button>
 </div>
 
 <!-- SALIDA INDIVIDUAL -->
@@ -401,6 +402,71 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fn);font-size:14px;
   </div>
 </div>
 
+<!-- MENÚ SEMANAL -->
+<div class="card" id="card-menu">
+  <div class="card-title">Pedido de Menú Semanal</div>
+  <div class="card-sub" id="menu-semana-info">Cargando semana activa…</div>
+
+  <!-- Alerta sin semana activa -->
+  <div id="menu-no-semana" style="display:none;background:var(--amber-l);border:1px solid var(--amber-m);border-radius:var(--r2);padding:12px;font-size:13px;color:var(--txt2);margin-bottom:12px">
+    No hay una semana activa configurada. Consultá con el área de Personal.
+  </div>
+
+  <!-- Formulario individual -->
+  <div id="menu-form-wrap">
+    <div class="field">
+      <label>DNI <span class="req">*</span></label>
+      <div class="dni-wrap">
+        <input type="text" id="menu-dni" inputmode="numeric" maxlength="12" placeholder="Sin puntos" autocomplete="off" oninput="menuLookupDNI(this.value)">
+        <div class="dni-spinner" id="menu-dni-spin"></div>
+      </div>
+      <div class="dni-tag" id="menu-dni-tag"></div>
+    </div>
+    <div class="field" id="menu-nombre-field" style="display:none">
+      <label>Nombre</label>
+      <input type="text" id="menu-nombre" readonly>
+    </div>
+
+    <!-- Selector de tipo -->
+    <div class="field" id="menu-tipo-field" style="display:none">
+      <label>Tipo de menú <span class="req">*</span></label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">
+        <label id="lbl-normal" style="display:flex;align-items:center;gap:10px;padding:14px 12px;border:2px solid var(--border);border-radius:var(--r2);cursor:pointer;transition:border-color .15s">
+          <input type="radio" name="menu-tipo" value="NORMAL" onchange="menuTipoChange()">
+          <div>
+            <div style="font-size:13px;font-weight:600">NORMAL</div>
+            <div style="font-size:11px;color:var(--txt3)">Menú estándar</div>
+          </div>
+        </label>
+        <label id="lbl-salu" style="display:flex;align-items:center;gap:10px;padding:14px 12px;border:2px solid var(--border);border-radius:var(--r2);cursor:pointer;transition:border-color .15s">
+          <input type="radio" name="menu-tipo" value="SALUDABLE" onchange="menuTipoChange()">
+          <div>
+            <div style="font-size:13px;font-weight:600">SALUDABLE</div>
+            <div style="font-size:11px;color:var(--txt3)">Opción saludable</div>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <!-- Estado actual -->
+    <div id="menu-pedido-actual" style="display:none;background:var(--green-l);border:1px solid var(--green-m);border-radius:var(--r2);padding:10px 12px;font-size:12px;color:var(--green);margin-bottom:12px"></div>
+
+    <div class="err-msg" id="err-menu"></div>
+
+    <button class="btn btn-primary" id="btn-enviar-menu" onclick="enviarMenuPedido()" style="display:none">Confirmar pedido</button>
+  </div>
+
+  <!-- Éxito -->
+  <div id="menu-ok" style="display:none;text-align:center;padding:16px 0">
+    <div style="width:48px;height:48px;background:var(--green-l);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div style="font-size:15px;font-weight:700;color:var(--green)" id="menu-ok-titulo">¡Pedido registrado!</div>
+    <div style="font-size:12px;color:var(--txt3);margin-top:4px" id="menu-ok-detalle"></div>
+    <button class="btn btn-outline" style="margin-top:14px" onclick="menuNuevoPedido()">Cargar otro pedido</button>
+  </div>
+</div>
+
 <!-- ÁREA DE IMPRESIÓN (oculta en pantalla, visible al imprimir) -->
 <div id="print-area"></div>
 
@@ -421,8 +487,11 @@ const nowHM=()=>new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-
 function setMode(m){
   document.getElementById('card-individual').classList.toggle('show',m==='individual');
   document.getElementById('card-cuadrilla').classList.toggle('show',m==='cuadrilla');
+  document.getElementById('card-menu').classList.toggle('show',m==='menu');
   document.getElementById('tab-individual').classList.toggle('active',m==='individual');
   document.getElementById('tab-cuadrilla').classList.toggle('active',m==='cuadrilla');
+  document.getElementById('tab-menu').classList.toggle('active',m==='menu');
+  if(m==='menu')initMenuTab();
 }
 
 function toggleDestino(p){
@@ -853,6 +922,146 @@ function nueva(){
   lastOrders=[];
   setMode('individual');
   window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ══════════════════════════════════════════════════════════════════
+// MÓDULO MENÚ SEMANAL
+// ══════════════════════════════════════════════════════════════════
+let _menuSemanaActiva=undefined;
+let _menuDniTimer=null;
+let _menuAgente=null;
+
+async function initMenuTab(){
+  if(_menuSemanaActiva!==undefined)return; // ya cargado
+  try{
+    const r=await fetch(API+'?action=getMenuSemanaActiva',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})});
+    const d=await r.json();
+    _menuSemanaActiva=d.semana||null;
+  }catch{_menuSemanaActiva=null;}
+  renderMenuSemanaInfo();
+}
+
+function renderMenuSemanaInfo(){
+  const infoEl=document.getElementById('menu-semana-info');
+  const noSemana=document.getElementById('menu-no-semana');
+  const formWrap=document.getElementById('menu-form-wrap');
+  if(!_menuSemanaActiva){
+    infoEl.textContent='';
+    noSemana.style.display='';
+    formWrap.style.display='none';
+    return;
+  }
+  noSemana.style.display='none';
+  formWrap.style.display='';
+  try{
+    const dias=JSON.parse(_menuSemanaActiva.dias||'[]');
+    if(dias.length){
+      const fmtDia=d=>{const dt=new Date(d+'T12:00:00');return dt.toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'numeric'});};
+      infoEl.textContent=`${_menuSemanaActiva.label} — Días: ${dias.map(fmtDia).join(', ')}`;
+    } else {
+      infoEl.textContent=_menuSemanaActiva.label;
+    }
+  }catch{infoEl.textContent=_menuSemanaActiva.label||'';}
+}
+
+function menuLookupDNI(val){
+  clearTimeout(_menuDniTimer);
+  const dni=val.replace(/\D/g,'');
+  const tag=document.getElementById('menu-dni-tag');
+  const spin=document.getElementById('menu-dni-spin');
+  const nf=document.getElementById('menu-nombre-field');
+  const tf=document.getElementById('menu-tipo-field');
+  const pa=document.getElementById('menu-pedido-actual');
+  const btn=document.getElementById('btn-enviar-menu');
+  _menuAgente=null;
+  tag.className='dni-tag';tag.style.display='none';
+  nf.style.display='none';tf.style.display='none';pa.style.display='none';btn.style.display='none';
+  if(dni.length<7)return;
+  spin.classList.add('show');
+  _menuDniTimer=setTimeout(async()=>{
+    try{
+      const r=await fetch(API+'?action=buscarAgentePorDNI',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dni})});
+      const d=await r.json();
+      spin.classList.remove('show');
+      if(d.ok&&d.agente){
+        _menuAgente=d.agente;
+        tag.className='dni-tag show found';
+        tag.textContent='✓ '+d.agente.apellido_nombre;
+        tag.style.display='';
+        document.getElementById('menu-nombre').value=d.agente.apellido_nombre;
+        nf.style.display='';
+        tf.style.display='';
+        btn.style.display='';
+        // Verificar si ya tiene pedido para esta semana
+        if(_menuSemanaActiva){
+          const rp=await fetch(API+'?action=getMenuPedidos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({semana_id:_menuSemanaActiva.id})});
+          const dp=await rp.json();
+          if(dp.ok){
+            const existente=(dp.pedidos||[]).find(p=>p.dni===dni&&p.activo==='SI');
+            if(existente){
+              pa.style.display='';
+              pa.textContent=`Ya tenés registrado: MENÚ ${existente.tipo_menu}. Podés cambiarlo.`;
+              // Pre-seleccionar el radio
+              document.querySelectorAll('input[name="menu-tipo"]').forEach(r2=>{r2.checked=r2.value===existente.tipo_menu;});
+              menuTipoChange();
+            }
+          }
+        }
+      } else {
+        tag.className='dni-tag show notfound';
+        tag.textContent='⚠ DNI no encontrado en el padrón';
+        tag.style.display='';
+      }
+    }catch{spin.classList.remove('show');}
+  },500);
+}
+
+function menuTipoChange(){
+  const sel=document.querySelector('input[name="menu-tipo"]:checked');
+  document.getElementById('lbl-normal').style.borderColor=
+    sel&&sel.value==='NORMAL'?'var(--blue)':'var(--border)';
+  document.getElementById('lbl-salu').style.borderColor=
+    sel&&sel.value==='SALUDABLE'?'var(--green)':'var(--border)';
+}
+
+async function enviarMenuPedido(){
+  const dni=document.getElementById('menu-dni').value.replace(/\D/g,'');
+  const tipo=document.querySelector('input[name="menu-tipo"]:checked');
+  const errEl=document.getElementById('err-menu');
+  errEl.className='err-msg';
+  if(!_menuAgente||!dni){errEl.textContent='Buscá tu DNI primero.';errEl.className='err-msg show';return;}
+  if(!tipo){errEl.textContent='Seleccioná un tipo de menú.';errEl.className='err-msg show';return;}
+  if(!_menuSemanaActiva){errEl.textContent='No hay semana activa.';errEl.className='err-menu show';return;}
+  document.getElementById('btn-enviar-menu').disabled=true;
+  try{
+    const r=await fetch(API+'?action=addMenuPedido',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({semana_id:_menuSemanaActiva.id,dni,apellido_nombre:_menuAgente.apellido_nombre,tipo_menu:tipo.value})});
+    const d=await r.json();
+    if(d.ok){
+      document.getElementById('menu-form-wrap').style.display='none';
+      document.getElementById('menu-ok').style.display='';
+      document.getElementById('menu-ok-titulo').textContent='¡Pedido registrado!';
+      document.getElementById('menu-ok-detalle').textContent=`${_menuAgente.apellido_nombre} — MENÚ ${tipo.value} — ${_menuSemanaActiva.label}`;
+    } else {
+      errEl.textContent=d.error||'Error al guardar';errEl.className='err-msg show';
+    }
+  }catch{errEl.textContent='Error de conexión';errEl.className='err-msg show';}
+  document.getElementById('btn-enviar-menu').disabled=false;
+}
+
+function menuNuevoPedido(){
+  document.getElementById('menu-ok').style.display='none';
+  document.getElementById('menu-form-wrap').style.display='';
+  document.getElementById('menu-dni').value='';
+  document.getElementById('menu-dni-tag').className='dni-tag';
+  document.getElementById('menu-nombre-field').style.display='none';
+  document.getElementById('menu-tipo-field').style.display='none';
+  document.getElementById('menu-pedido-actual').style.display='none';
+  document.getElementById('btn-enviar-menu').style.display='none';
+  document.getElementById('err-menu').className='err-msg';
+  document.querySelectorAll('input[name="menu-tipo"]').forEach(r=>r.checked=false);
+  menuTipoChange();
+  _menuAgente=null;
 }
 </script>
 </body>

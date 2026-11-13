@@ -350,6 +350,11 @@ td.mono{font-family:var(--mono);font-size:12px}
       <span class="sb-badge amber" id="badge-novedades" style="display:none">-</span>
     </button>
 
+    <button class="sb-item" data-section="menu" onclick="goTo('menu',this)" id="sb-menu">
+      <svg viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="12" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M5 6h6M5 9h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="12" cy="9" r="2" fill="var(--green)" stroke="none"/><path d="M11 9l.7.7 1.3-1.3" stroke="#fff" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Menú Semanal
+    </button>
+
     <div class="sb-label" style="margin-top:4px">Reportes</div>
     <button class="sb-item" data-section="reporte-agente" onclick="goTo('reporte-agente',this)">
       <svg viewBox="0 0 16 16" fill="none"><path d="M3 12V4l5-3 5 3v8" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><rect x="6" y="8" width="4" height="4" rx=".8" stroke="currentColor" stroke-width="1.3"/></svg>
@@ -706,6 +711,87 @@ td.mono{font-family:var(--mono);font-size:12px}
     </div>
 
     <!-- ─── REPORTE POR AGENTE ─────────────────────────────────── -->
+    <!-- ═══════════════════════════════════ MENÚ SEMANAL ══════════════════════════════════ -->
+    <div class="section" id="s-menu">
+      <div class="table-wrap" style="padding:20px">
+
+        <!-- Cabecera + acciones -->
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+          <div>
+            <div style="font-size:15px;font-weight:600;color:var(--txt)">Menú Semanal</div>
+            <div style="font-size:12px;color:var(--txt3);margin-top:2px">Configurá semanas y gestioná los pedidos de comida</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="tbtn" id="btn-imprimir-menu" onclick="imprimirMenuDia()">Imprimir lista</button>
+            <button class="tbtn primary" id="btn-nueva-semana" onclick="abrirModalSemana()">+ Nueva semana</button>
+          </div>
+        </div>
+
+        <!-- Selector de semana -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+          <select id="menu-semana-sel" style="padding:7px 10px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px;min-width:260px" onchange="cargarMenuPedidos()">
+            <option value="">— Seleccioná una semana —</option>
+          </select>
+          <span id="menu-semana-estado" style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:12px;display:none"></span>
+          <button class="tbtn" id="btn-activar-semana" onclick="activarSemana()" style="display:none">Activar</button>
+          <button class="tbtn" style="color:var(--red)" id="btn-eliminar-semana" onclick="eliminarSemana()" style="display:none">Eliminar</button>
+        </div>
+
+        <!-- Stats rápidos -->
+        <div id="menu-stats" style="display:none;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:14px">
+          <div class="stat-card"><div class="stat-label">Total pedidos</div><div class="stat-val" id="menu-stat-total">-</div></div>
+          <div class="stat-card"><div class="stat-label">Menú Normal</div><div class="stat-val" id="menu-stat-normal">-</div></div>
+          <div class="stat-card"><div class="stat-label">Menú Saludable</div><div class="stat-val" id="menu-stat-salu">-</div></div>
+        </div>
+
+        <!-- Tabla pedidos -->
+        <table id="table-menu" style="display:none">
+          <thead><tr>
+            <th>DNI</th><th>Apellido y Nombre</th><th>Establecimiento / Sector</th><th>Menú</th><th>Acciones</th>
+          </tr></thead>
+          <tbody id="tbody-menu"><tr><td colspan="5"><div class="empty"><p>Seleccioná una semana para ver los pedidos.</p></div></td></tr></tbody>
+        </table>
+
+        <div id="menu-empty" style="display:none;padding:20px;text-align:center;color:var(--txt3);font-size:13px">
+          Sin pedidos para esta semana.
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Modal nueva/editar semana -->
+    <div class="modal-overlay" id="modal-semana">
+      <div class="modal-box" style="max-width:420px">
+        <div class="modal-hdr">
+          <h3 id="modal-semana-titulo">Nueva Semana</h3>
+          <button class="modal-close" onclick="cerrarModal('modal-semana')">×</button>
+        </div>
+        <input type="hidden" id="semana-edit-id">
+        <div class="form-group">
+          <label class="form-label">Etiqueta <span style="color:var(--red)">*</span></label>
+          <input type="text" id="semana-label" class="form-input" placeholder="Ej: Semana del 17/11 al 20/11">
+        </div>
+        <div class="form-group" style="margin-top:12px">
+          <label class="form-label">Días laborables <span style="color:var(--red)">*</span></label>
+          <div id="semana-dias-wrap" style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
+            <!-- Se generan dinámicamente -->
+          </div>
+          <div style="margin-top:8px">
+            <button class="tbtn" style="font-size:11px" onclick="generarDiasSemana()">Auto-completar próxima semana lun–vie</button>
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:12px">
+          <label class="form-label" style="display:flex;align-items:center;gap:6px;cursor:pointer">
+            <input type="checkbox" id="semana-activa"> Activar esta semana (desactiva la actual)
+          </label>
+        </div>
+        <div class="modal-ftr">
+          <button class="tbtn" onclick="cerrarModal('modal-semana')">Cancelar</button>
+          <button class="tbtn primary" onclick="guardarSemana()">Guardar</button>
+        </div>
+      </div>
+    </div>
+
     <div class="section" id="s-reporte-agente">
       <div class="table-wrap" style="padding:20px;max-width:600px">
         <p style="font-size:13px;color:var(--txt3);margin-bottom:16px">Buscá un agente para ver su historial completo de órdenes de salida, trabajo y movimientos de personal.</p>
@@ -1463,6 +1549,7 @@ function goTo(section,btn){
   if(section==='logs')loadLogs();
   if(section==='usuarios')loadUsuarios();
   if(section==='novedades')cargarNovedades();
+  if(section==='menu')cargarMenuSemanas();
 }
 
 // ── TABS MODAL AGENTE ─────────────────────────────────────────────
@@ -3190,6 +3277,252 @@ async function eliminarNovedad(id,nombre){
   if(!r.ok){toast(r.error,'err');return;}
   toast('Novedad eliminada','ok');
   cargarNovedades();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// MÓDULO MENÚ SEMANAL
+// ══════════════════════════════════════════════════════════════════
+
+let _menuSemanas=[];
+let _menuPedidos=[];
+
+async function cargarMenuSemanas(){
+  const r=await api('getMenuSemanas',{});
+  if(!r.ok)return;
+  _menuSemanas=r.semanas||[];
+  const sel=document.getElementById('menu-semana-sel');
+  sel.innerHTML='<option value="">— Seleccioná una semana —</option>';
+  _menuSemanas.forEach(s=>{
+    const opt=document.createElement('option');
+    opt.value=s.id;
+    opt.textContent=s.label+(s.activo==='SI'?' ✓ ACTIVA':'');
+    sel.appendChild(opt);
+  });
+  // Auto-seleccionar la activa
+  const activa=_menuSemanas.find(s=>s.activo==='SI');
+  if(activa){sel.value=activa.id;cargarMenuPedidos();}
+}
+
+async function cargarMenuPedidos(){
+  const semana_id=document.getElementById('menu-semana-sel').value;
+  const semana=_menuSemanas.find(s=>s.id===semana_id);
+  const estadoEl=document.getElementById('menu-semana-estado');
+  const btnActivar=document.getElementById('btn-activar-semana');
+  const btnEliminar=document.getElementById('btn-eliminar-semana');
+
+  if(!semana_id||!semana){
+    document.getElementById('table-menu').style.display='none';
+    document.getElementById('menu-stats').style.display='none';
+    document.getElementById('menu-empty').style.display='none';
+    estadoEl.style.display='none';
+    btnActivar.style.display='none';
+    btnEliminar.style.display='none';
+    return;
+  }
+
+  if(semana.activo==='SI'){
+    estadoEl.textContent='ACTIVA';
+    estadoEl.style.cssText='font-size:11px;font-weight:600;padding:2px 8px;border-radius:12px;background:var(--green-l);color:var(--green);border:1px solid var(--green-m)';
+    btnActivar.style.display='none';
+  } else {
+    estadoEl.textContent='INACTIVA';
+    estadoEl.style.cssText='font-size:11px;font-weight:600;padding:2px 8px;border-radius:12px;background:var(--border);color:var(--txt3)';
+    btnActivar.style.display='';
+  }
+  estadoEl.style.display='';
+  btnEliminar.style.display='';
+
+  overlay(true,'Cargando pedidos…');
+  const r=await api('getMenuPedidos',{semana_id});
+  overlay(false);
+  if(!r.ok){toast('Error al cargar pedidos','err');return;}
+  _menuPedidos=r.pedidos||[];
+
+  const nTotal=_menuPedidos.length;
+  const nNormal=_menuPedidos.filter(p=>p.tipo_menu==='NORMAL').length;
+  const nSalu=_menuPedidos.filter(p=>p.tipo_menu==='SALUDABLE').length;
+  document.getElementById('menu-stat-total').textContent=nTotal;
+  document.getElementById('menu-stat-normal').textContent=nNormal;
+  document.getElementById('menu-stat-salu').textContent=nSalu;
+  document.getElementById('menu-stats').style.display='';
+
+  if(!nTotal){
+    document.getElementById('table-menu').style.display='none';
+    document.getElementById('menu-empty').style.display='';
+    return;
+  }
+  document.getElementById('menu-empty').style.display='none';
+  document.getElementById('table-menu').style.display='';
+
+  const fmtDias=dias=>{
+    try{
+      const arr=typeof dias==='string'?JSON.parse(dias):dias;
+      return arr.map(d=>new Date(d+'T12:00:00').toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'numeric'})).join(' / ');
+    }catch{return dias;}
+  };
+
+  document.getElementById('tbody-menu').innerHTML=_menuPedidos.map(p=>{
+    const color=p.tipo_menu==='SALUDABLE'
+      ?'background:var(--green-l);color:var(--green);border:1px solid var(--green-m)'
+      :'background:var(--blue-l);color:var(--blue);border:1px solid var(--blue-m)';
+    return `<tr>
+      <td class="mono">${xe(p.dni)}</td>
+      <td><strong>${xe(p.apellido_nombre)}</strong></td>
+      <td style="font-size:12px">${xe(p.establecimiento||'')} ${xe(p.sector||'')}</td>
+      <td><span style="padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;${color}">${xe(p.tipo_menu)}</span></td>
+      <td style="white-space:nowrap">
+        <button class="tbtn" style="font-size:11px;padding:2px 8px" onclick="editarMenuPedido('${xe(p.id)}','${xe(p.tipo_menu)}')">Cambiar</button>
+        <button class="tbtn" style="font-size:11px;padding:2px 8px;color:var(--red)" onclick="borrarMenuPedido('${xe(p.id)}','${xe(p.apellido_nombre)}')">Quitar</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function editarMenuPedido(id,tipoActual){
+  const nuevo=tipoActual==='NORMAL'?'SALUDABLE':'NORMAL';
+  if(!confirm(`¿Cambiar a MENÚ ${nuevo}?`))return;
+  overlay(true);
+  const r=await api('editMenuPedido',{id,tipo_menu:nuevo});
+  overlay(false);
+  if(!r.ok){toast(r.error,'err');return;}
+  toast('Menú actualizado','ok');
+  cargarMenuPedidos();
+}
+
+async function borrarMenuPedido(id,nombre){
+  if(!confirm(`¿Quitar el pedido de ${nombre}?`))return;
+  overlay(true);
+  const r=await api('deleteMenuPedido',{id});
+  overlay(false);
+  if(!r.ok){toast(r.error,'err');return;}
+  toast('Pedido eliminado','ok');
+  cargarMenuPedidos();
+}
+
+async function activarSemana(){
+  const semana_id=document.getElementById('menu-semana-sel').value;
+  if(!semana_id)return;
+  overlay(true);
+  const r=await api('editMenuSemana',{id:semana_id,activo:'SI'});
+  overlay(false);
+  if(!r.ok){toast(r.error,'err');return;}
+  toast('Semana activada','ok');
+  cargarMenuSemanas();
+}
+
+async function eliminarSemana(){
+  const semana_id=document.getElementById('menu-semana-sel').value;
+  const semana=_menuSemanas.find(s=>s.id===semana_id);
+  if(!semana||!confirm(`¿Eliminar la semana "${semana.label}" y todos sus pedidos?`))return;
+  overlay(true);
+  const r=await api('deleteMenuSemana',{id:semana_id});
+  overlay(false);
+  if(!r.ok){toast(r.error,'err');return;}
+  toast('Semana eliminada','ok');
+  cargarMenuSemanas();
+}
+
+function generarDiasSemana(){
+  // Calcula lunes a viernes de la próxima semana
+  const hoy=new Date();
+  const diaSemana=hoy.getDay();
+  const diasHastaLunes=diaSemana===0?1:8-diaSemana;
+  const lunes=new Date(hoy);
+  lunes.setDate(hoy.getDate()+diasHastaLunes);
+  const wrap=document.getElementById('semana-dias-wrap');
+  const inputs=wrap.querySelectorAll('input[type=date]');
+  const diasNombres=['Lunes','Martes','Miércoles','Jueves','Viernes'];
+  inputs.forEach((inp,i)=>{
+    const d=new Date(lunes);
+    d.setDate(lunes.getDate()+i);
+    inp.value=d.toISOString().slice(0,10);
+    inp.closest('label').querySelector('input[type=checkbox]').checked=true;
+  });
+}
+
+function abrirModalSemana(s=null){
+  document.getElementById('semana-edit-id').value=s?s.id:'';
+  document.getElementById('modal-semana-titulo').textContent=s?'Editar Semana':'Nueva Semana';
+  document.getElementById('semana-label').value=s?s.label:'';
+  document.getElementById('semana-activa').checked=s?s.activo==='SI':false;
+
+  // Renderizar 5 checkboxes de días
+  const diasGuardados=s?JSON.parse(s.dias):[];
+  const diasNombres=['Lunes','Martes','Miércoles','Jueves','Viernes'];
+  const wrap=document.getElementById('semana-dias-wrap');
+  wrap.innerHTML=diasNombres.map((nombre,i)=>{
+    const val=diasGuardados[i]||'';
+    return `<label style="display:flex;align-items:center;gap:8px;font-size:13px">
+      <input type="checkbox" data-dia="${i}" ${val?'checked':''}>
+      <span style="width:70px">${nombre}</span>
+      <input type="date" data-fecha="${i}" value="${val}" style="padding:4px 8px;border:1px solid var(--border);border-radius:var(--r2);font-size:12px;flex:1">
+    </label>`;
+  }).join('');
+  abrirModal('modal-semana');
+}
+
+async function guardarSemana(){
+  const id=document.getElementById('semana-edit-id').value;
+  const label=document.getElementById('semana-label').value.trim();
+  const activo=document.getElementById('semana-activa').checked?'SI':'NO';
+  if(!label){toast('Completá la etiqueta','err');return;}
+
+  const dias=[];
+  document.querySelectorAll('#semana-dias-wrap [data-dia]').forEach((cb,i)=>{
+    if(cb.checked){
+      const fecha=document.querySelector(`#semana-dias-wrap [data-fecha="${i}"]`).value;
+      if(fecha)dias.push(fecha);
+    }
+  });
+  if(!dias.length){toast('Seleccioná al menos un día','err');return;}
+
+  overlay(true,'Guardando…');
+  let r;
+  if(id){
+    r=await api('editMenuSemana',{id,label,dias,activo});
+  } else {
+    r=await api('addMenuSemana',{label,dias});
+    if(r.ok&&activo==='SI')await api('editMenuSemana',{id:r.id,activo:'SI'});
+  }
+  overlay(false);
+  if(!r.ok){toast(r.error,'err');return;}
+  toast(id?'Semana actualizada':'Semana creada','ok');
+  cerrarModal('modal-semana');
+  cargarMenuSemanas();
+}
+
+function imprimirMenuDia(){
+  const semana_id=document.getElementById('menu-semana-sel').value;
+  const semana=_menuSemanas.find(s=>s.id===semana_id);
+  if(!semana||!_menuPedidos.length){toast('No hay pedidos para imprimir','err');return;}
+  const fecha=new Date().toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const normales=_menuPedidos.filter(p=>p.tipo_menu==='NORMAL');
+  const saludables=_menuPedidos.filter(p=>p.tipo_menu==='SALUDABLE');
+  const filaTabla=(p,i)=>`<tr><td>${i+1}</td><td>${xe(p.apellido_nombre)}</td><td>${xe(p.establecimiento||p.sector||'')}</td><td>${xe(p.tipo_menu)}</td><td style="width:40mm"></td></tr>`;
+  const tabla=(titulo,arr)=>arr.length?`<h3 style="margin:8mm 0 3mm;font-size:11pt;color:#004D99">${titulo}</h3>
+    <table style="width:100%;border-collapse:collapse;font-size:9pt">
+      <thead><tr style="background:#004D99;color:#fff"><th style="padding:4px 6px">N°</th><th>Apellido y Nombre</th><th>Establecimiento/Sector</th><th>Menú</th><th>Firma</th></tr></thead>
+      <tbody>${arr.map(filaTabla).join('')}</tbody>
+    </table>`:'' ;
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <title>Pedido de Comida</title>
+    <style>body{font-family:Arial,sans-serif;margin:15mm 12mm;color:#222}
+    table{border-collapse:collapse;width:100%}td,th{border:1px solid #ccc;padding:4px 6px;text-align:left}
+    @media print{button{display:none}}</style>
+  </head><body>
+    <div style="text-align:center;margin-bottom:6mm">
+      <h2 style="color:#004D99;margin:0">PEDIDO DE COMIDA</h2>
+      <p style="margin:2mm 0;color:#555;font-size:10pt">DIRECCIÓN DE MANTENIMIENTO TÉCNICO HOSPITALARIO</p>
+      <p style="margin:2mm 0;font-size:10pt">${xe(semana.label)} — Generado: ${fecha}</p>
+    </div>
+    ${tabla('MENÚ NORMAL ('+normales.length+')',normales)}
+    ${tabla('MENÚ SALUDABLE ('+saludables.length+')',saludables)}
+    <div style="margin-top:8mm;font-size:9pt;font-weight:600">TOTAL DE BANDEJAS: ${_menuPedidos.length} (Normal: ${normales.length} / Saludable: ${saludables.length})</div>
+    <button onclick="window.print()" style="margin-top:10mm;padding:8px 20px;background:#004D99;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px">Imprimir / Guardar PDF</button>
+  </body></html>`;
+  const w=window.open('','_blank','width=900,height=700');
+  w.document.write(html);
+  w.document.close();
 }
 
 // ── INICIALIZAR ────────────────────────────────────────────────────

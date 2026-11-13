@@ -1024,6 +1024,102 @@ module.exports = async function handler(req, res) {
       return ok(res, { logs: rows });
     }
 
+    // ─ MENÚ SEMANAL ───────────────────────────────────────────────
+
+    if (action === 'addMenuSemana') {
+      const auth = requireAuth(req, 'admin');
+      if (!auth) return err(res, 'No autorizado', 401);
+      const { label, dias } = body;
+      if (!label || !dias || !Array.isArray(dias) || !dias.length) return err(res, 'Faltan label y dias');
+      const id = genId('msem');
+      await sql`INSERT INTO menu_semanas (id,label,dias,activo,usuario_carga) VALUES (${id},${label},${JSON.stringify(dias)},'SI',${auth.u})`;
+      return ok(res, { id });
+    }
+
+    if (action === 'getMenuSemanas') {
+      const auth = requireAuth(req, 'read');
+      if (!auth) return err(res, 'No autorizado', 401);
+      const rows = await sql`SELECT * FROM menu_semanas ORDER BY fecha_carga DESC`;
+      return ok(res, { semanas: rows });
+    }
+
+    if (action === 'getMenuSemanaActiva') {
+      // Sin auth — para la app externa
+      const rows = await sql`SELECT * FROM menu_semanas WHERE activo='SI' ORDER BY fecha_carga DESC LIMIT 1`;
+      if (!rows.length) return ok(res, { semana: null });
+      const s = rows[0];
+      return ok(res, { semana: { ...s, dias: JSON.parse(s.dias) } });
+    }
+
+    if (action === 'editMenuSemana') {
+      const auth = requireAuth(req, 'admin');
+      if (!auth) return err(res, 'No autorizado', 401);
+      const { id, label, dias, activo } = body;
+      if (!id) return err(res, 'Falta id');
+      if (activo === 'SI') await sql`UPDATE menu_semanas SET activo='NO' WHERE activo='SI' AND id<>${id}`;
+      await sql`UPDATE menu_semanas SET
+        label=COALESCE(${label||null},label),
+        dias=COALESCE(${dias?JSON.stringify(dias):null},dias),
+        activo=COALESCE(${activo||null},activo)
+        WHERE id=${id}`;
+      return ok(res, {});
+    }
+
+    if (action === 'deleteMenuSemana') {
+      const auth = requireAuth(req, 'admin');
+      if (!auth) return err(res, 'No autorizado', 401);
+      const { id } = body;
+      if (!id) return err(res, 'Falta id');
+      await sql`DELETE FROM menu_semanas WHERE id=${id}`;
+      return ok(res, {});
+    }
+
+    if (action === 'addMenuPedido') {
+      // Sin auth — carga desde app externa
+      const { semana_id, dni, apellido_nombre, tipo_menu } = body;
+      if (!semana_id || !dni || !tipo_menu) return err(res, 'Faltan campos');
+      if (!['NORMAL','SALUDABLE'].includes(tipo_menu)) return err(res, 'Tipo inválido');
+      const semCheck = await sql`SELECT id FROM menu_semanas WHERE id=${semana_id} AND activo='SI' LIMIT 1`;
+      if (!semCheck.length) return err(res, 'La semana no está activa');
+      const id = genId('mpedido');
+      await sql`INSERT INTO menu_pedidos (id,semana_id,dni,apellido_nombre,tipo_menu,activo,usuario_carga)
+        VALUES (${id},${semana_id},${dni},${apellido_nombre||''},${tipo_menu},'SI','ext')
+        ON CONFLICT (semana_id,dni) DO UPDATE SET tipo_menu=EXCLUDED.tipo_menu, activo='SI'`;
+      return ok(res, { id });
+    }
+
+    if (action === 'getMenuPedidos') {
+      const auth = requireAuth(req, 'read');
+      if (!auth) return err(res, 'No autorizado', 401);
+      const { semana_id } = body;
+      if (!semana_id) return err(res, 'Falta semana_id');
+      const rows = await sql`
+        SELECT p.*, a.establecimiento, a.sector
+        FROM menu_pedidos p
+        LEFT JOIN agentes a ON a.dni=p.dni AND a.activo='SI'
+        WHERE p.semana_id=${semana_id} AND p.activo='SI'
+        ORDER BY p.tipo_menu, p.apellido_nombre`;
+      return ok(res, { pedidos: rows });
+    }
+
+    if (action === 'editMenuPedido') {
+      const auth = requireAuth(req, 'user');
+      if (!auth) return err(res, 'No autorizado', 401);
+      const { id, tipo_menu } = body;
+      if (!id || !tipo_menu) return err(res, 'Faltan campos');
+      await sql`UPDATE menu_pedidos SET tipo_menu=${tipo_menu} WHERE id=${id}`;
+      return ok(res, {});
+    }
+
+    if (action === 'deleteMenuPedido') {
+      const auth = requireAuth(req, 'user');
+      if (!auth) return err(res, 'No autorizado', 401);
+      const { id } = body;
+      if (!id) return err(res, 'Falta id');
+      await sql`UPDATE menu_pedidos SET activo='NO' WHERE id=${id}`;
+      return ok(res, {});
+    }
+
     return err(res, `Acción desconocida: ${action}`, 404);
 
   } catch (e) {
