@@ -10,46 +10,134 @@
 <style>
 /* ── VARIABLES ─────────────────────────────────────────────────── */
 :root{
-  --bg:#F5F7FA;--surface:#FFF;--border:#C7D0DE;--border2:#9FACC2;
-  --blue:#1B5EA6;--blue-l:#E8F0FB;--blue-m:#BDD1F4;
-  --green:#2A7D4F;--green-l:#E6F4EC;--green-m:#A8D8BC;
-  --red:#C0392B;--red-l:#FDECEA;--red-m:#F4BFBA;
-  --amber:#C8870A;--amber-l:#FEF3DC;--amber-m:#F5D48A;
-  --txt:#1A2332;--txt2:#3D4A5C;--txt3:#5C6B85;
-  --fn:'Inter',sans-serif;--r:10px;--r2:6px;
+  --bg:#f2faf5;
+  --surface:#fff;
+  --border:#c8e8d4;
+  --border2:#9dd1b4;
+  --green:#1a7a46;
+  --green-d:#155f37;
+  --green-l:#e4f5ec;
+  --green-m:#a8d8bc;
+  --green-side:#eaf6ef;
+  --teal:#0f8060;
+  --red:#c0392b;--red-l:#fdecea;--red-m:#f4bfba;
+  --amber:#9a6a00;--amber-l:#fef8e7;--amber-m:#f5d48a;
+  --txt:#1b4a2c;--txt2:#2e6645;--txt3:#5a8a6a;
+  --fn:'Inter',sans-serif;--r:12px;--r2:8px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
-/* ── SCREEN BASE ───────────────────────────────────────────────── */
-body{background:var(--bg);color:var(--txt);font-family:var(--fn);font-size:14px;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 16px 60px}
+/* ── LAYOUT PRINCIPAL: sidebar + contenido ──────────────────── */
+body{
+  background:var(--bg);color:var(--txt);font-family:var(--fn);font-size:14px;
+  min-height:100vh;display:flex;flex-direction:row;align-items:flex-start;
+}
 
-.header{width:100%;max-width:560px;display:flex;align-items:center;gap:12px;margin-bottom:20px}
-.header svg{width:28px;height:32px;flex-shrink:0}
-.header-text h1{font-size:16px;font-weight:700;color:var(--blue)}
+/* ── SIDEBAR ────────────────────────────────────────────────── */
+.pa-sidebar{
+  width:62px;min-height:100vh;background:#fff;
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;align-items:center;
+  padding:16px 0;gap:6px;
+  position:sticky;top:0;flex-shrink:0;
+}
+.pa-brand{
+  width:36px;height:36px;border-radius:10px;
+  background:var(--green);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:#fff;letter-spacing:.03em;
+  margin-bottom:10px;
+}
+.pa-nav-btn{
+  width:42px;height:42px;border-radius:10px;border:none;background:transparent;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:background .15s;position:relative;
+  font-size:18px;color:var(--txt3);
+}
+.pa-nav-btn:hover{background:var(--green-l)}
+.pa-nav-btn.active{background:var(--green-l);color:var(--green)}
+.pa-nav-btn .pa-tooltip{
+  display:none;position:absolute;left:52px;top:50%;transform:translateY(-50%);
+  background:var(--green);color:#fff;font-size:11px;font-weight:600;
+  padding:4px 10px;border-radius:6px;white-space:nowrap;z-index:100;pointer-events:none;
+}
+.pa-nav-btn:hover .pa-tooltip{display:block}
+
+/* ── ÁREA PRINCIPAL ─────────────────────────────────────────── */
+.pa-main{
+  flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;
+  padding:24px 20px 60px;
+}
+
+/* ── HEADER ─────────────────────────────────────────────────── */
+.header{
+  width:100%;max-width:580px;
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:6px;
+  padding:14px 18px;
+  background:#fff;border:1px solid var(--border);border-radius:var(--r);
+}
+.header svg{width:26px;height:30px;flex-shrink:0}
+.header-text h1{font-size:15px;font-weight:700;color:var(--green-d)}
 .header-text p{font-size:11px;color:var(--txt3);margin-top:1px}
+.header-badge{
+  margin-left:auto;background:var(--green-l);color:var(--green);
+  font-size:10px;font-weight:600;padding:4px 10px;border-radius:20px;
+  border:1px solid var(--green-m);white-space:nowrap;
+}
 
-.mode-tabs{display:flex;gap:8px;width:100%;max-width:560px;margin-bottom:16px}
-.mode-tab{flex:1;padding:10px;border:1.5px solid var(--border);border-radius:var(--r2);background:var(--surface);font-size:13px;font-weight:500;color:var(--txt2);cursor:pointer;transition:all .15s;text-align:center}
-.mode-tab.active{border-color:var(--blue);background:var(--blue-l);color:var(--blue);font-weight:600}
+/* ── TABS ───────────────────────────────────────────────────── */
+.mode-tabs{display:flex;gap:6px;width:100%;max-width:580px;margin:14px 0}
+.mode-tab{
+  flex:1;padding:9px 8px;border:1.5px solid var(--border);
+  border-radius:var(--r2);background:#fff;
+  font-size:12px;font-weight:500;color:var(--txt3);cursor:pointer;
+  transition:all .15s;text-align:center;
+}
+.mode-tab.active{
+  border-color:var(--green);background:var(--green-l);
+  color:var(--green);font-weight:600;
+}
 
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:22px;width:100%;max-width:560px;box-shadow:0 2px 8px rgba(26,35,50,.06);display:none}
+/* ── CARD ───────────────────────────────────────────────────── */
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);padding:22px;width:100%;max-width:580px;
+  box-shadow:0 2px 10px rgba(15,100,55,.06);display:none;
+}
 .card.show{display:block}
-.card-title{font-size:14px;font-weight:600;color:var(--txt);margin-bottom:4px}
+.card-title{font-size:14px;font-weight:700;color:var(--green-d);margin-bottom:4px}
 .card-sub{font-size:12px;color:var(--txt3);margin-bottom:18px;line-height:1.5}
 
-/* FORM */
+/* ── SEPARADOR SECCIÓN ──────────────────────────────────────── */
+.section-sep{
+  font-size:11px;font-weight:600;color:var(--txt3);
+  text-transform:uppercase;letter-spacing:.06em;
+  margin:14px 0 10px;padding-bottom:6px;
+  border-bottom:1px solid var(--border);
+}
+
+/* ── FORM ───────────────────────────────────────────────────── */
 .field{margin-bottom:13px}
 .field label{display:block;font-size:12px;font-weight:600;color:var(--txt2);margin-bottom:4px}
 .req{color:var(--red);margin-left:2px}
-.field input,.field select,.field textarea{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:var(--r2);font-size:13px;font-family:var(--fn);color:var(--txt);background:var(--surface);outline:none;transition:border .15s}
-.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--blue)}
-.field input[readonly]{background:var(--bg);color:var(--txt2)}
+.field input,.field select,.field textarea{
+  width:100%;padding:9px 12px;border:1px solid var(--border);
+  border-radius:var(--r2);font-size:13px;font-family:var(--fn);
+  color:var(--txt);background:var(--surface);outline:none;transition:border .15s;
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(26,122,70,.08)}
+.field input[readonly]{background:var(--green-l);color:var(--txt2)}
 .field textarea{resize:vertical;min-height:60px}
 .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 
-/* DNI LOOKUP */
+/* ── DNI LOOKUP ─────────────────────────────────────────────── */
 .dni-wrap{position:relative}
-.dni-spinner{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;display:none}
+.dni-spinner{
+  position:absolute;right:10px;top:50%;transform:translateY(-50%);
+  width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--green);
+  border-radius:50%;animation:spin .7s linear infinite;display:none;
+}
 .dni-spinner.show{display:block}
 @keyframes spin{to{transform:translateY(-50%) rotate(360deg)}}
 .dni-tag{font-size:11px;margin-top:4px;display:none}
@@ -57,73 +145,100 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fn);font-size:14px;
 .dni-tag.found{color:var(--green)}
 .dni-tag.notfound{color:var(--amber)}
 
-/* CUADRILLA */
+/* ── CUADRILLA ──────────────────────────────────────────────── */
 .cuad-list{margin-bottom:10px}
-.cuad-item{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r2);margin-bottom:6px}
+.cuad-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;background:var(--green-l);
+  border:1px solid var(--border);border-radius:var(--r2);margin-bottom:6px;
+}
 .cuad-item-info{flex:1;min-width:0}
-.cuad-item-nombre{font-size:12px;font-weight:600;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cuad-item-nombre{font-size:12px;font-weight:600;color:var(--green-d);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cuad-item-sector{font-size:11px;color:var(--txt3)}
 .cuad-item-del{border:none;background:none;color:var(--txt3);cursor:pointer;font-size:16px;padding:2px 4px;border-radius:4px;line-height:1}
 .cuad-item-del:hover{background:var(--red-l);color:var(--red)}
-.cuad-add-btn{padding:9px 14px;background:var(--blue);color:#fff;border:none;border-radius:var(--r2);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:var(--fn)}
-.cuad-add-btn:hover{background:#164f8f}
-.cuad-empty{font-size:12px;color:var(--txt3);text-align:center;padding:14px;border:1.5px dashed var(--border);border-radius:var(--r2);margin-bottom:12px}
+.cuad-add-btn{
+  padding:9px 16px;background:var(--green);color:#fff;
+  border:none;border-radius:var(--r2);font-size:13px;font-weight:600;
+  cursor:pointer;white-space:nowrap;font-family:var(--fn);transition:background .15s;
+}
+.cuad-add-btn:hover{background:var(--green-d)}
+.cuad-empty{
+  font-size:12px;color:var(--txt3);text-align:center;padding:14px;
+  border:1.5px dashed var(--border2);border-radius:var(--r2);margin-bottom:12px;
+}
 
-/* BUTTONS */
+/* ── BUTTONS ────────────────────────────────────────────────── */
 .btn{width:100%;padding:12px;border:none;border-radius:var(--r2);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--fn);transition:background .15s;margin-top:4px}
-.btn-primary{background:var(--blue);color:#fff}
-.btn-primary:hover{background:#164f8f}
-.btn-primary:disabled{background:#8AAFD4;cursor:not-allowed}
-.btn-outline{background:var(--surface);color:var(--blue);border:1.5px solid var(--blue)}
-.btn-outline:hover{background:var(--blue-l)}
+.btn-primary{background:var(--green);color:#fff}
+.btn-primary:hover{background:var(--green-d)}
+.btn-primary:disabled{background:var(--green-m);cursor:not-allowed}
+.btn-outline{background:var(--surface);color:var(--green);border:1.5px solid var(--green)}
+.btn-outline:hover{background:var(--green-l)}
 
 .err-msg{background:var(--red-l);color:var(--red);border:1px solid var(--red-m);border-radius:var(--r2);padding:9px 12px;font-size:13px;margin-bottom:12px;display:none}
 .err-msg.show{display:block}
 
-/* SUCCESS SCREEN */
-.success-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;width:100%;max-width:560px;text-align:center;display:none;box-shadow:0 2px 8px rgba(26,35,50,.06)}
+/* ── SUCCESS ────────────────────────────────────────────────── */
+.success-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:24px;width:100%;max-width:580px;text-align:center;display:none;
+  box-shadow:0 2px 10px rgba(15,100,55,.06);
+}
 .success-card.show{display:block}
 .success-icon{width:52px;height:52px;background:var(--green-l);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
 .success-num{font-size:22px;font-weight:700;color:var(--green);letter-spacing:.02em;margin-bottom:4px}
 .success-list{text-align:left;margin:12px 0;border-collapse:collapse;width:100%}
 .success-list td,.success-list th{padding:6px 10px;font-size:12px;border-bottom:1px solid var(--border)}
-.success-list th{font-weight:600;color:var(--txt2);background:var(--bg)}
+.success-list th{font-weight:600;color:var(--txt2);background:var(--green-l)}
 .success-alert{background:var(--amber-l);border:1px solid var(--amber-m);border-radius:var(--r2);padding:11px 12px;font-size:12px;color:var(--txt2);line-height:1.5;margin-top:14px;text-align:left}
 .success-btns{display:flex;gap:10px;margin-top:14px}
 .success-btns .btn{margin-top:0}
 
-/* HISTORIAL */
-.hist-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;width:100%;max-width:560px;margin-top:14px;display:none}
+/* ── HISTORIAL ──────────────────────────────────────────────── */
+.hist-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:18px;width:100%;max-width:580px;margin-top:14px;display:none;
+}
 .hist-card.show{display:block}
-.hist-title{font-size:13px;font-weight:600;color:var(--txt);margin-bottom:12px}
+.hist-title{font-size:13px;font-weight:700;color:var(--green-d);margin-bottom:12px}
 .hist-table{width:100%;border-collapse:collapse;font-size:12px}
-.hist-table th{padding:6px 10px;font-weight:600;color:var(--txt2);background:var(--bg);border-bottom:1px solid var(--border);text-align:left}
+.hist-table th{padding:6px 10px;font-weight:600;color:var(--txt2);background:var(--green-l);border-bottom:1px solid var(--border);text-align:left}
 .hist-table td{padding:7px 10px;border-bottom:1px solid var(--border);color:var(--txt);vertical-align:middle}
 .hist-table tr:last-child td{border-bottom:none}
 .hist-badge{display:inline-block;padding:2px 7px;border-radius:99px;font-size:10px;font-weight:600}
-.hist-badge.OFICIAL{background:var(--blue-l);color:var(--blue)}
+.hist-badge.OFICIAL{background:var(--green-l);color:var(--green)}
 .hist-badge.PARTICULAR{background:var(--amber-l);color:var(--amber)}
 .hist-actions{display:flex;gap:5px}
 .hist-btn{padding:4px 9px;border-radius:var(--r2);font-size:11px;font-weight:600;cursor:pointer;font-family:var(--fn);border:none;white-space:nowrap}
-.hist-btn-edit{background:var(--blue-l);color:var(--blue)}
-.hist-btn-edit:hover{background:var(--blue-m)}
+.hist-btn-edit{background:var(--green-l);color:var(--green)}
+.hist-btn-edit:hover{background:var(--green-m)}
 .hist-btn-print{background:var(--bg);color:var(--txt2);border:1px solid var(--border)!important}
 .hist-btn-print:hover{background:var(--border)}
 
-/* MODAL EDITAR ORDEN */
-.modal-overlay{position:fixed;inset:0;background:rgba(26,35,50,.45);display:flex;align-items:center;justify-content:center;z-index:999;display:none}
+/* ── MODAL ──────────────────────────────────────────────────── */
+.modal-overlay{position:fixed;inset:0;background:rgba(15,80,35,.35);display:flex;align-items:center;justify-content:center;z-index:999;display:none}
 .modal-overlay.show{display:flex}
-.modal-box{background:var(--surface);border-radius:var(--r);padding:22px;width:100%;max-width:480px;box-shadow:0 8px 32px rgba(26,35,50,.15);margin:16px}
+.modal-box{background:var(--surface);border-radius:var(--r);padding:22px;width:100%;max-width:480px;box-shadow:0 8px 32px rgba(15,80,35,.15);margin:16px}
 .modal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.modal-hdr h3{font-size:14px;font-weight:600;color:var(--txt)}
+.modal-hdr h3{font-size:14px;font-weight:600;color:var(--green-d)}
 .modal-close{border:none;background:none;font-size:20px;color:var(--txt3);cursor:pointer;padding:0 4px;line-height:1}
 .modal-ftr{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
 .modal-ftr .btn{width:auto;padding:9px 18px;margin-top:0;font-size:13px}
 
-/* ── PRINT STYLES ──────────────────────────────────────────────── */
+/* ── MOBILE: ocultar sidebar, volver a column ───────────────── */
+@media(max-width:600px){
+  body{flex-direction:column}
+  .pa-sidebar{display:none}
+  .pa-main{padding:16px 12px 60px}
+  .mode-tabs{flex-wrap:wrap}
+  .mode-tab{flex:0 0 calc(50% - 3px)}
+}
+
+/* ── PRINT ──────────────────────────────────────────────────── */
 @media print{
   body{padding:0;background:#fff;display:block}
-  .header,.mode-tabs,.card,.success-card,.hist-card,.no-print{display:none!important}
+  .pa-sidebar,.header,.mode-tabs,.card,.success-card,.hist-card,.no-print{display:none!important}
   #print-area{display:block!important}
 }
 
@@ -179,25 +294,46 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fn);font-size:14px;
 </head>
 <body>
 
+<!-- SIDEBAR -->
+<nav class="pa-sidebar no-print" aria-label="Navegación principal">
+  <div class="pa-brand" title="Portal del Agente">PA</div>
+  <button class="pa-nav-btn active" id="tab-individual" onclick="setMode('individual')" title="Salida individual">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+    <span class="pa-tooltip">Salida individual</span>
+  </button>
+  <button class="pa-nav-btn" id="tab-cuadrilla" onclick="setMode('cuadrilla')" title="Salida de cuadrilla">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M2 20c0-3 2.7-5.5 6-5.5"/><path d="M22 20c0-3-2.7-5.5-6-5.5"/><path d="M9 20c0-3 1.3-5 3-5s3 2 3 5"/></svg>
+    <span class="pa-tooltip">Salida cuadrilla</span>
+  </button>
+  <button class="pa-nav-btn" id="tab-menu" onclick="setMode('menu')" title="Menú semanal">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/><circle cx="8" cy="15" r="1.2" fill="currentColor"/><circle cx="12" cy="15" r="1.2" fill="currentColor"/><circle cx="16" cy="15" r="1.2" fill="currentColor"/></svg>
+    <span class="pa-tooltip">Menú semanal</span>
+  </button>
+</nav>
+
+<!-- CONTENIDO PRINCIPAL -->
+<main class="pa-main">
+
 <div class="header no-print">
-  <svg viewBox="0 0 100 110" xmlns="http://www.w3.org/2000/svg">
+  <svg viewBox="0 0 100 110" xmlns="http://www.w3.org/2000/svg" width="26" height="30">
     <defs><clipPath id="f"><path d="M20,13 L52,13 A42.5,42.5 0 0,1 52,98 L20,98 Z"/></clipPath></defs>
     <g clip-path="url(#f)">
-      <rect x="20" y="37" width="32" height="61" fill="#1B5C9B"/>
+      <rect x="20" y="37" width="32" height="61" fill="#1a7a46"/>
       <rect x="34" y="13" width="46" height="55" fill="#2BACC8"/>
       <rect x="50" y="52" width="44" height="46" fill="#7DA31E"/>
     </g>
   </svg>
   <div class="header-text">
     <h1>Portal del Agente</h1>
-    <p>Personal DMTH – Dirección de Mantenimiento y Talleres</p>
+    <p>DMTH — Dirección de Mantenimiento y Talleres</p>
   </div>
+  <div class="header-badge" id="header-fecha-badge"></div>
 </div>
 
-<div class="mode-tabs no-print">
-  <button class="mode-tab active" id="tab-individual" onclick="setMode('individual')">👤 Salida individual</button>
-  <button class="mode-tab" id="tab-cuadrilla" onclick="setMode('cuadrilla')">👥 Salida de cuadrilla</button>
-  <button class="mode-tab" id="tab-menu" onclick="setMode('menu')">🍽️ Menú semanal</button>
+<div class="mode-tabs no-print" style="display:none" id="mode-tabs-mobile">
+  <button class="mode-tab active" id="tab-individual-m" onclick="setMode('individual')">Salida individual</button>
+  <button class="mode-tab" id="tab-cuadrilla-m" onclick="setMode('cuadrilla')">Salida cuadrilla</button>
+  <button class="mode-tab" id="tab-menu-m" onclick="setMode('menu')">Menú semanal</button>
 </div>
 
 <!-- SALIDA INDIVIDUAL -->
@@ -271,8 +407,8 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fn);font-size:14px;
   <div class="card-sub">Agregá integrantes por DNI, luego completá el motivo y horario para todos.</div>
   <div class="err-msg" id="err-cuad"></div>
 
-  <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r2);padding:14px;margin-bottom:14px">
-    <div style="font-size:12px;font-weight:600;color:var(--txt2);margin-bottom:10px">Agregar integrante</div>
+  <div style="background:var(--green-l);border:1px solid var(--border);border-radius:var(--r2);padding:14px;margin-bottom:14px">
+    <div style="font-size:12px;font-weight:600;color:var(--green-d);margin-bottom:10px">Agregar integrante</div>
     <div class="field">
       <label>DNI</label>
       <div class="dni-wrap">
@@ -301,7 +437,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fn);font-size:14px;
   <div id="cuad-count" style="font-size:12px;color:var(--txt3);margin-bottom:12px;display:none"></div>
 
   <div style="border-top:1px solid var(--border);padding-top:14px">
-    <div style="font-size:12px;font-weight:600;color:var(--txt2);margin-bottom:10px">Datos de la salida (para todos)</div>
+    <div style="font-size:12px;font-weight:600;color:var(--green-d);margin-bottom:10px">Datos de la salida (para todos)</div>
     <div class="field">
       <label>Fecha de salida <span class="req">*</span></label>
       <input type="date" id="cuad-fecha">
@@ -519,6 +655,8 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fn);font-size:14px;
 <!-- ÁREA DE IMPRESIÓN (oculta en pantalla, visible al imprimir) -->
 <div id="print-area"></div>
 
+</main>
+
 <script>
 'use strict';
 const API='/api';
@@ -533,12 +671,21 @@ const today=()=>new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'2-di
 const nowHM=()=>new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
 const todayISO=()=>new Date().toISOString().slice(0,10);
 
-(function initFechas(){
+(function initApp(){
   const hoy=todayISO();
   ['ind-fecha','cuad-fecha'].forEach(id=>{
     const el=document.getElementById(id);
     if(el){el.value=hoy;el.min=hoy;}
   });
+  const badge=document.getElementById('header-fecha-badge');
+  if(badge){
+    badge.textContent=new Date().toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+  }
+  // En mobile mostrar tabs horizontales
+  if(window.innerWidth<=600){
+    const mt=document.getElementById('mode-tabs-mobile');
+    if(mt)mt.style.display='flex';
+  }
 })();
 
 // ── MODO ────────────────────────────────────────────────────────────
@@ -546,6 +693,7 @@ function setMode(m){
   document.getElementById('card-individual').classList.toggle('show',m==='individual');
   document.getElementById('card-cuadrilla').classList.toggle('show',m==='cuadrilla');
   document.getElementById('card-menu').classList.toggle('show',m==='menu');
+  // Sidebar
   document.getElementById('tab-individual').classList.toggle('active',m==='individual');
   document.getElementById('tab-cuadrilla').classList.toggle('active',m==='cuadrilla');
   document.getElementById('tab-menu').classList.toggle('active',m==='menu');
@@ -649,7 +797,7 @@ function renderHistorial(r, title, body){
         <td>${fmtFecha(o.fecha)}</td>
         <td style="white-space:nowrap">${xe(o.hora_salida||'')}${o.hora_retorno?'–'+xe(o.hora_retorno):''}</td>
         <td><span class="hist-badge ${xe(o.tipo)}">${xe(o.tipo)}</span> ${xe((o.motivo.split('–')[1]||o.motivo).trim())}</td>
-        <td style="font-weight:600;color:var(--blue);font-size:11px;white-space:nowrap">${xe(o.numero_orden)}</td>
+        <td style="font-weight:600;color:var(--green);font-size:11px;white-space:nowrap">${xe(o.numero_orden)}</td>
         <td>
           <div class="hist-actions">
             <button class="hist-btn hist-btn-edit" onclick='abrirEdicion(${JSON.stringify(o)})'>Editar</button>
@@ -1112,7 +1260,7 @@ function menuLookupDNI(val){
 function menuTipoChange(){
   const sel=document.querySelector('input[name="menu-tipo"]:checked');
   document.getElementById('lbl-normal').style.borderColor=
-    sel&&sel.value==='NORMAL'?'var(--blue)':'var(--border)';
+    sel&&sel.value==='NORMAL'?'var(--green)':'var(--border)';
   document.getElementById('lbl-salu').style.borderColor=
     sel&&sel.value==='SALUDABLE'?'var(--green)':'var(--border)';
 }
@@ -1159,7 +1307,7 @@ async function cargarMenuHist(dni){
     bodyEl.innerHTML=d.pedidos.map(p=>{
       const color=p.tipo_menu==='SALUDABLE'
         ?'background:var(--green-l);color:var(--green);border:1px solid var(--green-m)'
-        :'background:var(--blue-l);color:var(--blue);border:1px solid var(--blue-m)';
+        :'background:var(--green-l);color:var(--green-d);border:1px solid var(--border)';
       const dias=fmtDias(p.semana_dias);
       return `<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border:1px solid var(--border);border-radius:var(--r2);margin-bottom:5px;font-size:12px">
         <div>
@@ -1271,13 +1419,13 @@ function renderMcuadLista(){
   if(!_mcuadLista.length){lista.innerHTML='';empty.style.display='';btn.style.display='none';return;}
   empty.style.display='none';btn.style.display='';
   lista.innerHTML=_mcuadLista.map(ag=>{
-    const colorN=ag.tipo_menu==='NORMAL'?'var(--blue)':'var(--border)';
+    const colorN=ag.tipo_menu==='NORMAL'?'var(--green)':'var(--border)';
     const colorS=ag.tipo_menu==='SALUDABLE'?'var(--green)':'var(--border)';
     return `<div class="cuad-item">
       <div class="cuad-item-info">
         <div class="cuad-item-nombre">${xe(ag.apellido_nombre)}</div>
         <div class="cuad-item-sector" style="display:flex;gap:6px;margin-top:4px">
-          <label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer;padding:3px 8px;border:1.5px solid ${colorN};border-radius:4px;font-weight:600;color:${ag.tipo_menu==='NORMAL'?'var(--blue)':'var(--txt3)'}">
+          <label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer;padding:3px 8px;border:1.5px solid ${colorN};border-radius:4px;font-weight:600;color:${ag.tipo_menu==='NORMAL'?'var(--green)':'var(--txt3)'}">
             <input type="radio" name="mcuad-tipo-${xe(ag.dni)}" value="NORMAL" ${ag.tipo_menu==='NORMAL'?'checked':''} onchange="mcuadCambiarTipo('${xe(ag.dni)}','NORMAL');renderMcuadLista()"> NORMAL
           </label>
           <label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer;padding:3px 8px;border:1.5px solid ${colorS};border-radius:4px;font-weight:600;color:${ag.tipo_menu==='SALUDABLE'?'var(--green)':'var(--txt3)'}">
