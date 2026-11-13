@@ -1408,44 +1408,6 @@ td.mono{font-family:var(--mono);font-size:12px}
   </div>
 </div>
 
-<!-- Modal vista previa impresión menú -->
-<div class="modal-overlay hidden" id="modal-prev-menu">
-  <div class="modal-box" style="max-width:700px;max-height:85vh;display:flex;flex-direction:column">
-    <div class="modal-hdr" style="flex-shrink:0">
-      <h3>Vista previa — Lista del día</h3>
-      <button class="modal-close" onclick="cerrarModal('modal-prev-menu')">×</button>
-    </div>
-    <div style="font-size:12px;color:var(--txt3);margin-bottom:10px;flex-shrink:0">
-      Quitá los que faltan hoy antes de imprimir.
-    </div>
-    <div style="display:flex;gap:10px;margin-bottom:12px;flex-shrink:0">
-      <span id="prev-stat-total" style="font-size:12px;font-weight:600;color:var(--txt)"></span>
-      <span style="color:var(--border)">|</span>
-      <span id="prev-stat-normal" style="font-size:12px;color:var(--blue)"></span>
-      <span style="color:var(--border)">|</span>
-      <span id="prev-stat-salu" style="font-size:12px;color:var(--green)"></span>
-    </div>
-    <div style="overflow-y:auto;flex:1;border:1px solid var(--border);border-radius:var(--r2)">
-      <table style="width:100%;border-collapse:collapse;font-size:12px">
-        <thead style="position:sticky;top:0;z-index:1">
-          <tr>
-            <th style="padding:8px 10px;background:var(--bg);border-bottom:1px solid var(--border);text-align:left">Apellido y Nombre</th>
-            <th style="padding:8px 10px;background:var(--bg);border-bottom:1px solid var(--border);text-align:left">Establ./Sector</th>
-            <th style="padding:8px 10px;background:var(--bg);border-bottom:1px solid var(--border);text-align:center;width:90px">Menú</th>
-            <th style="padding:8px 10px;background:var(--bg);border-bottom:1px solid var(--border);width:40px"></th>
-          </tr>
-        </thead>
-        <tbody id="prev-tbody"></tbody>
-      </table>
-    </div>
-    <div style="margin-top:10px;font-size:11px;color:var(--txt3);flex-shrink:0">Los cambios que hacés acá son solo para esta impresión — no modifican los pedidos guardados.</div>
-    <div class="modal-ftr" style="flex-shrink:0">
-      <button class="tbtn" onclick="cerrarModal('modal-prev-menu')">Cancelar</button>
-      <button class="tbtn primary" onclick="generarImpresionMenu()">Imprimir / PDF</button>
-    </div>
-  </div>
-</div>
-
 <!-- datalists -->
 <datalist id="list-establecimientos"></datalist>
 <datalist id="list-sectores"></datalist>
@@ -3579,94 +3541,94 @@ async function guardarSemana(){
   if(nuevaId){_menuSemanaSelId=nuevaId;renderMenuSemanaLista();cargarMenuPedidos();}
 }
 
-let _prevLista=[];  // copia editable para la vista previa
 
 function imprimirMenuDia(){
   const semana=_menuSemanas.find(s=>s.id===_menuSemanaSelId);
   if(!semana||!_menuPedidos.length){toast('No hay pedidos para imprimir','err');return;}
-  // Copia editable ordenada: primero NORMAL, luego SALUDABLE, dentro de cada grupo alfabético
-  _prevLista=[..._menuPedidos].sort((a,b)=>{
+  const lista=[..._menuPedidos].sort((a,b)=>{
     if(a.tipo_menu!==b.tipo_menu)return a.tipo_menu==='NORMAL'?-1:1;
     return a.apellido_nombre.localeCompare(b.apellido_nombre,'es');
   });
-  renderPrevMenu();
-  abrirModal('modal-prev-menu');
+  abrirVentanaPreviewMenu(semana,lista);
 }
 
-function renderPrevMenu(){
-  const nTotal=_prevLista.length;
-  const nN=_prevLista.filter(p=>p.tipo_menu==='NORMAL').length;
-  const nS=_prevLista.filter(p=>p.tipo_menu==='SALUDABLE').length;
-  document.getElementById('prev-stat-total').textContent=`Total: ${nTotal}`;
-  document.getElementById('prev-stat-normal').textContent=`Normal: ${nN}`;
-  document.getElementById('prev-stat-salu').textContent=`Saludable: ${nS}`;
-
-  document.getElementById('prev-tbody').innerHTML=_prevLista.map((p,i)=>{
-    const badge=p.tipo_menu==='SALUDABLE'
-      ?'background:var(--green-l);color:var(--green)'
-      :'background:var(--blue-l);color:var(--blue)';
-    return `<tr style="border-bottom:1px solid var(--border)">
-      <td style="padding:7px 10px">${xe(p.apellido_nombre)}</td>
-      <td style="padding:7px 10px;color:var(--txt3);font-size:11px">${xe(p.establecimiento||p.sector||'')}</td>
-      <td style="padding:7px 10px;text-align:center">
-        <span style="padding:2px 8px;border-radius:12px;font-size:10px;font-weight:600;${badge}">${xe(p.tipo_menu)}</span>
+function abrirVentanaPreviewMenu(semana,lista){
+  const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const fecha=new Date().toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const filaEditable=(p,i)=>`
+    <tr id="fila-${i}">
+      <td style="width:8mm;text-align:center">${i+1}</td>
+      <td>${esc(p.apellido_nombre)}</td>
+      <td>${esc(p.establecimiento||p.sector||'')}</td>
+      <td style="width:22mm;text-align:center">
+        <span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:9pt;font-weight:600;${p.tipo_menu==='SALUDABLE'?'background:#e6f4ee;color:#1a7a46':'background:#e8f0fb;color:#1a4fa0'}">${esc(p.tipo_menu)}</span>
       </td>
-      <td style="padding:4px 6px;text-align:center">
-        <button onclick="prevQuitarItem(${i})" title="Quitar de la lista"
-          style="border:none;background:var(--red-l);color:var(--red);border-radius:4px;width:22px;height:22px;cursor:pointer;font-size:14px;line-height:1;font-weight:700">×</button>
+      <td style="width:40mm"></td>
+      <td class="no-print" style="width:10mm;text-align:center;border-left:1px solid #ddd">
+        <button onclick="quitarFila(${i})" style="background:none;border:none;cursor:pointer;color:#c00;font-size:14px;font-weight:700;line-height:1" title="Quitar">×</button>
       </td>
     </tr>`;
-  }).join('');
-}
-
-function prevQuitarItem(idx){
-  _prevLista.splice(idx,1);
-  renderPrevMenu();
-}
-
-function generarImpresionMenu(){
-  const semana=_menuSemanas.find(s=>s.id===_menuSemanaSelId);
-  if(!semana||!_prevLista.length){toast('La lista está vacía','err');return;}
-  const fecha=new Date().toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  const normales=_prevLista.filter(p=>p.tipo_menu==='NORMAL');
-  const saludables=_prevLista.filter(p=>p.tipo_menu==='SALUDABLE');
-  const filaTabla=(p,i)=>`<tr><td style="width:8mm">${i+1}</td><td>${xe(p.apellido_nombre)}</td><td>${xe(p.establecimiento||p.sector||'')}</td><td style="width:22mm;text-align:center">${xe(p.tipo_menu)}</td><td style="width:40mm"></td></tr>`;
-  const tabla=(titulo,arr)=>arr.length?`
-    <h3 style="margin:7mm 0 2mm;font-size:11pt;color:#004D99;border-bottom:1.5px solid #004D99;padding-bottom:2mm">${titulo}</h3>
-    <table style="width:100%;border-collapse:collapse;font-size:9pt">
-      <thead><tr style="background:#004D99;color:#fff">
-        <th style="padding:4px 6px">N°</th><th>Apellido y Nombre</th><th>Establecimiento/Sector</th><th>Menú</th><th>Firma</th>
-      </tr></thead>
-      <tbody>${arr.map(filaTabla).join('')}</tbody>
-    </table>`:''
-  ;
-  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Pedido de Comida</title>
-    <style>
-      body{font-family:Arial,sans-serif;margin:12mm 14mm;color:#222;font-size:10pt}
-      table{border-collapse:collapse;width:100%}
-      td,th{border:1px solid #bbb;padding:4px 6px;text-align:left;vertical-align:middle}
-      @media print{.no-print{display:none!important}}
-    </style>
+  const datosJson=JSON.stringify(lista);
+  const html=`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
+  <title>Vista previa — ${esc(semana.label)}</title>
+  <style>
+    body{font-family:Arial,sans-serif;margin:0;padding:16px 24px;color:#222;font-size:10pt;background:#fff}
+    h1{font-size:14pt;font-weight:700;color:#004D99;margin:0 0 2px}
+    .sub{font-size:9pt;color:#555;margin-bottom:12px}
+    table{border-collapse:collapse;width:100%}
+    td,th{border:1px solid #bbb;padding:5px 7px;text-align:left;vertical-align:middle}
+    thead tr{background:#004D99;color:#fff}
+    .section-hdr{margin:12px 0 4px;font-size:11pt;font-weight:700;color:#004D99;border-bottom:2px solid #004D99;padding-bottom:2px}
+    .stats{font-size:9pt;font-weight:700;margin:10px 0;padding:6px 10px;background:#f4f7fc;border-radius:4px;border:1px solid #d0daf0}
+    .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:14px;padding:10px 14px;background:#f8f9fa;border:1px solid #e0e0e0;border-radius:6px}
+    .btn-impr{padding:9px 22px;background:#004D99;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:600}
+    .btn-impr:hover{background:#003580}
+    .note{font-size:9pt;color:#888;flex:1}
+    .total-bar{margin-top:8px;padding:6px 10px;background:#f0f4fc;border-top:2px solid #004D99;font-weight:700;font-size:10pt}
+    @media print{.no-print{display:none!important}.toolbar{display:none!important}body{padding:8mm 10mm}td,th{border:1px solid #999}}
+  </style>
   </head><body>
-    <div style="text-align:center;margin-bottom:5mm">
-      <div style="font-size:14pt;font-weight:700;color:#004D99">PEDIDO DE COMIDA</div>
-      <div style="font-size:9pt;color:#555;margin-top:1mm">DIRECCIÓN DE MANTENIMIENTO TÉCNICO HOSPITALARIO</div>
-      <div style="font-size:9pt;margin-top:1mm">${xe(semana.label)} — ${fecha}</div>
-    </div>
-    ${tabla('MENÚ NORMAL — '+normales.length+' bandejas',normales)}
-    ${tabla('MENÚ SALUDABLE — '+saludables.length+' bandejas',saludables)}
-    <div style="margin-top:6mm;font-size:9pt;font-weight:700;border-top:1px solid #bbb;padding-top:3mm">
-      TOTAL DE BANDEJAS: ${_prevLista.length} &nbsp;·&nbsp; Normal: ${normales.length} &nbsp;·&nbsp; Saludable: ${saludables.length}
-    </div>
-    <div class="no-print" style="margin-top:10mm">
-      <button onclick="window.print()" style="padding:9px 22px;background:#004D99;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-family:Arial">Imprimir / Guardar PDF</button>
-    </div>
+  <div style="text-align:center;margin-bottom:12px">
+    <h1>PEDIDO DE COMIDA</h1>
+    <div class="sub">DIRECCIÓN DE MANTENIMIENTO TÉCNICO HOSPITALARIO</div>
+    <div class="sub">${esc(semana.label)} — ${esc(fecha)}</div>
+  </div>
+  <div class="toolbar no-print">
+    <span class="note">Quitá los que faltan hoy antes de imprimir. Los cambios son solo para esta impresión.</span>
+    <button class="btn-impr" onclick="imprimir()">🖨 Imprimir / PDF</button>
+  </div>
+  <div id="contenido"></div>
+  <script>
+    var datos=${datosJson};
+    function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+    function quitarFila(idx){datos.splice(idx,1);render();}
+    function render(){
+      var normales=datos.filter(function(p){return p.tipo_menu==='NORMAL';});
+      var saludables=datos.filter(function(p){return p.tipo_menu==='SALUDABLE';});
+      var html='';
+      function tabla(titulo,arr){
+        if(!arr.length)return '';
+        var filas=arr.map(function(p,i){
+          var idx=datos.indexOf(p);
+          return '<tr id="fila-'+idx+'"><td style="width:8mm;text-align:center">'+(i+1)+'</td><td>'+esc(p.apellido_nombre)+'</td><td>'+esc(p.establecimiento||p.sector||'')+'</td><td style="width:22mm;text-align:center"><span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:9pt;font-weight:600;'+(p.tipo_menu==='SALUDABLE'?'background:#e6f4ee;color:#1a7a46':'background:#e8f0fb;color:#1a4fa0')+'">'+esc(p.tipo_menu)+'</span></td><td style="width:40mm"></td><td class="no-print" style="width:10mm;text-align:center;border-left:1px solid #ddd"><button onclick="quitarFila('+idx+')" style="background:none;border:none;cursor:pointer;color:#c00;font-size:14px;font-weight:700;line-height:1" title="Quitar">×</button></td></tr>';
+        }).join('');
+        return '<div class="section-hdr">'+titulo+'</div><table><thead><tr><th>N°</th><th>Apellido y Nombre</th><th>Establ./Sector</th><th>Menú</th><th>Firma</th><th class="no-print"></th></tr></thead><tbody>'+filas+'</tbody></table>';
+      }
+      html+=tabla('MENÚ NORMAL — '+normales.length+' bandejas',normales);
+      html+=tabla('MENÚ SALUDABLE — '+saludables.length+' bandejas',saludables);
+      html+='<div class="total-bar">TOTAL: '+datos.length+' bandejas &nbsp;·&nbsp; Normal: '+normales.length+' &nbsp;·&nbsp; Saludable: '+saludables.length+'</div>';
+      document.getElementById('contenido').innerHTML=html;
+    }
+    function imprimir(){window.print();}
+    render();
+  <\/script>
   </body></html>`;
-  const w=window.open('','_blank','width=940,height=720');
+  const w=window.open('','_blank','width=980,height=750,toolbar=0,menubar=0,scrollbars=1');
+  if(!w){toast('El navegador bloqueó la ventana emergente. Permitila e intentá de nuevo.','err');return;}
   w.document.write(html);
   w.document.close();
-  cerrarModal('modal-prev-menu');
 }
+
 
 // ── INICIALIZAR ────────────────────────────────────────────────────
 init();
