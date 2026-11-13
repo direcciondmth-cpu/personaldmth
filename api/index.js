@@ -1051,6 +1051,20 @@ module.exports = async function handler(req, res) {
       return ok(res, { semana: { ...s, dias: JSON.parse(s.dias) } });
     }
 
+    if (action === 'getMenuPedidosPorDNI') {
+      // Sin auth — historial del agente en app externa
+      const { dni } = body;
+      if (!dni) return err(res, 'Falta dni');
+      const rows = await sql`
+        SELECT p.id, p.semana_id, p.tipo_menu, p.activo, s.label AS semana_label, s.dias AS semana_dias
+        FROM menu_pedidos p
+        JOIN menu_semanas s ON s.id = p.semana_id
+        WHERE p.dni=${dni} AND p.activo='SI'
+        ORDER BY s.fecha_carga DESC
+        LIMIT 20`;
+      return ok(res, { pedidos: rows });
+    }
+
     if (action === 'editMenuSemana') {
       const auth = requireAuth(req, 'admin');
       if (!auth) return err(res, 'No autorizado', 401);

@@ -456,6 +456,12 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fn);font-size:14px;
     <button class="btn btn-primary" id="btn-enviar-menu" onclick="enviarMenuPedido()" style="display:none">Confirmar pedido</button>
   </div>
 
+  <!-- Historial del agente -->
+  <div id="menu-hist" style="display:none;margin-top:18px;border-top:1px solid var(--border);padding-top:14px">
+    <div style="font-size:12px;font-weight:600;color:var(--txt2);margin-bottom:8px">Mis pedidos anteriores</div>
+    <div id="menu-hist-body"></div>
+  </div>
+
   <!-- Éxito -->
   <div id="menu-ok" style="display:none;text-align:center;padding:16px 0">
     <div style="width:48px;height:48px;background:var(--green-l);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px">
@@ -992,6 +998,8 @@ function menuLookupDNI(val){
         nf.style.display='';
         tf.style.display='';
         btn.style.display='';
+        // Cargar historial completo del agente
+        cargarMenuHist(dni);
         // Verificar si ya tiene pedido para esta semana
         if(_menuSemanaActiva){
           const rp=await fetch(API+'?action=getMenuPedidos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({semana_id:_menuSemanaActiva.id})});
@@ -1049,6 +1057,37 @@ async function enviarMenuPedido(){
   document.getElementById('btn-enviar-menu').disabled=false;
 }
 
+async function cargarMenuHist(dni){
+  const histEl=document.getElementById('menu-hist');
+  const bodyEl=document.getElementById('menu-hist-body');
+  histEl.style.display='none';
+  try{
+    const r=await fetch(API+'?action=getMenuPedidosPorDNI',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dni})});
+    const d=await r.json();
+    if(!d.ok||!d.pedidos||!d.pedidos.length)return;
+    const fmtDias=dias=>{
+      try{
+        const arr=typeof dias==='string'?JSON.parse(dias):dias;
+        return arr.map(d2=>new Date(d2+'T12:00:00').toLocaleDateString('es-AR',{day:'numeric',month:'numeric'})).join(' / ');
+      }catch{return '';}
+    };
+    bodyEl.innerHTML=d.pedidos.map(p=>{
+      const color=p.tipo_menu==='SALUDABLE'
+        ?'background:var(--green-l);color:var(--green);border:1px solid var(--green-m)'
+        :'background:var(--blue-l);color:var(--blue);border:1px solid var(--blue-m)';
+      const dias=fmtDias(p.semana_dias);
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border:1px solid var(--border);border-radius:var(--r2);margin-bottom:5px;font-size:12px">
+        <div>
+          <div style="font-weight:600;color:var(--txt)">${xe(p.semana_label)}</div>
+          ${dias?`<div style="color:var(--txt3);margin-top:1px">${dias}</div>`:''}
+        </div>
+        <span style="padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;${color}">${xe(p.tipo_menu)}</span>
+      </div>`;
+    }).join('');
+    histEl.style.display='';
+  }catch{}
+}
+
 function menuNuevoPedido(){
   document.getElementById('menu-ok').style.display='none';
   document.getElementById('menu-form-wrap').style.display='';
@@ -1061,6 +1100,8 @@ function menuNuevoPedido(){
   document.getElementById('err-menu').className='err-msg';
   document.querySelectorAll('input[name="menu-tipo"]').forEach(r=>r.checked=false);
   menuTipoChange();
+  document.getElementById('menu-hist').style.display='none';
+  document.getElementById('menu-hist-body').innerHTML='';
   _menuAgente=null;
 }
 </script>
