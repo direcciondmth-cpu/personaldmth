@@ -1114,14 +1114,16 @@ module.exports = async function handler(req, res) {
 
     if (action === 'addMenuPedido') {
       // Sin auth — carga desde app externa
-      const { semana_id, dni, apellido_nombre, tipo_menu } = body;
+      const { semana_id, dni, apellido_nombre, tipo_menu, doble_turno } = body;
       if (!semana_id || !dni || !tipo_menu) return err(res, 'Faltan campos');
       if (!['NORMAL','SALUDABLE'].includes(tipo_menu)) return err(res, 'Tipo inválido');
       const semCheck = await sql`SELECT id FROM menu_semanas WHERE id=${semana_id} LIMIT 1`;
       if (!semCheck.length) return err(res, 'Semana no encontrada');
-      // Bloquear duplicados — una sola carga por DNI por semana
-      const dup = await sql`SELECT id FROM menu_pedidos WHERE semana_id=${semana_id} AND dni=${dni} AND activo='SI' LIMIT 1`;
-      if (dup.length) return err(res, 'Este DNI ya tiene un pedido registrado para esta semana');
+      if (!doble_turno) {
+        // Bloquear duplicados solo si no es doble turno
+        const dup = await sql`SELECT id FROM menu_pedidos WHERE semana_id=${semana_id} AND dni=${dni} AND activo='SI' LIMIT 1`;
+        if (dup.length) return err(res, 'Este DNI ya tiene un pedido registrado para esta semana');
+      }
       const id = genId('mpedido');
       await sql`INSERT INTO menu_pedidos (id,semana_id,dni,apellido_nombre,tipo_menu,activo,usuario_carga)
         VALUES (${id},${semana_id},${dni},${apellido_nombre||''},${tipo_menu},'SI','ext')`;

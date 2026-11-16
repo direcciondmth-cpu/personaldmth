@@ -498,7 +498,7 @@ body{
 <!-- SIDEBAR -->
 <nav class="pa-sidebar no-print" aria-label="Navegación principal">
   <div class="pa-brand" title="Portal del Agente">PA</div>
-  <button class="pa-nav-btn" id="sidebar-btn-salida" onclick="goModulo('salida')" title="Pedido de salida">
+  <button class="pa-nav-btn" id="sidebar-btn-salida" style="display:none" title="Pedido de salida">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><path d="M17 14l3 3-3 3"/><path d="M14 17h6" /></svg>
     <span class="pa-tooltip">Pedido de salida</span>
   </button>
@@ -529,15 +529,15 @@ body{
 
 <!-- PANTALLA INICIAL: 2 BOTONES GRANDES -->
 <div class="home-screen no-print" id="home-screen">
-  <button class="home-btn" onclick="goModulo('salida')">
-    <div class="home-btn-icon">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="8" r="4"/><path d="M2 20c0-4 3.6-7 8-7"/><path d="M17 14l3 3-3 3"/><path d="M13 17h7"/></svg>
+  <button class="home-btn" style="opacity:.38;cursor:not-allowed;pointer-events:none" disabled>
+    <div class="home-btn-icon" style="background:var(--bg);border-color:var(--border)">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--txt3)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="8" r="4"/><path d="M2 20c0-4 3.6-7 8-7"/><path d="M17 14l3 3-3 3"/><path d="M13 17h7"/></svg>
     </div>
     <div class="home-btn-text">
-      <h2>Pedido de Salida</h2>
-      <p>Individual o de cuadrilla</p>
+      <h2 style="color:var(--txt3)">Pedido de Salida</h2>
+      <p>Temporalmente deshabilitado</p>
     </div>
-    <div class="home-btn-arrow">›</div>
+    <div class="home-btn-arrow" style="color:var(--border)">—</div>
   </button>
   <button class="home-btn" onclick="goModulo('menu')">
     <div class="home-btn-icon">
@@ -829,6 +829,34 @@ body{
         </div>
         <div class="dni-tag" id="menu-dni-tag"></div>
       </div>
+
+      <!-- Formulario manual para ELECTROMEDICINA / GUARDIA NEO -->
+      <div id="menu-ext-form" style="display:none;margin-bottom:12px">
+        <div style="background:var(--amber-l);border:1px solid var(--amber-m);border-radius:var(--r2);padding:10px 12px;font-size:12px;color:var(--txt2);margin-bottom:12px;line-height:1.5">
+          <strong>DNI no registrado en DMTH.</strong> Si pertenecés a <strong>ELECTROMEDICINA</strong> o <strong>GUARDIA NEO</strong>, completá tus datos:
+        </div>
+        <div class="field-row">
+          <div class="field" style="margin-bottom:0">
+            <label>Apellido <span class="req">*</span></label>
+            <input type="text" id="menu-ext-apellido" autocomplete="off" placeholder="Apellido">
+          </div>
+          <div class="field" style="margin-bottom:0">
+            <label>Nombre <span class="req">*</span></label>
+            <input type="text" id="menu-ext-nombre" autocomplete="off" placeholder="Nombre">
+          </div>
+        </div>
+        <div class="field" style="margin-top:10px">
+          <label>Sector <span class="req">*</span></label>
+          <select id="menu-ext-sector">
+            <option value="">— Seleccioná —</option>
+            <option value="ELECTROMEDICINA">ELECTROMEDICINA</option>
+            <option value="GUARDIA NEO">GUARDIA NEO</option>
+          </select>
+        </div>
+        <button class="btn btn-outline" style="margin-top:4px" onclick="menuConfirmarExterno()">Confirmar →</button>
+        <div class="err-msg" id="err-menu-ext" style="margin-top:8px"></div>
+      </div>
+
       <div class="field" id="menu-nombre-field" style="display:none">
         <label>Nombre</label>
         <input type="text" id="menu-nombre" readonly>
@@ -879,6 +907,31 @@ body{
       <button class="cuad-add-btn" onclick="mcuadAgregar()">Agregar</button>
     </div>
     <div class="dni-tag" id="mcuad-tag" style="margin-bottom:8px"></div>
+
+    <!-- Formulario manual para externos (ELECTROMEDICINA / GUARDIA NEO) -->
+    <div id="mcuad-ext-form" style="display:none;background:var(--amber-l);border:1px solid var(--amber-m);border-radius:var(--r2);padding:12px;margin-bottom:10px">
+      <div style="font-size:11px;color:var(--txt2);margin-bottom:10px;line-height:1.5">
+        <strong>DNI no registrado.</strong> Completá para ELECTROMEDICINA o GUARDIA NEO:
+      </div>
+      <div class="field-row" style="margin-bottom:8px">
+        <div class="field" style="margin-bottom:0">
+          <label style="font-size:11px">Apellido <span class="req">*</span></label>
+          <input type="text" id="mcuad-ext-apellido" autocomplete="off" placeholder="Apellido">
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label style="font-size:11px">Nombre <span class="req">*</span></label>
+          <input type="text" id="mcuad-ext-nombre" autocomplete="off" placeholder="Nombre">
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label style="font-size:11px">Sector <span class="req">*</span></label>
+        <select id="mcuad-ext-sector">
+          <option value="">— Seleccioná —</option>
+          <option value="ELECTROMEDICINA">ELECTROMEDICINA</option>
+          <option value="GUARDIA NEO">GUARDIA NEO</option>
+        </select>
+      </div>
+    </div>
 
     <!-- Lista cuadrilla menú -->
     <div id="mcuad-lista" class="cuad-list"></div>
@@ -1491,6 +1544,7 @@ function menuLookupDNI(val){
   _menuAgente=null;
   tag.className='dni-tag';tag.style.display='none';
   nf.style.display='none';tf.style.display='none';pa.style.display='none';btn.style.display='none';
+  document.getElementById('menu-ext-form').style.display='none';
   if(dni.length<7)return;
   spin.classList.add('show');
   _menuDniTimer=setTimeout(async()=>{
@@ -1503,6 +1557,7 @@ function menuLookupDNI(val){
         tag.className='dni-tag show found';
         tag.textContent='✓ '+d.agente.apellido_nombre;
         tag.style.display='';
+        document.getElementById('menu-ext-form').style.display='none';
         document.getElementById('menu-nombre').value=d.agente.apellido_nombre;
         nf.style.display='';
         tf.style.display='';
@@ -1517,19 +1572,45 @@ function menuLookupDNI(val){
             const existente=(dp.pedidos||[]).find(p=>p.semana_id===_menuSemanaActiva.id);
             if(existente){
               pa.style.display='';
-              pa.textContent=`⚠ Ya tiene un pedido registrado esta semana: MENÚ ${existente.tipo_menu}. Solo se permite una carga por semana.`;
-              btn.style.display='none'; // bloquear re-carga
-              tf.style.display='none';
+              pa.textContent=`⚠ Ya tiene un pedido registrado esta semana: MENÚ ${existente.tipo_menu}.`;
+              // Permitir doble turno — no bloquear, solo avisar
+              btn.setAttribute('data-doble-turno','1');
+              btn.textContent='Registrar 2° turno (guardia)';
             }
           }
         }
       } else {
         tag.className='dni-tag show notfound';
-        tag.textContent='⚠ DNI no encontrado en el padrón';
+        tag.textContent='⚠ DNI no encontrado en el padrón DMTH';
         tag.style.display='';
+        document.getElementById('menu-ext-form').style.display='';
+        document.getElementById('menu-ext-apellido').value='';
+        document.getElementById('menu-ext-nombre').value='';
+        document.getElementById('menu-ext-sector').value='';
+        document.getElementById('err-menu-ext').classList.remove('show');
       }
     }catch{spin.classList.remove('show');}
   },500);
+}
+
+function menuConfirmarExterno(){
+  const ap=document.getElementById('menu-ext-apellido').value.trim().toUpperCase();
+  const nm=document.getElementById('menu-ext-nombre').value.trim().toUpperCase();
+  const sec=document.getElementById('menu-ext-sector').value;
+  const errEl=document.getElementById('err-menu-ext');
+  errEl.classList.remove('show');
+  if(!ap){errEl.textContent='Ingresá el apellido.';errEl.classList.add('show');return;}
+  if(!nm){errEl.textContent='Ingresá el nombre.';errEl.classList.add('show');return;}
+  if(!sec){errEl.textContent='Seleccioná el sector.';errEl.classList.add('show');return;}
+  const dni=document.getElementById('menu-dni').value.replace(/\D/g,'');
+  _menuAgente={dni,apellido_nombre:ap+' '+nm,sector:sec,externo:true};
+  document.getElementById('menu-ext-form').style.display='none';
+  document.getElementById('menu-dni-tag').className='dni-tag show found';
+  document.getElementById('menu-dni-tag').textContent='✓ '+_menuAgente.apellido_nombre+' ('+sec+')';
+  document.getElementById('menu-nombre').value=_menuAgente.apellido_nombre;
+  document.getElementById('menu-nombre-field').style.display='';
+  document.getElementById('menu-tipo-field').style.display='';
+  document.getElementById('btn-enviar-menu').style.display='';
 }
 
 function menuTipoChange(){
@@ -1544,25 +1625,28 @@ async function enviarMenuPedido(){
   const dni=document.getElementById('menu-dni').value.replace(/\D/g,'');
   const tipo=document.querySelector('input[name="menu-tipo"]:checked');
   const errEl=document.getElementById('err-menu');
+  const btn=document.getElementById('btn-enviar-menu');
   errEl.className='err-msg';
   if(!_menuAgente||!dni){errEl.textContent='Buscá tu DNI primero.';errEl.className='err-msg show';return;}
   if(!tipo){errEl.textContent='Seleccioná un tipo de menú.';errEl.className='err-msg show';return;}
-  if(!_menuSemanaActiva){errEl.textContent='No hay semana activa.';errEl.className='err-menu show';return;}
-  document.getElementById('btn-enviar-menu').disabled=true;
+  if(!_menuSemanaActiva){errEl.textContent='No hay semana activa.';errEl.className='err-msg show';return;}
+  const doble_turno=btn.getAttribute('data-doble-turno')==='1';
+  btn.disabled=true;
   try{
+    const nombre=doble_turno?_menuAgente.apellido_nombre+' — 2° TURNO':_menuAgente.apellido_nombre;
     const r=await fetch(API+'?action=addMenuPedido',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({semana_id:_menuSemanaActiva.id,dni,apellido_nombre:_menuAgente.apellido_nombre,tipo_menu:tipo.value})});
+      body:JSON.stringify({semana_id:_menuSemanaActiva.id,dni,apellido_nombre:nombre,tipo_menu:tipo.value,doble_turno})});
     const d=await r.json();
     if(d.ok){
       document.getElementById('menu-form-wrap').style.display='none';
       document.getElementById('menu-ok').style.display='';
-      document.getElementById('menu-ok-titulo').textContent='¡Pedido registrado!';
+      document.getElementById('menu-ok-titulo').textContent=doble_turno?'¡2° turno registrado!':'¡Pedido registrado!';
       document.getElementById('menu-ok-detalle').textContent=`${_menuAgente.apellido_nombre} — MENÚ ${tipo.value} — ${_menuSemanaActiva.label}`;
     } else {
       errEl.textContent=d.error||'Error al guardar';errEl.className='err-msg show';
     }
   }catch{errEl.textContent='Error de conexión';errEl.className='err-msg show';}
-  document.getElementById('btn-enviar-menu').disabled=false;
+  btn.disabled=false;
 }
 
 async function cargarMenuHist(dni){
@@ -1604,12 +1688,14 @@ function menuNuevoPedido(){
   document.getElementById('menu-nombre-field').style.display='none';
   document.getElementById('menu-tipo-field').style.display='none';
   document.getElementById('menu-pedido-actual').style.display='none';
-  document.getElementById('btn-enviar-menu').style.display='none';
+  const _bm=document.getElementById('btn-enviar-menu');
+  _bm.style.display='none';_bm.textContent='Confirmar pedido';_bm.removeAttribute('data-doble-turno');
   document.getElementById('err-menu').className='err-msg';
   document.querySelectorAll('input[name="menu-tipo"]').forEach(r=>r.checked=false);
   menuTipoChange();
   document.getElementById('menu-hist').style.display='none';
   document.getElementById('menu-hist-body').innerHTML='';
+  document.getElementById('menu-ext-form').style.display='none';
   _menuAgente=null;
 }
 
@@ -1628,6 +1714,7 @@ function mcuadLookup(val){
   const spin=document.getElementById('mcuad-spin');
   _mcuadAgentePending=null;
   tag.className='dni-tag';tag.style.display='none';
+  document.getElementById('mcuad-ext-form').style.display='none';
   if(dni.length<7)return;
   spin.classList.add('show');
   _mcuadTimer=setTimeout(async()=>{
@@ -1638,17 +1725,44 @@ function mcuadLookup(val){
       if(d.ok&&d.agente){
         _mcuadAgentePending=d.agente;
         tag.className='dni-tag show found';tag.textContent='✓ '+d.agente.apellido_nombre;tag.style.display='';
+        document.getElementById('mcuad-ext-form').style.display='none';
       } else {
-        tag.className='dni-tag show notfound';tag.textContent='⚠ DNI no encontrado';tag.style.display='';
+        tag.className='dni-tag show notfound';tag.textContent='⚠ DNI no encontrado en DMTH — completá si es ELECTROMEDICINA o GUARDIA NEO';tag.style.display='';
+        document.getElementById('mcuad-ext-form').style.display='';
+        document.getElementById('mcuad-ext-apellido').value='';
+        document.getElementById('mcuad-ext-nombre').value='';
+        document.getElementById('mcuad-ext-sector').value='';
       }
     }catch{spin.classList.remove('show');}
   },400);
 }
 
 function mcuadAgregar(){
-  if(!_mcuadAgentePending){toast('Buscá un DNI válido primero','err');return;}
+  const dni=document.getElementById('mcuad-dni').value.replace(/\D/g,'');
+  // Si no encontrado, intentar con form manual externo
+  if(!_mcuadAgentePending){
+    const ap=document.getElementById('mcuad-ext-apellido').value.trim().toUpperCase();
+    const nm=document.getElementById('mcuad-ext-nombre').value.trim().toUpperCase();
+    const sec=document.getElementById('mcuad-ext-sector').value;
+    if(ap&&nm&&sec&&dni.length>=7){
+      _mcuadAgentePending={dni,apellido_nombre:ap+' '+nm,sector:sec,externo:true};
+    } else {
+      toast('Buscá un DNI o completá los datos externos','err');return;
+    }
+  }
   const ag=_mcuadAgentePending;
-  if(_mcuadLista.find(x=>x.dni===ag.dni)){toast('Ese DNI ya está en la lista','err');return;}
+  const yaEstaIdx=_mcuadLista.findIndex(x=>x.dni===ag.dni&&!x.doble_turno);
+  if(yaEstaIdx>=0){
+    // Ofrecer doble turno
+    if(!confirm(ag.apellido_nombre+' ya está en la lista.\n¿Agregar como 2° turno (guardia)?'))return;
+    _mcuadLista.push({...ag,apellido_nombre:ag.apellido_nombre+' — 2° TURNO',doble_turno:true});
+    renderMcuadLista();
+    document.getElementById('mcuad-dni').value='';
+    document.getElementById('mcuad-tag').className='dni-tag';document.getElementById('mcuad-tag').style.display='none';
+    document.getElementById('mcuad-ext-form').style.display='none';
+    _mcuadAgentePending=null;
+    return;
+  }
   // Verificar si ya tiene pedido esta semana
   if(_menuSemanaActiva){
     fetch(API+'?action=getMenuPedidosPorDNI',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dni:ag.dni})})
@@ -1668,6 +1782,7 @@ function mcuadAgregar(){
   document.getElementById('mcuad-dni').value='';
   document.getElementById('mcuad-tag').className='dni-tag';
   document.getElementById('mcuad-tag').style.display='none';
+  document.getElementById('mcuad-ext-form').style.display='none';
   _mcuadAgentePending=null;
 }
 
@@ -1716,7 +1831,7 @@ async function enviarMenuCuadrilla(){
   for(const ag of _mcuadLista){
     try{
       const r=await fetch(API+'?action=addMenuPedido',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({semana_id:_menuSemanaActiva.id,dni:ag.dni,apellido_nombre:ag.apellido_nombre,tipo_menu:ag.tipo_menu})});
+        body:JSON.stringify({semana_id:_menuSemanaActiva.id,dni:ag.dni,apellido_nombre:ag.apellido_nombre,tipo_menu:ag.tipo_menu,doble_turno:ag.doble_turno||false})});
       const d=await r.json();
       if(d.ok)ok++;else fail++;
     }catch{fail++;}
