@@ -86,8 +86,50 @@ body{
   border:1px solid var(--green-m);white-space:nowrap;
 }
 
+/* ── BOTONES HOME ───────────────────────────────────────────── */
+.home-screen{
+  width:100%;max-width:580px;
+  display:flex;flex-direction:column;gap:14px;
+  margin-top:16px;
+}
+.home-btn{
+  display:flex;align-items:center;gap:18px;
+  padding:22px 20px;
+  background:#fff;border:1.5px solid var(--border);
+  border-radius:var(--r);cursor:pointer;
+  transition:border-color .15s,box-shadow .15s;
+  text-align:left;width:100%;font-family:var(--fn);
+  box-shadow:0 2px 8px rgba(15,100,55,.05);
+}
+.home-btn:hover{
+  border-color:var(--green);
+  box-shadow:0 4px 16px rgba(15,100,55,.12);
+}
+.home-btn-icon{
+  width:48px;height:48px;border-radius:12px;
+  background:var(--green-l);border:1.5px solid var(--green-m);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;color:var(--green);
+}
+.home-btn-text h2{font-size:15px;font-weight:700;color:var(--green-d);margin-bottom:3px}
+.home-btn-text p{font-size:12px;color:var(--txt3)}
+.home-btn-arrow{margin-left:auto;color:var(--green-m);font-size:18px;flex-shrink:0;font-weight:300}
+
+/* ── SUB-NAVEGACIÓN ─────────────────────────────────────────── */
+.subnav{width:100%;max-width:580px;margin:14px 0 0;display:none}
+.subnav.show{display:block}
+.subnav-top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.subnav-back{
+  border:none;background:none;cursor:pointer;
+  display:flex;align-items:center;gap:5px;
+  font-size:12px;color:var(--txt3);font-family:var(--fn);
+  padding:5px 8px;border-radius:6px;
+}
+.subnav-back:hover{background:var(--green-l);color:var(--green)}
+.subnav-modulo{font-size:14px;font-weight:700;color:var(--green-d)}
+
 /* ── TABS ───────────────────────────────────────────────────── */
-.mode-tabs{display:flex;gap:6px;width:100%;max-width:580px;margin:14px 0}
+.mode-tabs{display:flex;gap:6px;width:100%;max-width:580px;margin:0 0 14px}
 .mode-tab{
   flex:1;padding:9px 8px;border:1.5px solid var(--border);
   border-radius:var(--r2);background:#fff;
@@ -98,6 +140,20 @@ body{
   border-color:var(--green);background:var(--green-l);
   color:var(--green);font-weight:600;
 }
+
+/* ── LINK VER MENÚ ──────────────────────────────────────────── */
+.menu-sheet-link{
+  width:100%;max-width:580px;
+  display:flex;align-items:center;gap:10px;
+  padding:11px 14px;margin-bottom:14px;
+  background:var(--green-l);border:1px solid var(--green-m);
+  border-radius:var(--r2);text-decoration:none;
+  transition:background .15s;
+}
+.menu-sheet-link:hover{background:var(--border)}
+.menu-sheet-link-txt strong{display:block;font-size:12px;font-weight:700;color:var(--green-d)}
+.menu-sheet-link-txt span{font-size:11px;color:var(--txt3)}
+.menu-sheet-link svg{flex-shrink:0;color:var(--green);margin-left:auto}
 
 /* ── CARD ───────────────────────────────────────────────────── */
 .card{
@@ -226,13 +282,13 @@ body{
 .modal-ftr{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
 .modal-ftr .btn{width:auto;padding:9px 18px;margin-top:0;font-size:13px}
 
-/* ── MOBILE: ocultar sidebar, volver a column ───────────────── */
+/* ── MOBILE ─────────────────────────────────────────────────── */
 @media(max-width:600px){
   body{flex-direction:column}
   .pa-sidebar{display:none}
   .pa-main{padding:16px 12px 60px}
-  .mode-tabs{flex-wrap:wrap}
-  .mode-tab{flex:0 0 calc(50% - 3px)}
+  .home-btn{padding:16px 14px;gap:12px}
+  .home-btn-icon{width:40px;height:40px}
 }
 
 /* ── PRINT ──────────────────────────────────────────────────── */
@@ -297,15 +353,11 @@ body{
 <!-- SIDEBAR -->
 <nav class="pa-sidebar no-print" aria-label="Navegación principal">
   <div class="pa-brand" title="Portal del Agente">PA</div>
-  <button class="pa-nav-btn active" id="tab-individual" onclick="setMode('individual')" title="Salida individual">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-    <span class="pa-tooltip">Salida individual</span>
+  <button class="pa-nav-btn" id="sidebar-btn-salida" onclick="goModulo('salida')" title="Pedido de salida">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><path d="M17 14l3 3-3 3"/><path d="M14 17h6" /></svg>
+    <span class="pa-tooltip">Pedido de salida</span>
   </button>
-  <button class="pa-nav-btn" id="tab-cuadrilla" onclick="setMode('cuadrilla')" title="Salida de cuadrilla">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M2 20c0-3 2.7-5.5 6-5.5"/><path d="M22 20c0-3-2.7-5.5-6-5.5"/><path d="M9 20c0-3 1.3-5 3-5s3 2 3 5"/></svg>
-    <span class="pa-tooltip">Salida cuadrilla</span>
-  </button>
-  <button class="pa-nav-btn" id="tab-menu" onclick="setMode('menu')" title="Menú semanal">
+  <button class="pa-nav-btn" id="sidebar-btn-menu" onclick="goModulo('menu')" title="Menú semanal">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/><circle cx="8" cy="15" r="1.2" fill="currentColor"/><circle cx="12" cy="15" r="1.2" fill="currentColor"/><circle cx="16" cy="15" r="1.2" fill="currentColor"/></svg>
     <span class="pa-tooltip">Menú semanal</span>
   </button>
@@ -330,14 +382,70 @@ body{
   <div class="header-badge" id="header-fecha-badge"></div>
 </div>
 
-<div class="mode-tabs no-print" style="display:none" id="mode-tabs-mobile">
-  <button class="mode-tab active" id="tab-individual-m" onclick="setMode('individual')">Salida individual</button>
-  <button class="mode-tab" id="tab-cuadrilla-m" onclick="setMode('cuadrilla')">Salida cuadrilla</button>
-  <button class="mode-tab" id="tab-menu-m" onclick="setMode('menu')">Menú semanal</button>
+<!-- PANTALLA INICIAL: 2 BOTONES GRANDES -->
+<div class="home-screen no-print" id="home-screen">
+  <button class="home-btn" onclick="goModulo('salida')">
+    <div class="home-btn-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="8" r="4"/><path d="M2 20c0-4 3.6-7 8-7"/><path d="M17 14l3 3-3 3"/><path d="M13 17h7"/></svg>
+    </div>
+    <div class="home-btn-text">
+      <h2>Pedido de Salida</h2>
+      <p>Individual o de cuadrilla</p>
+    </div>
+    <div class="home-btn-arrow">›</div>
+  </button>
+  <button class="home-btn" onclick="goModulo('menu')">
+    <div class="home-btn-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/><circle cx="8" cy="15" r="1.2" fill="currentColor"/><circle cx="12" cy="15" r="1.2" fill="currentColor"/><circle cx="16" cy="15" r="1.2" fill="currentColor"/></svg>
+    </div>
+    <div class="home-btn-text">
+      <h2>Pedido de Menú Semanal</h2>
+      <p>Individual o de cuadrilla</p>
+    </div>
+    <div class="home-btn-arrow">›</div>
+  </button>
+</div>
+
+<!-- SUB-NAV SALIDA -->
+<div class="subnav no-print" id="subnav-salida">
+  <div class="subnav-top">
+    <button class="subnav-back" onclick="goHome()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      Volver
+    </button>
+    <div class="subnav-modulo">Pedido de Salida</div>
+  </div>
+  <div class="mode-tabs">
+    <button class="mode-tab active" id="stab-individual" onclick="setMode('individual')">👤 Individual</button>
+    <button class="mode-tab" id="stab-cuadrilla" onclick="setMode('cuadrilla')">👥 Cuadrilla</button>
+  </div>
+</div>
+
+<!-- SUB-NAV MENÚ -->
+<div class="subnav no-print" id="subnav-menu">
+  <div class="subnav-top">
+    <button class="subnav-back" onclick="goHome()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      Volver
+    </button>
+    <div class="subnav-modulo">Pedido de Menú Semanal</div>
+  </div>
+  <a class="menu-sheet-link" href="https://docs.google.com/spreadsheets/d/1s--nDwZZfYziyeoH3y0W4hSYaqfQaSf90MfeuMqJPnw" target="_blank" rel="noopener">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+    <div class="menu-sheet-link-txt" style="margin-left:10px;flex:1">
+      <strong>Ver el menú de la semana</strong>
+      <span>Hacé clic para ver el menú disponible antes de pedir</span>
+    </div>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+  </a>
+  <div class="mode-tabs">
+    <button class="mode-tab active" id="stab-menu-ind" onclick="setMenuSubtabMain('ind')">👤 Individual</button>
+    <button class="mode-tab" id="stab-menu-cuad" onclick="setMenuSubtabMain('cuad')">👥 Cuadrilla</button>
+  </div>
 </div>
 
 <!-- SALIDA INDIVIDUAL -->
-<div class="card show" id="card-individual">
+<div class="card" id="card-individual">
   <div class="card-title">Registrar salida</div>
   <div class="card-sub">Ingresá tu DNI para cargar tus datos automáticamente.</div>
   <div class="err-msg" id="err-ind"></div>
@@ -565,12 +673,6 @@ body{
     No hay semanas configuradas. Consultá con el área de Personal.
   </div>
 
-  <!-- Sub-pestañas individual / cuadrilla -->
-  <div id="menu-subtabs" style="display:none;gap:6px;margin-bottom:16px">
-    <button class="mode-tab active" id="mtab-ind" onclick="setMenuSubtab('ind')" style="flex:1;padding:7px;font-size:12px">👤 Individual</button>
-    <button class="mode-tab" id="mtab-cuad" onclick="setMenuSubtab('cuad')" style="flex:1;padding:7px;font-size:12px">👥 Cuadrilla</button>
-  </div>
-
   <!-- ── INDIVIDUAL ── -->
   <div id="menu-panel-ind" style="display:none">
     <div id="menu-form-wrap">
@@ -681,23 +783,58 @@ const todayISO=()=>new Date().toISOString().slice(0,10);
   if(badge){
     badge.textContent=new Date().toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
   }
-  // En mobile mostrar tabs horizontales
-  if(window.innerWidth<=600){
-    const mt=document.getElementById('mode-tabs-mobile');
-    if(mt)mt.style.display='flex';
-  }
 })();
+
+// ── NAVEGACIÓN ──────────────────────────────────────────────────────
+let _moduloActivo=null; // 'salida' | 'menu' | null
+
+function goHome(){
+  _moduloActivo=null;
+  document.getElementById('home-screen').style.display='';
+  document.getElementById('subnav-salida').classList.remove('show');
+  document.getElementById('subnav-menu').classList.remove('show');
+  document.getElementById('card-individual').classList.remove('show');
+  document.getElementById('card-cuadrilla').classList.remove('show');
+  document.getElementById('card-menu').classList.remove('show');
+  document.getElementById('success-card').classList.remove('show');
+  document.getElementById('hist-card').classList.remove('show');
+  document.getElementById('sidebar-btn-salida').classList.remove('active');
+  document.getElementById('sidebar-btn-menu').classList.remove('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function goModulo(modulo){
+  _moduloActivo=modulo;
+  document.getElementById('home-screen').style.display='none';
+  document.getElementById('subnav-salida').classList.toggle('show',modulo==='salida');
+  document.getElementById('subnav-menu').classList.toggle('show',modulo==='menu');
+  document.getElementById('sidebar-btn-salida').classList.toggle('active',modulo==='salida');
+  document.getElementById('sidebar-btn-menu').classList.toggle('active',modulo==='menu');
+  if(modulo==='salida'){
+    setMode('individual');
+  } else {
+    setMode('menu');
+    initMenuTab();
+  }
+}
+
+function setMenuSubtabMain(t){
+  document.getElementById('stab-menu-ind').classList.toggle('active',t==='ind');
+  document.getElementById('stab-menu-cuad').classList.toggle('active',t==='cuad');
+  document.getElementById('menu-panel-ind').style.display=t==='ind'?'':'none';
+  document.getElementById('menu-panel-cuad').style.display=t==='cuad'?'':'none';
+}
 
 // ── MODO ────────────────────────────────────────────────────────────
 function setMode(m){
   document.getElementById('card-individual').classList.toggle('show',m==='individual');
   document.getElementById('card-cuadrilla').classList.toggle('show',m==='cuadrilla');
   document.getElementById('card-menu').classList.toggle('show',m==='menu');
-  // Sidebar
-  document.getElementById('tab-individual').classList.toggle('active',m==='individual');
-  document.getElementById('tab-cuadrilla').classList.toggle('active',m==='cuadrilla');
-  document.getElementById('tab-menu').classList.toggle('active',m==='menu');
-  if(m==='menu')initMenuTab();
+  // Tabs salida
+  const si=document.getElementById('stab-individual');
+  const sc=document.getElementById('stab-cuadrilla');
+  if(si)si.classList.toggle('active',m==='individual');
+  if(sc)sc.classList.toggle('active',m==='cuadrilla');
 }
 
 function toggleDestino(p){
@@ -1006,7 +1143,7 @@ function mostrarExito(resultados,modo){
   document.getElementById('card-individual').classList.remove('show');
   document.getElementById('card-cuadrilla').classList.remove('show');
   document.getElementById('hist-card').classList.remove('show');
-  document.querySelector('.mode-tabs').style.display='none';
+  document.getElementById('subnav-salida').classList.remove('show');
   document.getElementById('success-card').classList.add('show');
   window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -1127,11 +1264,10 @@ function nueva(){
   document.getElementById('cuad-destino-row').style.display='none';
   document.getElementById('cuad-btn').disabled=false;document.getElementById('cuad-btn').textContent='Enviar cuadrilla';
   hideStatus('cuad');hideErr('err-cuad');
-  document.querySelector('.mode-tabs').style.display='';
   document.getElementById('success-card').classList.remove('show');
   document.getElementById('hist-card').classList.remove('show');
   lastOrders=[];
-  setMode('individual');
+  goHome();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -1158,20 +1294,17 @@ async function initMenuTab(){
 function renderSelectorSemana(){
   const sel=document.getElementById('menu-semana-sel-ext');
   const noSemana=document.getElementById('menu-no-semana');
-  const subtabs=document.getElementById('menu-subtabs');
   const panelInd=document.getElementById('menu-panel-ind');
   const panelCuad=document.getElementById('menu-panel-cuad');
   if(!_menuSemanas.length){
     sel.innerHTML='<option value="">Sin semanas disponibles</option>';
     noSemana.style.display='';
-    subtabs.style.display='none';
     panelInd.style.display='none';panelCuad.style.display='none';
     return;
   }
   noSemana.style.display='none';
   sel.innerHTML='<option value="">— Elegí la semana —</option>'+
     _menuSemanas.map(s=>`<option value="${xe(s.id)}">${xe(s.label)}${s.activo==='SI'?' ✓':''}` ).join('');
-  // Auto-seleccionar la activa
   const activa=_menuSemanas.find(s=>s.activo==='SI');
   if(activa){sel.value=activa.id;menuSeleccionarSemana();}
 }
@@ -1181,20 +1314,17 @@ function menuSeleccionarSemana(){
   const semana=_menuSemanas.find(s=>s.id===selId)||null;
   _menuSemanaActiva=semana;
   const infoEl=document.getElementById('menu-semana-info');
-  const subtabs=document.getElementById('menu-subtabs');
   const panelInd=document.getElementById('menu-panel-ind');
   const panelCuad=document.getElementById('menu-panel-cuad');
-  // Resetear formularios
   menuNuevoPedido();
   mcuadReset();
   if(!semana){
     infoEl.textContent='';
-    subtabs.style.display='none';
     panelInd.style.display='none';panelCuad.style.display='none';
     return;
   }
-  subtabs.style.display='';
-  panelInd.style.display='';panelCuad.style.display='none';
+  // Mostrar subtab individual por defecto
+  setMenuSubtabMain('ind');
   try{
     const dias=typeof semana.dias==='string'?JSON.parse(semana.dias):semana.dias;
     if(dias&&dias.length){
@@ -1338,14 +1468,8 @@ function menuNuevoPedido(){
   _menuAgente=null;
 }
 
-// ── SUBTABS MENÚ ────────────────────────────────────────────────────
-function setMenuSubtab(t){
-  if(!_menuSemanaActiva)return;
-  document.getElementById('menu-panel-ind').style.display=t==='ind'?'':'none';
-  document.getElementById('menu-panel-cuad').style.display=t==='cuad'?'':'none';
-  document.getElementById('mtab-ind').classList.toggle('active',t==='ind');
-  document.getElementById('mtab-cuad').classList.toggle('active',t==='cuad');
-}
+// setMenuSubtab ahora es alias de setMenuSubtabMain
+function setMenuSubtab(t){setMenuSubtabMain(t);}
 
 // ── CUADRILLA MENÚ ──────────────────────────────────────────────────
 let _mcuadTimer=null;
