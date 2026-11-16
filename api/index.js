@@ -11,6 +11,7 @@ function getDb() {
   return neon(process.env.DATABASE_URL);
 }
 
+
 // ── UTILS ─────────────────────────────────────────────────────────────
 function genId(prefix) {
   return `${prefix}_${crypto.randomBytes(6).toString('hex')}`;
@@ -186,6 +187,20 @@ module.exports = async function handler(req, res) {
       ]);
 
       return ok(res, { stats: { agentes: ag[0], ordenes_salida: os[0], ordenes_trabajo: ot[0] } });
+    }
+
+    // ─ INIT DB (crear índices una sola vez) ───────────────────────
+    if (action === 'initDb') {
+      const auth = requireAuth(req, 'superadmin');
+      if (!auth) return err(res, 'No autorizado', 401);
+      await sql`CREATE EXTENSION IF NOT EXISTS pg_trgm`;
+      await sql`CREATE INDEX IF NOT EXISTS idx_agentes_search_trgm
+                ON agentes USING gin (search_key gin_trgm_ops)`;
+      await sql`CREATE INDEX IF NOT EXISTS idx_agentes_activo ON agentes (activo)`;
+      await sql`CREATE INDEX IF NOT EXISTS idx_agentes_sector ON agentes (sector)`;
+      await sql`CREATE INDEX IF NOT EXISTS idx_agentes_establecimiento ON agentes (establecimiento)`;
+      await sql`CREATE INDEX IF NOT EXISTS idx_agentes_apellido ON agentes (apellido_nombre)`;
+      return ok(res, { msg: 'Índices creados OK' });
     }
 
     // ─ BUSCAR AGENTES ─────────────────────────────────────────────
