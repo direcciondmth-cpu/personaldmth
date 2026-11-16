@@ -283,12 +283,82 @@ body{
 .modal-ftr .btn{width:auto;padding:9px 18px;margin-top:0;font-size:13px}
 
 /* ── MOBILE ─────────────────────────────────────────────────── */
-@media(max-width:600px){
+@media(max-width:640px){
+  /* Layout */
   body{flex-direction:column}
   .pa-sidebar{display:none}
-  .pa-main{padding:16px 12px 60px}
-  .home-btn{padding:16px 14px;gap:12px}
-  .home-btn-icon{width:40px;height:40px}
+  .pa-main{padding:12px 12px 80px}
+
+  /* Header compacto */
+  .header{padding:10px 12px;gap:8px;border-radius:var(--r2)}
+  .header svg{width:20px;height:24px}
+  .header-text h1{font-size:13px}
+  .header-text p{font-size:10px}
+  .header-badge{font-size:9px;padding:3px 8px}
+
+  /* Home */
+  .home-screen{margin-top:10px;gap:10px}
+  .home-btn{padding:16px 14px;gap:12px;border-radius:var(--r2)}
+  .home-btn-icon{width:44px;height:44px;border-radius:10px}
+  .home-btn-text h2{font-size:14px}
+  .home-btn-text p{font-size:11px}
+
+  /* Subnav */
+  .subnav{margin:10px 0 0}
+  .subnav-modulo{font-size:13px}
+  .subnav-back{font-size:12px;padding:6px 8px}
+
+  /* Tabs — target táctil de 44px */
+  .mode-tabs{gap:6px;margin-bottom:10px}
+  .mode-tab{padding:11px 8px;font-size:12px;min-height:44px}
+
+  /* Link menú */
+  .menu-sheet-link{padding:10px 12px}
+  .menu-sheet-link-txt strong{font-size:12px}
+  .menu-sheet-link-txt span{font-size:10px}
+
+  /* Cards */
+  .card{padding:16px;border-radius:var(--r2)}
+  .card-title{font-size:13px}
+  .card-sub{font-size:11px;margin-bottom:14px}
+
+  /* Formularios */
+  .field{margin-bottom:12px}
+  .field label{font-size:12px}
+  .field input,.field select,.field textarea{
+    font-size:16px; /* evita zoom automático en iOS */
+    padding:11px 12px;
+    min-height:44px;
+  }
+  /* Colapsar columnas en mobile */
+  .field-row{grid-template-columns:1fr;gap:12px}
+
+  /* Cuadrilla */
+  .cuad-add-btn{width:100%;padding:11px;font-size:14px;min-height:44px}
+  .cuad-item{padding:10px 10px}
+  .cuad-item-del{min-width:36px;min-height:36px;display:flex;align-items:center;justify-content:center}
+
+  /* Botones */
+  .btn{padding:14px;font-size:14px;min-height:48px;border-radius:var(--r2)}
+  .success-btns{flex-direction:column;gap:8px}
+  .success-btns .btn{width:100%}
+
+  /* Success */
+  .success-card{padding:18px;border-radius:var(--r2)}
+  .success-num{font-size:18px}
+
+  /* Historial: tabla scrollable */
+  .hist-card{padding:14px;border-radius:var(--r2)}
+  .hist-card .hist-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .hist-table{min-width:460px}
+
+  /* Modal */
+  .modal-box{margin:12px;padding:18px;max-width:calc(100vw - 24px)}
+  .modal-ftr{flex-direction:column-reverse;gap:8px}
+  .modal-ftr .btn{width:100%;padding:12px;text-align:center}
+
+  /* Alerta éxito */
+  .success-alert{font-size:12px;padding:10px}
 }
 
 /* ── PRINT ──────────────────────────────────────────────────── */
@@ -604,7 +674,7 @@ body{
 <!-- HISTORIAL (visible después de lookup DNI exitoso) -->
 <div class="hist-card" id="hist-card">
   <div class="hist-title" id="hist-title">Mis últimas órdenes</div>
-  <div id="hist-body"></div>
+  <div class="hist-table-wrap"><div id="hist-body"></div></div>
 </div>
 
 <!-- MODAL EDITAR ORDEN -->
